@@ -103,9 +103,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       // Step 3: Fresh user should land on Profile Onboarding Screen
-      expect(find.text('Complete Store & Role Setup'), findsOneWidget);
-      expect(find.text('1. SELECT YOUR APP ROLE'), findsOneWidget);
-      expect(find.text('COMPLETE & ENTER APP'), findsOneWidget);
+      expect(find.text('Store & Profile Setup'), findsOneWidget);
+      expect(find.text('1. SHOPKEEPER DETAILS'), findsOneWidget);
+      expect(find.text('COMPLETE & ENTER SALES TERMINAL'), findsOneWidget);
 
       // Fill in onboarding details
       // 1. Name
@@ -132,7 +132,7 @@ void main() {
       await tester.pump();
 
       // Scroll button into view and tap
-      final submitBtn = find.text('COMPLETE & ENTER APP');
+      final submitBtn = find.text('COMPLETE & ENTER SALES TERMINAL');
       await tester.ensureVisible(submitBtn);
       await tester.pumpAndSettle();
 

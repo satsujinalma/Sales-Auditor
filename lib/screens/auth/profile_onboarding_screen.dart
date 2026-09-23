@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../models/app_user.dart';
 import '../../models/pricing_config.dart';
 import '../../models/shop_model.dart';
-import '../../providers/admin_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sales_provider.dart';
 
@@ -18,12 +17,10 @@ class ProfileOnboardingScreen extends StatefulWidget {
 class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  UserRole _selectedRole = UserRole.shopkeeper;
-
-  // Common Field
+  // Shopkeeper Personal Field
   final _nameController = TextEditingController();
 
-  // Shopkeeper Fields
+  // Shop Details Fields
   final _shopNameController = TextEditingController();
   final _locationController = TextEditingController();
   final _shopCodeController = TextEditingController();
@@ -31,9 +28,6 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
   final _setPriceController = TextEditingController(text: '570');
   final _claimedAvgController = TextEditingController(text: '47.20');
   BulkPricingFormula _bulkFormula = BulkPricingFormula.proRata;
-
-  // Admin Fields
-  final _adminPinController = TextEditingController(text: '1234');
 
   @override
   void dispose() {
@@ -44,7 +38,6 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
     _singleTicketPriceController.dispose();
     _setPriceController.dispose();
     _claimedAvgController.dispose();
-    _adminPinController.dispose();
     super.dispose();
   }
 
@@ -59,7 +52,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
         backgroundColor: const Color(0xFF0F766E),
         elevation: 2,
         title: const Text(
-          'Complete Store & Role Setup',
+          'Store & Profile Setup',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -102,7 +95,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
-                          Icons.verified_user,
+                          Icons.storefront,
                           color: Color(0xFF4ADE80),
                           size: 26,
                         ),
@@ -113,7 +106,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'FIRST TIME SETUP',
+                              'FIRST TIME SHOP SETUP',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
@@ -132,7 +125,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                             ),
                             const SizedBox(height: 2),
                             const Text(
-                              'Configure your store profile to begin live tracking.',
+                              'Configure your store profile to begin live sales tracking.',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: Colors.white70,
@@ -147,42 +140,8 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
 
                 const SizedBox(height: 20),
 
-                // ROLE SELECTOR
-                _buildSectionHeader('1. SELECT YOUR APP ROLE', Icons.badge),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildRoleCard(
-                          role: UserRole.shopkeeper,
-                          title: 'Shopkeeper Terminal',
-                          subtitle: 'Retail Counter & One-Tap Sales',
-                          icon: Icons.storefront,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: _buildRoleCard(
-                          role: UserRole.admin,
-                          title: 'Admin Head App',
-                          subtitle: 'Multi-Shop Remote Auditor',
-                          icon: Icons.shield,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // COMMON PROFILE INFO
-                _buildSectionHeader('2. PERSONAL DETAILS', Icons.person),
+                // 1. PERSONAL DETAILS
+                _buildSectionHeader('1. SHOPKEEPER DETAILS', Icons.person),
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -194,15 +153,11 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                     children: [
                       TextFormField(
                         controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: _selectedRole == UserRole.shopkeeper
-                              ? 'Shopkeeper Name'
-                              : 'Auditor / Owner Name',
-                          hintText: _selectedRole == UserRole.shopkeeper
-                              ? 'e.g. Rajesh Kumar'
-                              : 'e.g. Central Audit Team',
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.person_outline),
+                        decoration: const InputDecoration(
+                          labelText: 'Shopkeeper Name',
+                          hintText: 'e.g. Rajesh Kumar',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.person_outline),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -217,205 +172,160 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
 
                 const SizedBox(height: 20),
 
-                // ROLE SPECIFIC FIELDS
-                if (_selectedRole == UserRole.shopkeeper) ...[
-                  // SHOP DETAILS
-                  _buildSectionHeader(
-                    '3. STORE & LOCATION DETAILS',
-                    Icons.location_on,
+                // 2. STORE & LOCATION DETAILS
+                _buildSectionHeader(
+                  '2. STORE & LOCATION DETAILS',
+                  Icons.location_on,
+                ),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _shopNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Shop / Agency Name',
-                            hintText: 'e.g. Nayarambalam Lottery Agency',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.store),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _shopNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Shop / Agency Name',
+                          hintText: 'e.g. Nayarambalam Lottery Agency',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.store),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter shop name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 6,
+                            child: TextFormField(
+                              controller: _locationController,
+                              decoration: const InputDecoration(
+                                labelText: 'Location / Landmark',
+                                hintText: 'e.g. Nayarambalam, Vypin',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.place_outlined),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter location';
+                                }
+                                return null;
+                              },
+                            ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter shop name';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 6,
-                              child: TextFormField(
-                                controller: _locationController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Location / Landmark',
-                                  hintText: 'e.g. Nayarambalam, Vypin',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.place_outlined),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'Please enter location';
-                                  }
-                                  return null;
-                                },
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 4,
+                            child: TextFormField(
+                              controller: _shopCodeController,
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: const InputDecoration(
+                                labelText: 'Shop Code',
+                                hintText: 'NYR-01',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.tag),
                               ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Code required';
+                                }
+                                return null;
+                              },
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              flex: 4,
-                              child: TextFormField(
-                                controller: _shopCodeController,
-                                textCapitalization: TextCapitalization.characters,
-                                decoration: const InputDecoration(
-                                  labelText: 'Shop Code',
-                                  hintText: 'NYR-01',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.tag),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'Code required';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  // PRICING CONFIGURATION FOR THIS SHOP
-                  _buildSectionHeader(
-                    '4. SHOP PRICING STRUCTURE (KERALA LOTTERY)',
-                    Icons.currency_rupee,
+                // 3. PRICING CONFIGURATION FOR THIS SHOP
+                _buildSectionHeader(
+                  '3. SHOP PRICING STRUCTURE (KERALA LOTTERY)',
+                  Icons.currency_rupee,
+                ),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Configure the base rate and 1-Set (12 tickets) discount for this shop:',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _singleTicketPriceController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: '1 Ticket MRP (₹)',
-                                  hintText: '50',
-                                  border: OutlineInputBorder(),
-                                  prefixText: '₹ ',
-                                ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Configure the base rate and 1-Set (12 tickets) discount for this shop:',
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _singleTicketPriceController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: '1 Ticket MRP (₹)',
+                                hintText: '50',
+                                border: OutlineInputBorder(),
+                                prefixText: '₹ ',
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _setPriceController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: '1 Set (12 Tkts) (₹)',
-                                  hintText: '570',
-                                  border: OutlineInputBorder(),
-                                  prefixText: '₹ ',
-                                  helperText: 'e.g. ₹570 Nayarambalam',
-                                ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _setPriceController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: '1 Set (12 Tkts) (₹)',
+                                hintText: '570',
+                                border: OutlineInputBorder(),
+                                prefixText: '₹ ',
+                                helperText: 'e.g. ₹570 Nayarambalam',
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'Formula for transactions > 12 tickets:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Formula for transactions > 12 tickets:',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
                         ),
-                        const SizedBox(height: 6),
-                        _buildFormulaChoice(
-                          formula: BulkPricingFormula.proRata,
-                          title: 'Pro-Rata Set Rate (Recommended)',
-                          description:
-                              'Price = Qty × (Set Price ÷ 12). e.g., 15 tickets @ ₹47.50 = ₹712.50',
-                        ),
-                        const Divider(height: 14),
-                        _buildFormulaChoice(
-                          formula: BulkPricingFormula.setPlusRemainder,
-                          title: 'Bundled Sets + Remainder',
-                          description:
-                              'Price = (Sets × Set Rate) + (Remainder × Single Rate)',
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 6),
+                      _buildFormulaChoice(
+                        formula: BulkPricingFormula.proRata,
+                        title: 'Pro-Rata Set Rate (Recommended)',
+                        description:
+                            'Price = Qty × (Set Price ÷ 12). e.g., 15 tickets @ ₹47.50 = ₹712.50',
+                      ),
+                      const Divider(height: 14),
+                      _buildFormulaChoice(
+                        formula: BulkPricingFormula.setPlusRemainder,
+                        title: 'Bundled Sets + Remainder',
+                        description:
+                            'Price = (Sets × Set Rate) + (Remainder × Single Rate)',
+                      ),
+                    ],
                   ),
-                ] else ...[
-                  // ADMIN MASTER PIN SETUP
-                  _buildSectionHeader(
-                    '3. ADMIN SECURITY CONFIGURATION',
-                    Icons.security,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Set your 4-digit Master PIN to protect ticket pricing alterations:',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _adminPinController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 4,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: '4-Digit Admin PIN',
-                            hintText: '1234',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.pin),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().length != 4) {
-                              return 'PIN must be 4 digits';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
 
                 const SizedBox(height: 24),
 
@@ -444,9 +354,9 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                     label: Text(
                       authProvider.isLoading
                           ? 'SAVING SETUP...'
-                          : 'COMPLETE & ENTER APP',
+                          : 'COMPLETE & ENTER SALES TERMINAL',
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
@@ -461,57 +371,6 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoleCard({
-    required UserRole role,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-  }) {
-    final isSelected = _selectedRole == role;
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: () => setState(() => _selectedRole = role),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF0F766E).withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF0F766E) : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 26,
-              color: isSelected ? const Color(0xFF0F766E) : Colors.black54,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: isSelected ? const Color(0xFF0F766E) : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 10, color: Colors.black54),
-            ),
-          ],
         ),
       ),
     );
@@ -594,52 +453,40 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
   void _handleSubmit(AuthProvider authProvider) async {
     if (!_formKey.currentState!.validate()) return;
 
-    Shop? newShop;
+    final singlePrice =
+        double.tryParse(_singleTicketPriceController.text.trim()) ?? 50.0;
+    final setPrice =
+        double.tryParse(_setPriceController.text.trim()) ?? 570.0;
+    final claimedAvg =
+        double.tryParse(_claimedAvgController.text.trim()) ?? 47.20;
 
-    if (_selectedRole == UserRole.shopkeeper) {
-      final singlePrice =
-          double.tryParse(_singleTicketPriceController.text.trim()) ?? 50.0;
-      final setPrice =
-          double.tryParse(_setPriceController.text.trim()) ?? 570.0;
-      final claimedAvg =
-          double.tryParse(_claimedAvgController.text.trim()) ?? 47.20;
+    final shopId = _shopCodeController.text.trim().toLowerCase().replaceAll(
+          RegExp(r'[^a-z0-9_]'),
+          '_',
+        );
 
-      final shopId = _shopCodeController.text.trim().toLowerCase().replaceAll(
-            RegExp(r'[^a-z0-9_]'),
-            '_',
-          );
-
-      newShop = Shop(
-        id: shopId,
-        name: _shopNameController.text.trim(),
-        location: _locationController.text.trim(),
-        code: _shopCodeController.text.trim().toUpperCase(),
-        pricingConfig: PricingConfig(
-          singleTicketPrice: singlePrice,
-          setPrice12: setPrice,
-          bulkFormula: _bulkFormula,
-          claimedAvgPrice: claimedAvg,
-        ),
-      );
-    }
+    final newShop = Shop(
+      id: shopId,
+      name: _shopNameController.text.trim(),
+      location: _locationController.text.trim(),
+      code: _shopCodeController.text.trim().toUpperCase(),
+      pricingConfig: PricingConfig(
+        singleTicketPrice: singlePrice,
+        setPrice12: setPrice,
+        bulkFormula: _bulkFormula,
+        claimedAvgPrice: claimedAvg,
+      ),
+    );
 
     final success = await authProvider.completeOnboarding(
       name: _nameController.text.trim(),
-      role: _selectedRole,
+      role: UserRole.shopkeeper,
       initialShop: newShop,
     );
 
     if (success && mounted) {
-      if (_selectedRole == UserRole.shopkeeper && newShop != null) {
-        // Select the newly registered shop in SalesProvider
-        context.read<SalesProvider>().selectShop(newShop.id);
-      } else if (_selectedRole == UserRole.admin) {
-        // Update Admin PIN if provided
-        final pin = _adminPinController.text.trim();
-        if (pin.isNotEmpty) {
-          context.read<AdminProvider>().updatePin(pin);
-        }
-      }
+      // Select the newly registered shop in SalesProvider
+      context.read<SalesProvider>().selectShop(newShop.id);
     }
   }
 }
