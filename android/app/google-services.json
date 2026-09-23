@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "114088417877",
+    "project_id": "sales-auditor-562b0",
+    "storage_bucket": "sales-auditor-562b0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:114088417877:android:14bf656ac91ec588c092dc",
+        "android_client_info": {
+          "package_name": "com.example.sales_auditor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiSIjNCrRYb6nCU-yCBXzam0WBpHd6yTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
