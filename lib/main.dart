@@ -3,13 +3,12 @@ import 'package:provider/provider.dart';
 import 'providers/admin_provider.dart';
 import 'providers/sales_provider.dart';
 import 'screens/mode_selection_screen.dart';
-import 'services/mock_live_sales_repository.dart';
+import 'services/repository_factory.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final repository = MockLiveSalesRepository();
-  await repository.init();
+  final repository = await RepositoryFactory.createRepository();
 
   runApp(
     MultiProvider(
