@@ -8,31 +8,37 @@ enum AppMode {
 }
 
 class ModeSelectionScreen extends StatefulWidget {
-  const ModeSelectionScreen({super.key});
+  final AppMode initialMode;
+
+  const ModeSelectionScreen({
+    super.key,
+    this.initialMode = AppMode.shopkeeper,
+  });
 
   @override
   State<ModeSelectionScreen> createState() => _ModeSelectionScreenState();
 }
 
 class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
-  AppMode _currentMode = AppMode.shopkeeper;
+  late AppMode _currentMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentMode = widget.initialMode;
+  }
 
   @override
   Widget build(BuildContext context) {
     if (_currentMode == AppMode.shopkeeper) {
       return ShopkeeperSalesScreen(
-        onSwitchToAdmin: () => _promptAdminMode(context),
+        onSwitchToAdmin: () => setState(() => _currentMode = AppMode.admin),
       );
     } else {
       return AdminDashboardScreen(
-        onSwitchToShopkeeper: () {
-          setState(() => _currentMode = AppMode.shopkeeper);
-        },
+        onSwitchToShopkeeper: () =>
+            setState(() => _currentMode = AppMode.shopkeeper),
       );
     }
-  }
-
-  void _promptAdminMode(BuildContext context) {
-    setState(() => _currentMode = AppMode.admin);
   }
 }

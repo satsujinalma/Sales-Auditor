@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/daily_sales_summary.dart';
 import '../../providers/admin_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/audit_comparison_card.dart';
 import '../../widgets/recent_transactions_list.dart';
 import '../../widgets/three_output_boxes_widget.dart';
@@ -80,6 +81,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             tooltip: 'Pricing & System Settings (PIN Protected)',
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () => _openSettings(adminProvider),
+          ),
+          IconButton(
+            tooltip: 'Sign Out',
+            icon: const Icon(Icons.logout, color: Colors.white70, size: 20),
+            onPressed: () => context.read<AuthProvider>().signOut(),
           ),
         ],
         bottom: PreferredSize(

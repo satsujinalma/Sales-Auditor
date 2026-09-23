@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_auditor/main.dart';
+import 'package:sales_auditor/models/app_user.dart';
 import 'package:sales_auditor/providers/admin_provider.dart';
+import 'package:sales_auditor/providers/auth_provider.dart';
 import 'package:sales_auditor/providers/sales_provider.dart';
+import 'package:sales_auditor/services/hybrid_auth_repository.dart';
 import 'package:sales_auditor/services/mock_live_sales_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,9 +22,24 @@ void main() {
     await repository.init();
     await repository.resetDaySales('nayarambalam');
 
+    final authRepository = HybridAuthRepository(repository);
+    await authRepository.init();
+    final freshUser = await authRepository.verifyOtp(
+      phoneNumber: '+91 9876543210',
+      otp: '123456',
+    );
+    await authRepository.completeOnboarding(
+      user: freshUser.copyWith(
+        name: 'Test Shopkeeper',
+        role: UserRole.shopkeeper,
+        shopId: 'nayarambalam',
+      ),
+    );
+
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider(authRepository)),
           ChangeNotifierProvider(create: (_) => SalesProvider(repository)),
           ChangeNotifierProvider(create: (_) => AdminProvider(repository)),
         ],

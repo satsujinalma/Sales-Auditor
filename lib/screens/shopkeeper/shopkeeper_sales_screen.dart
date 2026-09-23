@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/sales_provider.dart';
 import '../../services/pricing_calculator.dart';
 import '../../widgets/audit_comparison_card.dart';
@@ -89,6 +90,11 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             tooltip: 'Admin / Head App',
             icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white),
             onPressed: widget.onSwitchToAdmin,
+          ),
+          IconButton(
+            tooltip: 'Sign Out',
+            icon: const Icon(Icons.logout, color: Colors.white70, size: 20),
+            onPressed: () => context.read<AuthProvider>().signOut(),
           ),
         ],
       ),
