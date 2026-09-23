@@ -22,8 +22,6 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
 
   // Shop Details Fields
   final _shopNameController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _shopCodeController = TextEditingController();
   final _singleTicketPriceController = TextEditingController(text: '50');
   final _setPriceController = TextEditingController(text: '570');
   final _claimedAvgController = TextEditingController(text: '47.20');
@@ -33,8 +31,6 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
   void dispose() {
     _nameController.dispose();
     _shopNameController.dispose();
-    _locationController.dispose();
-    _shopCodeController.dispose();
     _singleTicketPriceController.dispose();
     _setPriceController.dispose();
     _claimedAvgController.dispose();
@@ -172,10 +168,10 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
 
                 const SizedBox(height: 20),
 
-                // 2. STORE & LOCATION DETAILS
+                // 2. STORE DETAILS
                 _buildSectionHeader(
-                  '2. STORE & LOCATION DETAILS',
-                  Icons.location_on,
+                  '2. STORE DETAILS',
+                  Icons.store,
                 ),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -189,10 +185,10 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                       TextFormField(
                         controller: _shopNameController,
                         decoration: const InputDecoration(
-                          labelText: 'Shop / Agency Name',
-                          hintText: 'e.g. Nayarambalam Lottery Agency',
+                          labelText: 'Shop Name',
+                          hintText: 'e.g. Nayarambalam',
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.store),
+                          prefixIcon: Icon(Icons.storefront_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -200,49 +196,6 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                           }
                           return null;
                         },
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: TextFormField(
-                              controller: _locationController,
-                              decoration: const InputDecoration(
-                                labelText: 'Location / Landmark',
-                                hintText: 'e.g. Nayarambalam, Vypin',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.place_outlined),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter location';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 4,
-                            child: TextFormField(
-                              controller: _shopCodeController,
-                              textCapitalization: TextCapitalization.characters,
-                              decoration: const InputDecoration(
-                                labelText: 'Shop Code',
-                                hintText: 'NYR-01',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.tag),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Code required';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -460,16 +413,25 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
     final claimedAvg =
         double.tryParse(_claimedAvgController.text.trim()) ?? 47.20;
 
-    final shopId = _shopCodeController.text.trim().toLowerCase().replaceAll(
+    final shopName = _shopNameController.text.trim();
+    final sanitizedId = shopName.toLowerCase().replaceAll(
           RegExp(r'[^a-z0-9_]'),
           '_',
         );
+    final shopId = sanitizedId.isNotEmpty
+        ? sanitizedId
+        : 'shop_${DateTime.now().millisecondsSinceEpoch}';
+
+    final alphaCode = shopName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final cleanCode = alphaCode.length > 6
+        ? alphaCode.substring(0, 6)
+        : (alphaCode.isNotEmpty ? alphaCode : 'SHOP');
 
     final newShop = Shop(
       id: shopId,
-      name: _shopNameController.text.trim(),
-      location: _locationController.text.trim(),
-      code: _shopCodeController.text.trim().toUpperCase(),
+      name: shopName,
+      location: shopName,
+      code: cleanCode,
       pricingConfig: PricingConfig(
         singleTicketPrice: singlePrice,
         setPrice12: setPrice,

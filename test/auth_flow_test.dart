@@ -115,18 +115,8 @@ void main() {
       );
       // 2. Shop Name
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Shop / Agency Name'),
-        'Nayarambalam Central Lucky Center',
-      );
-      // 3. Location
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Location / Landmark'),
-        'Nayarambalam Junction',
-      );
-      // 4. Shop Code
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Shop Code'),
-        'NYR-05',
+        find.widgetWithText(TextFormField, 'Shop Name'),
+        'Nayarambalam Store',
       );
 
       await tester.pump();
