@@ -27,6 +27,9 @@ class FirestoreSalesRepository implements SalesRepository {
   DocumentReference<Map<String, dynamic>> get _settingsRef =>
       _firestore.collection('settings').doc('admin_config');
 
+  DocumentReference<Map<String, dynamic>> get _adminCredentialsRef =>
+      _firestore.collection('settings').doc('admin_credentials');
+
   String _dateKey(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
@@ -52,6 +55,16 @@ class FirestoreSalesRepository implements SalesRepository {
     final settingsDoc = await _settingsRef.get();
     if (!settingsDoc.exists) {
       await _settingsRef.set({'adminPin': '1234'});
+    }
+
+    // Seed default admin credentials in cloud database if not set
+    final credsDoc = await _adminCredentialsRef.get();
+    if (!credsDoc.exists) {
+      await _adminCredentialsRef.set({
+        'username': 'admin',
+        'password': 'vazhapazhamadmin@321',
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
     }
   }
 
@@ -231,5 +244,41 @@ class FirestoreSalesRepository implements SalesRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keySelectedShop, shopId);
     } catch (_) {}
+  }
+
+  Future<Map<String, String>> getAdminCredentials() async {
+    try {
+      final doc = await _adminCredentialsRef.get();
+      if (doc.exists && doc.data() != null) {
+        return {
+          'username': doc.data()!['username'] as String? ?? 'admin',
+          'password': doc.data()!['password'] as String? ?? 'vazhapazhamadmin@321',
+        };
+      }
+    } catch (_) {}
+    return {
+      'username': 'admin',
+      'password': 'vazhapazhamadmin@321',
+    };
+  }
+
+  Future<void> updateAdminCredentials({
+    required String username,
+    required String password,
+  }) async {
+    await _adminCredentialsRef.set({
+      'username': username.trim(),
+      'password': password.trim(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<bool> verifyAdminCredentials({
+    required String username,
+    required String password,
+  }) async {
+    final creds = await getAdminCredentials();
+    return creds['username'] == username.trim() &&
+        creds['password'] == password.trim();
   }
 }

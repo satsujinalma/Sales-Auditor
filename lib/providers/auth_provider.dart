@@ -13,6 +13,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isVerifyingOtp = false;
   bool _isOtpSent = false;
   String _phoneNumber = '';
+  bool _isLoggingInAsAdmin = false;
   String? _errorMessage;
 
   StreamSubscription<AppUser?>? _authSubscription;
@@ -27,6 +28,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSendingOtp => _isSendingOtp;
   bool get isVerifyingOtp => _isVerifyingOtp;
+  bool get isLoggingInAsAdmin => _isLoggingInAsAdmin;
   bool get isOtpSent => _isOtpSent;
   String get phoneNumber => _phoneNumber;
   String? get errorMessage => _errorMessage;
@@ -46,6 +48,56 @@ class AuthProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> loginWithAdminCredentials(String username, String password) async {
+    _isLoggingInAsAdmin = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final user = await _authRepository.loginWithAdminCredentials(
+        username: username.trim(),
+        password: password.trim(),
+      );
+      _currentUser = user;
+      _isLoggingInAsAdmin = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoggingInAsAdmin = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<Map<String, String>> getAdminCredentials() async {
+    return await _authRepository.getAdminCredentials();
+  }
+
+  Future<bool> updateAdminCredentials({
+    required String username,
+    required String password,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authRepository.updateAdminCredentials(
+        username: username.trim(),
+        password: password.trim(),
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to update credentials: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 

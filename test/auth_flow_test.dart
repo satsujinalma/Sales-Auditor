@@ -146,5 +146,115 @@ void main() {
       expect(find.text('BOX 3'), findsOneWidget);
       expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
     });
+
+    test('Unit Test: Admin login with default credentials and update credentials', () async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+      final authRepo = HybridAuthRepository(salesRepo);
+      await authRepo.init();
+
+      // Verify default admin credentials
+      final initialCreds = await authRepo.getAdminCredentials();
+      expect(initialCreds['username'], 'admin');
+      expect(initialCreds['password'], 'vazhapazhamadmin@321');
+
+      // Login with default admin credentials
+      final adminUser = await authRepo.loginWithAdminCredentials(
+        username: 'admin',
+        password: 'vazhapazhamadmin@321',
+      );
+
+      expect(adminUser.role, UserRole.admin);
+      expect(adminUser.isProfileComplete, true);
+      expect(adminUser.name, 'Central Admin & Auditor');
+
+      // Update admin credentials
+      await authRepo.updateAdminCredentials(
+        username: 'superadmin',
+        password: 'newsecurepassword@999',
+      );
+
+      final updatedCreds = await authRepo.getAdminCredentials();
+      expect(updatedCreds['username'], 'superadmin');
+      expect(updatedCreds['password'], 'newsecurepassword@999');
+
+      // Old password should now fail
+      expect(
+        () => authRepo.loginWithAdminCredentials(
+          username: 'admin',
+          password: 'vazhapazhamadmin@321',
+        ),
+        throwsException,
+      );
+
+      // New password should succeed
+      final updatedAdmin = await authRepo.loginWithAdminCredentials(
+        username: 'superadmin',
+        password: 'newsecurepassword@999',
+      );
+      expect(updatedAdmin.role, UserRole.admin);
+    });
+
+    testWidgets('Widget Test: Admin direct login with username & password to Admin Dashboard', (
+      WidgetTester tester,
+    ) async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+      final authRepo = HybridAuthRepository(salesRepo);
+      await authRepo.init();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider(authRepo)),
+            ChangeNotifierProvider(create: (_) => SalesProvider(salesRepo)),
+            ChangeNotifierProvider(create: (_) => AdminProvider(salesRepo)),
+          ],
+          child: const KeralaLotteryAuditorApp(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // 1. Verify on PhoneLoginScreen
+      expect(find.text('Shopkeeper (OTP)'), findsOneWidget);
+      expect(find.text('Admin Login'), findsOneWidget);
+
+      // 2. Switch to Admin Login tab
+      await tester.tap(find.text('Admin Login'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // 3. Verify Admin login form is shown
+      expect(find.text('Admin Direct Login'), findsOneWidget);
+      expect(find.text('SIGN IN AS ADMIN'), findsOneWidget);
+
+      // 4. Fill in Admin credentials
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Admin Username'),
+        'admin',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Admin Password'),
+        'vazhapazhamadmin@321',
+      );
+      await tester.pump();
+
+      // 5. Scroll to SIGN IN AS ADMIN button and tap
+      final signInBtn = find.text('SIGN IN AS ADMIN');
+      await tester.ensureVisible(signInBtn);
+      await tester.pumpAndSettle();
+
+      await tester.tap(signInBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      // 6. Should land directly on Admin Dashboard
+      expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);
+      expect(find.text('LIVE MIRRORED UI'), findsOneWidget);
+      expect(find.text('ALL SHOPS SUMMARY'), findsOneWidget);
+    });
   });
 }
