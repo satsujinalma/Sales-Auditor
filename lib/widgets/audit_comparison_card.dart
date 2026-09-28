@@ -25,35 +25,36 @@ class AuditComparisonCard extends StatelessWidget {
     final targetMin = pricingConfig.targetBenchmarkMin; // 48.30
     final targetMax = pricingConfig.targetBenchmarkMax; // 48.50
 
-    // Audit status assessment
+    // Audit status assessment in simple, plain English
     Color statusColor;
     String statusTitle;
     String statusInsight;
     IconData statusIcon;
 
     if (totalTickets == 0) {
-      statusColor = Colors.grey;
-      statusTitle = 'Awaiting Sales Data';
-      statusInsight = 'Record transactions to generate audit assessment.';
-      statusIcon = Icons.hourglass_empty;
+      statusColor = const Color(0xFF64748B);
+      statusTitle = 'Waiting for Sales';
+      statusInsight =
+          'No tickets entered yet today. Live audit check will appear here as sales happen.';
+      statusIcon = Icons.hourglass_bottom;
     } else if (avgPrice >= targetMin) {
       statusColor = const Color(0xFF15803D); // Green
-      statusTitle = 'Target Average Maintained (₹${avgPrice.toStringAsFixed(2)})';
+      statusTitle = 'Full Profit Rate (₹${avgPrice.toStringAsFixed(2)} / tkt)';
       statusInsight =
-          'Actual avg is within benchmark (₹$targetMin - ₹$targetMax). Bulk claims do not lower margins.';
-      statusIcon = Icons.check_circle;
+          'Good profit! Most tickets were sold as singles (₹50). Total collection matches target (₹$targetMin – ₹$targetMax).';
+      statusIcon = Icons.check_circle_outline;
     } else if (avgPrice > claimedPrice + 0.3) {
-      statusColor = Colors.amber.shade800; // Orange
-      statusTitle = 'Moderate Margin (₹${avgPrice.toStringAsFixed(2)})';
+      statusColor = const Color(0xFFD97706); // Amber
+      statusTitle = 'Normal Set Sales (₹${avgPrice.toStringAsFixed(2)} / tkt)';
       statusInsight =
-          'Actual avg is higher than shopkeeper claimed ₹$claimedPrice. Bulk sales account for ${bulkPercent.toStringAsFixed(1)}% of volume.';
-      statusIcon = Icons.warning_amber_rounded;
+          'Customers bought mostly 12-ticket sets. Average collected is ₹${avgPrice.toStringAsFixed(2)} per ticket (better than shop claim of ₹$claimedPrice).';
+      statusIcon = Icons.info_outline;
     } else {
-      statusColor = Colors.red.shade700; // Red
-      statusTitle = 'Low Average Detected (₹${avgPrice.toStringAsFixed(2)})';
+      statusColor = const Color(0xFFEA580C); // Orange
+      statusTitle = 'High Discount Sets (₹${avgPrice.toStringAsFixed(2)} / tkt)';
       statusInsight =
-          'Matches claimed ₹$claimedPrice. Verified: Bulk/Set sales represent ${bulkPercent.toStringAsFixed(1)}% of total volume.';
-      statusIcon = Icons.info;
+          'Almost all sales (${bulkPercent.toStringAsFixed(0)}%) were 12-ticket sets at discount. Average collected is ₹${avgPrice.toStringAsFixed(2)} per ticket.';
+      statusIcon = Icons.warning_amber_rounded;
     }
 
     return Container(
@@ -90,7 +91,7 @@ class AuditComparisonCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'AUDIT ANALYSIS & BENCHMARK',
+                      'SALES & PROFIT AUDIT',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
@@ -112,7 +113,7 @@ class AuditComparisonCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             statusInsight,
             style: const TextStyle(
@@ -135,7 +136,7 @@ class AuditComparisonCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _buildPriceBadge(
-                label: 'Actual Live Avg',
+                label: "Today's Average",
                 value: totalTickets > 0
                     ? '₹${avgPrice.toStringAsFixed(2)}'
                     : '₹0.00',
@@ -146,7 +147,7 @@ class AuditComparisonCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _buildPriceBadge(
-                label: 'Expected Target',
+                label: 'Target Range',
                 value: '₹$targetMin-$targetMax',
                 color: const Color(0xFF15803D),
                 isHighlight: false,
@@ -156,12 +157,12 @@ class AuditComparisonCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Sales Composition Progress Bar (Bulk vs Single)
+          // Sales Composition Progress Bar (Sets vs Singles)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Bulk (Sets ≥ 12): $bulkTickets (${bulkPercent.toStringAsFixed(0)}%)',
+                'Sets of 12: $bulkTickets tkts (${bulkPercent.toStringAsFixed(0)}%)',
                 style: const TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
@@ -169,7 +170,7 @@ class AuditComparisonCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'Retail (<12): $singleTickets (${singlePercent.toStringAsFixed(0)}%)',
+                'Singles: $singleTickets tkts (${singlePercent.toStringAsFixed(0)}%)',
                 style: const TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
