@@ -266,7 +266,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
           const SizedBox(height: 10),
 
-          // LIVE AUDIT MIRROR READ-ONLY STATUS PILL
+          // LIVE AUDIT STATUS PILL
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -284,11 +284,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
                 SizedBox(width: 6),
                 Text(
-                  'LIVE AUDIT MIRROR • READ ONLY',
+                  'Live Audit',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
+                    letterSpacing: 0.4,
                     color: Color(0xFF166534),
                   ),
                 ),

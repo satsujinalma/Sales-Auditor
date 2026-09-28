@@ -34,33 +34,6 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (isReadOnlyMirror)
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFDE68A)),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.visibility_outlined, size: 15, color: Color(0xFF92400E)),
-                SizedBox(width: 6),
-                Text(
-                  'LIVE AUDIT MIRROR • READ ONLY',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
-                    color: Color(0xFF92400E),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
         // TOP METRICS ROW: Box 1 & Box 2
         Row(
           children: [
