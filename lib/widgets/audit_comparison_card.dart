@@ -61,12 +61,12 @@ class AuditComparisonCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200, width: 1.5),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -82,7 +82,7 @@ class AuditComparisonCard extends StatelessWidget {
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(statusIcon, size: 18, color: statusColor),
+                child: Icon(statusIcon, size: 16, color: statusColor),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -92,17 +92,17 @@ class AuditComparisonCard extends StatelessWidget {
                     const Text(
                       'AUDIT ANALYSIS & BENCHMARK',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                        color: Colors.black54,
+                        letterSpacing: 0.4,
+                        color: Color(0xFF64748B),
                       ),
                     ),
                     Text(
                       statusTitle,
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         color: statusColor,
                       ),
                     ),
@@ -112,17 +112,17 @@ class AuditComparisonCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             statusInsight,
             style: const TextStyle(
-              fontSize: 12,
-              color: Colors.black87,
+              fontSize: 11.5,
+              color: Color(0xFF334155),
               height: 1.35,
             ),
           ),
 
-          const Divider(height: 20, thickness: 1),
+          const SizedBox(height: 12),
 
           // Price Comparison Meter
           Row(
@@ -130,7 +130,7 @@ class AuditComparisonCard extends StatelessWidget {
               _buildPriceBadge(
                 label: 'Shop Claim',
                 value: '₹${claimedPrice.toStringAsFixed(2)}',
-                color: Colors.orange.shade800,
+                color: const Color(0xFFD97706),
                 isHighlight: false,
               ),
               const SizedBox(width: 8),
@@ -141,7 +141,7 @@ class AuditComparisonCard extends StatelessWidget {
                     : '₹0.00',
                 color: avgPrice >= targetMin
                     ? const Color(0xFF15803D)
-                    : Colors.blue.shade800,
+                    : const Color(0xFF2563EB),
                 isHighlight: true,
               ),
               const SizedBox(width: 8),
@@ -154,7 +154,7 @@ class AuditComparisonCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
           // Sales Composition Progress Bar (Bulk vs Single)
           Row(
@@ -163,17 +163,17 @@ class AuditComparisonCard extends StatelessWidget {
               Text(
                 'Bulk (Sets ≥ 12): $bulkTickets (${bulkPercent.toStringAsFixed(0)}%)',
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF0F766E),
                 ),
               ),
               Text(
                 'Retail (<12): $singleTickets (${singlePercent.toStringAsFixed(0)}%)',
-                style: TextStyle(
-                  fontSize: 11,
+                style: const TextStyle(
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w700,
-                  color: Colors.indigo.shade800,
+                  color: Color(0xFF4338CA),
                 ),
               ),
             ],
@@ -182,7 +182,7 @@ class AuditComparisonCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: SizedBox(
-              height: 10,
+              height: 8,
               child: Row(
                 children: [
                   Expanded(
@@ -191,7 +191,7 @@ class AuditComparisonCard extends StatelessWidget {
                   ),
                   Expanded(
                     flex: (singlePercent * 10).toInt().clamp(0, 1000),
-                    child: Container(color: Colors.indigo.shade400),
+                    child: Container(color: const Color(0xFF818CF8)),
                   ),
                 ],
               ),
@@ -213,11 +213,13 @@ class AuditComparisonCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isHighlight
-              ? color.withValues(alpha: 0.1)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
+              ? color.withValues(alpha: 0.08)
+              : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isHighlight ? color : Colors.grey.shade300,
+            color: isHighlight
+                ? color.withValues(alpha: 0.4)
+                : const Color(0xFFE2E8F0),
             width: isHighlight ? 1.5 : 1,
           ),
         ),
@@ -225,19 +227,20 @@ class AuditComparisonCard extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
-                color: Colors.black54,
+                color: Color(0xFF64748B),
               ),
             ),
             const SizedBox(height: 2),
             Text(
               value,
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
                 color: color,
+                letterSpacing: -0.2,
               ),
             ),
           ],

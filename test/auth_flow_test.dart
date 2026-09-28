@@ -246,5 +246,79 @@ void main() {
       expect(find.text('LIVE MIRRORED UI'), findsOneWidget);
       expect(find.text('ALL SHOPS SUMMARY'), findsOneWidget);
     });
+
+    testWidgets('Widget Test: Switching from Shopkeeper to Head App requires Master Admin password', (
+      WidgetTester tester,
+    ) async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+      final authRepo = HybridAuthRepository(salesRepo);
+      await authRepo.init();
+
+      // Onboard a shopkeeper
+      final user = await authRepo.verifyOtp(
+        phoneNumber: '+91 9999988888',
+        otp: '123456',
+      );
+      await authRepo.completeOnboarding(
+        user: user.copyWith(
+          name: 'Nayarambalam Operator',
+          role: UserRole.shopkeeper,
+          shopId: 'nayarambalam',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider(authRepo)),
+            ChangeNotifierProvider(create: (_) => SalesProvider(salesRepo)),
+            ChangeNotifierProvider(create: (_) => AdminProvider(salesRepo)),
+          ],
+          child: const KeralaLotteryAuditorApp(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verify on Shopkeeper Screen
+      expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
+
+      // Tap Admin Head App icon
+      final adminBtn = find.byIcon(Icons.admin_panel_settings_outlined);
+      expect(adminBtn, findsOneWidget);
+      await tester.tap(adminBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Security dialog should appear
+      expect(find.text('Head App Security'), findsOneWidget);
+      expect(find.text('VERIFY & ENTER'), findsOneWidget);
+
+      // Try wrong password
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Admin Password'),
+        'wrongpassword@123',
+      );
+      await tester.tap(find.text('VERIFY & ENTER'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Still in dialog, error displayed
+      expect(find.text('Head App Security'), findsOneWidget);
+
+      // Enter correct master password
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Admin Password'),
+        'vazhapazhamadmin@321',
+      );
+      await tester.tap(find.text('VERIFY & ENTER'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Successfully unlocked Head App
+      expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);
+    });
   });
 }

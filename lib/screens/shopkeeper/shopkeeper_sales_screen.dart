@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../models/app_user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sales_provider.dart';
 import '../../services/pricing_calculator.dart';
@@ -99,7 +100,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
           IconButton(
             tooltip: 'Admin Head App',
             icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white),
-            onPressed: widget.onSwitchToAdmin,
+            onPressed: () => _handleSwitchToAdmin(context),
           ),
           IconButton(
             tooltip: 'Sign Out',
@@ -809,6 +810,183 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _handleSwitchToAdmin(BuildContext context) {
+    final authProvider = context.read<AuthProvider>();
+    if (authProvider.currentUser?.role == UserRole.admin) {
+      widget.onSwitchToAdmin();
+      return;
+    }
+
+    _showAdminAuthDialog(context);
+  }
+
+  void _showAdminAuthDialog(BuildContext context) {
+    final usernameController = TextEditingController(text: 'admin');
+    final passwordController = TextEditingController();
+    bool obscurePassword = true;
+    bool isLoading = false;
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.shield_outlined, color: Color(0xFF1E293B), size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'Head App Security',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Enter Master Admin credentials to unlock Central Head App access.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 14),
+                    if (errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFFCA5A5)),
+                        ),
+                        child: Text(
+                          errorMessage!,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFB91C1C),
+                          ),
+                        ),
+                      ),
+                    TextField(
+                      controller: usernameController,
+                      decoration: InputDecoration(
+                        labelText: 'Admin Username',
+                        isDense: true,
+                        prefixIcon: const Icon(Icons.person_outline, size: 20),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Admin Password',
+                        isDense: true,
+                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setDialogState(() {
+                              obscurePassword = !obscurePassword;
+                            });
+                          },
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E293B),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          final username = usernameController.text.trim();
+                          final password = passwordController.text.trim();
+
+                          if (username.isEmpty || password.isEmpty) {
+                            setDialogState(() {
+                              errorMessage = 'Please enter both username and password.';
+                            });
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+
+                          final authProvider = context.read<AuthProvider>();
+                          final success = await authProvider
+                              .loginWithAdminCredentials(username, password);
+
+                          if (dialogContext.mounted) {
+                            if (success) {
+                              Navigator.pop(dialogContext);
+                              widget.onSwitchToAdmin();
+                            } else {
+                              setDialogState(() {
+                                isLoading = false;
+                                errorMessage = authProvider.errorMessage ??
+                                    'Invalid admin credentials.';
+                              });
+                            }
+                          }
+                        },
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('VERIFY & ENTER'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

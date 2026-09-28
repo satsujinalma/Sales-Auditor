@@ -108,12 +108,28 @@ void main() {
       expect(find.text('₹50'), findsWidgets);
     }
 
-    // Switch to Admin / Head App Mode
+    // Switch to Admin / Head App Mode (prompts for Master Admin credentials)
     final adminIconBtn = find.byIcon(Icons.admin_panel_settings_outlined);
     expect(adminIconBtn, findsOneWidget);
     await tester.tap(adminIconBtn);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+
+    // Verify Head App Security dialog is presented
+    expect(find.text('Head App Security'), findsOneWidget);
+    expect(find.text('VERIFY & ENTER'), findsOneWidget);
+
+    // Enter Admin password
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Admin Password'),
+      'vazhapazhamadmin@321',
+    );
+    await tester.pump();
+
+    // Tap Verify & Enter
+    await tester.tap(find.text('VERIFY & ENTER'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Verify Admin Screen elements
     expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);

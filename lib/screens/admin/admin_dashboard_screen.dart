@@ -94,33 +94,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(44),
+          preferredSize: const Size.fromHeight(48),
           child: Container(
             color: const Color(0xFF0F172A),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildTabButton(
-                    index: 0,
-                    label: 'LIVE MIRRORED UI',
-                    icon: Icons.splitscreen,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildTabButton(
+                      index: 0,
+                      label: 'LIVE MIRRORED UI',
+                      icon: Icons.splitscreen,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildTabButton(
-                    index: 1,
-                    label: 'ALL SHOPS SUMMARY',
-                    icon: Icons.grid_view_rounded,
+                  Expanded(
+                    child: _buildTabButton(
+                      index: 1,
+                      label: 'ALL SHOPS SUMMARY',
+                      icon: Icons.grid_view_rounded,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
       body: SafeArea(
         child: _selectedTab == 0
-            ? _buildMirroredShopkeeperView(context, adminProvider, selectedShop, summary)
+            ? _buildMirroredShopkeeperView(
+                context, adminProvider, selectedShop, summary)
             : _buildAllShopsSummaryView(context, adminProvider, shops),
       ),
     );
@@ -133,16 +142,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }) {
     final isSelected = _selectedTab == index;
     return InkWell(
+      borderRadius: BorderRadius.circular(8),
       onTap: () => setState(() => _selectedTab = index),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? Colors.amber : Colors.transparent,
-              width: 3,
-            ),
-          ),
+          color: isSelected ? const Color(0xFF0F766E) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -150,7 +156,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Icon(
               icon,
               size: 14,
-              color: isSelected ? Colors.amber : Colors.white60,
+              color: isSelected ? Colors.white : Colors.white60,
             ),
             const SizedBox(width: 6),
             Text(
@@ -158,8 +164,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                letterSpacing: 0.5,
-                color: isSelected ? Colors.amber : Colors.white60,
+                letterSpacing: 0.4,
+                color: isSelected ? Colors.white : Colors.white60,
               ),
             ),
           ],
@@ -182,28 +188,47 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final pricing = selectedShop.pricingConfig;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // SHOP SELECTOR BAR
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                const Icon(Icons.location_on, color: Color(0xFF0F766E), size: 18),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.storefront,
+                    color: Color(0xFF0F766E),
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 const Text(
-                  'Select Shop:',
+                  'Counter:',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                    color: Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -212,11 +237,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: DropdownButton<String>(
                       isExpanded: true,
                       value: adminProvider.selectedShopId,
-                      icon: const Icon(Icons.keyboard_arrow_down),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Color(0xFF64748B),
+                      ),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: Colors.black87,
+                        color: Color(0xFF0F172A),
                       ),
                       onChanged: (String? newShopId) {
                         if (newShopId != null) {
@@ -236,7 +264,39 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+
+          // LIVE AUDIT MIRROR READ-ONLY STATUS PILL
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFBBF7D0)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 14,
+                  color: Color(0xFF16A34A),
+                ),
+                SizedBox(width: 6),
+                Text(
+                  'LIVE AUDIT MIRROR • READ ONLY',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    color: Color(0xFF166534),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
 
           // THE 3 SPECIFIC OUTPUT BOXES (MIRRORED LIVE VIEW)
           ThreeOutputBoxesWidget(
@@ -259,8 +319,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: RecentTransactionsList(
               transactions: summary.transactions,
@@ -437,7 +497,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
-              color: Colors.black54,
+              color: Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 8),
@@ -446,7 +506,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: shops.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 10),
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final shop = shops[index];
               final summary = adminProvider.allShopSummaries[shop.id] ??
@@ -456,25 +516,33 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               final avg = summary.averagePricePerTicket;
               final pricing = shop.pricingConfig;
 
-              final isBelowTarget = tickets > 0 && avg < pricing.targetBenchmarkMin;
+              final isBelowTarget =
+                  tickets > 0 && avg < pricing.targetBenchmarkMin;
 
               return InkWell(
                 onTap: () {
                   adminProvider.selectShop(shop.id);
                   setState(() => _selectedTab = 0);
                 },
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isBelowTarget
-                          ? Colors.amber.shade400
-                          : Colors.grey.shade200,
+                          ? const Color(0xFFFCD34D)
+                          : const Color(0xFFE2E8F0),
                       width: isBelowTarget ? 1.5 : 1,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,9 +552,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         children: [
                           Row(
                             children: [
-                              CircleAvatar(
-                                radius: 14,
-                                backgroundColor: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F766E)
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                                 child: const Icon(
                                   Icons.storefront,
                                   size: 16,
@@ -494,13 +566,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                shop.name,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.black87,
-                                ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    shop.name,
+                                    style: const TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  Text(
+                                    shop.code,
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -510,15 +595,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
+                              color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'Set Rate: ₹${pricing.setPrice12.toStringAsFixed(0)}',
+                              'Set: ₹${pricing.setPrice12.toStringAsFixed(0)}',
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.black54,
+                                color: Color(0xFF475569),
                               ),
                             ),
                           ),
@@ -534,15 +619,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 const Text(
                                   'Tickets Sold',
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.black54,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF64748B),
                                   ),
                                 ),
                                 Text(
                                   '$tickets',
                                   style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
                                     color: Color(0xFF0F766E),
                                   ),
                                 ),
@@ -556,15 +642,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 const Text(
                                   'Revenue',
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.black54,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF64748B),
                                   ),
                                 ),
                                 Text(
                                   currencyFormat.format(rev),
                                   style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
                                     color: Color(0xFF166534),
                                   ),
                                 ),
@@ -576,20 +663,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Actual Avg Rate',
+                                  'Live Avg Rate',
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.black54,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF64748B),
                                   ),
                                 ),
                                 Text(
-                                  tickets > 0 ? avgFormat.format(avg) : '₹0.00',
+                                  tickets > 0
+                                      ? avgFormat.format(avg)
+                                      : '₹0.00',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w900,
                                     color: avg >= pricing.targetBenchmarkMin
                                         ? const Color(0xFF15803D)
-                                        : Colors.amber.shade900,
+                                        : (avg > 0
+                                            ? const Color(0xFFD97706)
+                                            : const Color(0xFF64748B)),
                                   ),
                                 ),
                               ],
@@ -597,8 +689,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           ),
                           const Icon(
                             Icons.arrow_forward_ios,
-                            size: 14,
-                            color: Colors.black38,
+                            size: 13,
+                            color: Color(0xFF94A3B8),
                           ),
                         ],
                       ),

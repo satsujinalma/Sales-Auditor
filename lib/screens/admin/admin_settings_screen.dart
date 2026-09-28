@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/pricing_config.dart';
 import '../../providers/admin_provider.dart';
-import '../../providers/auth_provider.dart';
 
 class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -23,12 +22,6 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
 
   final Map<int, TextEditingController> _tierControllers = {};
 
-  // Admin credentials controllers
-  late TextEditingController _adminUsernameController;
-  late TextEditingController _adminPasswordController;
-  bool _obscureCredPassword = true;
-  bool _isSavingCreds = false;
-
   @override
   void initState() {
     super.initState();
@@ -40,27 +33,11 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     _benchmarkMaxController = TextEditingController();
     _claimedAvgController = TextEditingController();
 
-    _adminUsernameController = TextEditingController(text: 'admin');
-    _adminPasswordController = TextEditingController(text: 'vazhapazhamadmin@321');
-
     for (int i = 1; i <= 12; i++) {
       _tierControllers[i] = TextEditingController();
     }
 
     _loadShopValues(adminProvider);
-    _loadAdminCredentials();
-  }
-
-  void _loadAdminCredentials() async {
-    final authProvider = context.read<AuthProvider>();
-    final creds = await authProvider.getAdminCredentials();
-    if (mounted) {
-      setState(() {
-        _adminUsernameController.text = creds['username'] ?? 'admin';
-        _adminPasswordController.text =
-            creds['password'] ?? 'vazhapazhamadmin@321';
-      });
-    }
   }
 
   void _loadShopValues(AdminProvider provider) {
@@ -89,8 +66,6 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     _benchmarkMinController.dispose();
     _benchmarkMaxController.dispose();
     _claimedAvgController.dispose();
-    _adminUsernameController.dispose();
-    _adminPasswordController.dispose();
     for (final c in _tierControllers.values) {
       c.dispose();
     }
@@ -416,110 +391,6 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 onPressed: () => _saveConfiguration(adminProvider),
               ),
 
-              const SizedBox(height: 28),
-
-              // SECTION 5: MASTER ADMIN CREDENTIALS (CLOUD PERSISTED)
-              _buildSectionHeader(
-                '5. MASTER ADMIN LOGIN CREDENTIALS (CLOUD SYNC)',
-                Icons.admin_panel_settings,
-              ),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Direct Login Credentials (No Phone / OTP Required)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Anyone with this username & password can sign in as Admin. Saved in Firebase Cloud Firestore (settings/admin_credentials).',
-                      style: TextStyle(fontSize: 11, color: Colors.black54),
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _adminUsernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Admin Username',
-                        hintText: 'admin',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _adminPasswordController,
-                      obscureText: _obscureCredPassword,
-                      decoration: InputDecoration(
-                        labelText: 'Admin Password',
-                        hintText: 'vazhapazhamadmin@321',
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureCredPassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureCredPassword = !_obscureCredPassword;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E293B),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: _isSavingCreds
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.cloud_upload_outlined, size: 18),
-                        label: Text(
-                          _isSavingCreds
-                              ? 'UPDATING CLOUD...'
-                              : 'UPDATE ADMIN CREDENTIALS',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        onPressed: _isSavingCreds
-                            ? null
-                            : () => _saveAdminCredentials(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
               const SizedBox(height: 32),
             ],
           ),
@@ -639,52 +510,6 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           backgroundColor: Color(0xFF0F766E),
         ),
       );
-    }
-  }
-
-  void _saveAdminCredentials() async {
-    final username = _adminUsernameController.text.trim();
-    final password = _adminPasswordController.text.trim();
-
-    if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Username and password cannot be empty.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isSavingCreds = true);
-
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.updateAdminCredentials(
-      username: username,
-      password: password,
-    );
-
-    if (mounted) {
-      setState(() => _isSavingCreds = false);
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Master Admin credentials updated and synced to Cloud Firestore!',
-            ),
-            backgroundColor: Color(0xFF1E293B),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              authProvider.errorMessage ?? 'Failed to update credentials.',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
