@@ -46,16 +46,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shield, color: Colors.amber, size: 18),
-                SizedBox(width: 6),
-                Text(
-                  'HEAD APP • AUDIT MONITOR',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                    color: Colors.white,
+                Icon(Icons.shield, color: Colors.amber, size: 16),
+                SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    'HEAD APP • AUDIT MONITOR',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
@@ -63,8 +67,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             if (selectedShop != null)
               Text(
                 'Monitoring: ${selectedShop.name} (${selectedShop.code})',
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w400,
                   color: Colors.white70,
                 ),
