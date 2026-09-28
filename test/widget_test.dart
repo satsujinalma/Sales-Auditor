@@ -59,9 +59,16 @@ void main() {
     // Initial state
     expect(find.text('No sales yet'), findsOneWidget);
 
-    // Tap button '1' (1 ticket @ ₹50)
+    // Tap button '1' (1 ticket @ ₹50 staged)
     final btn1 = find.widgetWithText(InkWell, '1').first;
     await tester.tap(btn1);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Confirm and enter sale for Customer 1
+    final enterSaleBtn1 = find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹50');
+    expect(enterSaleBtn1, findsOneWidget);
+    await tester.tap(enterSaleBtn1);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -69,9 +76,18 @@ void main() {
     expect(find.text('1'), findsWidgets);
     expect(find.text('₹50'), findsWidgets);
 
-    // Tap button '12' (1 Full Set = 12 tickets @ ₹570 for Nayarambalam)
+    // Tap button '12' (1 Full Set = 12 tickets @ ₹570 staged)
     final btn12 = find.widgetWithText(InkWell, '12').first;
+    await tester.ensureVisible(btn12);
     await tester.tap(btn12);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Confirm and enter sale for Customer 2
+    final enterSaleBtn12 = find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹570');
+    expect(enterSaleBtn12, findsOneWidget);
+    await tester.ensureVisible(enterSaleBtn12);
+    await tester.tap(enterSaleBtn12);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -93,13 +109,14 @@ void main() {
     }
 
     // Switch to Admin / Head App Mode
-    final adminIconBtn = find.byTooltip('Admin / Head App');
+    final adminIconBtn = find.byIcon(Icons.admin_panel_settings_outlined);
+    expect(adminIconBtn, findsOneWidget);
     await tester.tap(adminIconBtn);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     // Verify Admin Screen elements
     expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);
-    expect(find.text('LIVE AUDIT MIRROR (VIEW ONLY)'), findsOneWidget);
+    expect(find.text('LIVE MIRRORED UI'), findsOneWidget);
   });
 }

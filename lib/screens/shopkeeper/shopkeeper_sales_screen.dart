@@ -22,7 +22,8 @@ class ShopkeeperSalesScreen extends StatefulWidget {
 
 class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
   int _maxButtons = 36; // Default grid 1 to 36 or 40
-  bool _showAuditAnalysis = true;
+  int? _stagedTickets; // Currently selected customer order
+  bool _showAuditAnalysis = false; // Collapsible to keep UI ultra-minimal
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,10 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
 
     if (salesProvider.isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF0F766E)),
+        ),
       );
     }
 
@@ -44,24 +48,30 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
     }
 
     final pricing = currentShop.pricingConfig;
+    final calc = _stagedTickets != null && _stagedTickets! > 0
+        ? PricingCalculator.calculate(
+            ticketCount: _stagedTickets!,
+            config: pricing,
+          )
+        : null;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F766E),
-        elevation: 2,
+        elevation: 1,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.storefront, color: Colors.white, size: 18),
+                const Icon(Icons.storefront, color: Colors.white, size: 17),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     currentShop.name,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                     ),
@@ -87,7 +97,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             onPressed: () => _showShopPicker(context, salesProvider),
           ),
           IconButton(
-            tooltip: 'Admin / Head App',
+            tooltip: 'Admin Head App',
             icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white),
             onPressed: widget.onSwitchToAdmin,
           ),
@@ -104,37 +114,35 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // THE 3 SPECIFIC OUTPUT BOXES (Box 1, Box 2, Box 3)
+              // 1. TOP CUMULATIVE & METRICS STRIP (Box 1, Box 2, Box 3)
               ThreeOutputBoxesWidget(summary: summary),
 
               const SizedBox(height: 12),
 
-              // ONE-TAP QUICK SALES ENTRY SECTION HEADER
+              // 2. CURRENT CUSTOMER SALE STAGING BOX
+              _buildCurrentCustomerOrderBox(context, salesProvider, pricing, calc),
+
+              const SizedBox(height: 14),
+
+              // 3. ONE-TAP SELECTION GRID HEADER
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
+                  const Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F766E).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(
-                          Icons.touch_app,
-                          size: 16,
-                          color: Color(0xFF0F766E),
-                        ),
+                      Icon(
+                        Icons.touch_app_outlined,
+                        size: 16,
+                        color: Color(0xFF0F766E),
                       ),
-                      const SizedBox(width: 6),
-                      const Text(
+                      SizedBox(width: 6),
+                      Text(
                         'ONE-TAP SALES ENTRY',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 0.6,
-                          color: Colors.black87,
+                          letterSpacing: 0.5,
+                          color: Color(0xFF0F172A),
                         ),
                       ),
                     ],
@@ -143,9 +151,10 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     children: [
                       // Grid size toggle (30, 36, 40)
                       Container(
+                        padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(6),
+                          color: const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(7),
                         ),
                         child: Row(
                           children: [30, 36, 40].map((size) {
@@ -154,7 +163,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                               onTap: () => setState(() => _maxButtons = size),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
+                                  horizontal: 7,
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
@@ -170,7 +179,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                                     fontWeight: FontWeight.bold,
                                     color: isSelected
                                         ? Colors.white
-                                        : Colors.black54,
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
                               ),
@@ -178,35 +187,6 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                           }).toList(),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Quick Undo
-                      if (summary.activeTransactions.isNotEmpty)
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red.shade50,
-                            foregroundColor: Colors.red.shade700,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                              side: BorderSide(color: Colors.red.shade200),
-                            ),
-                          ),
-                          icon: const Icon(Icons.undo, size: 14),
-                          label: const Text(
-                            'Undo',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          onPressed: () => _handleUndo(salesProvider),
-                        ),
                     ],
                   ),
                 ],
@@ -214,55 +194,108 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
 
               const SizedBox(height: 8),
 
-              // THE ONE-TAP BUTTONS GRID (1 to 30/36/40)
+              // 4. ONE-TAP KEYPAD GRID (1 to 30/36/40)
               _buildOneTapGrid(context, salesProvider, pricing),
 
               const SizedBox(height: 14),
 
-              // AUDIT COMPARISON CARD (Claim vs Actual vs Target)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'AUDIT BENCHMARK MONITOR',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () =>
-                        setState(() => _showAuditAnalysis = !_showAuditAnalysis),
-                    child: Text(
-                      _showAuditAnalysis ? 'Hide' : 'Show',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.blue.shade700,
+              // 5. AUDIT BENCHMARK MONITOR (Collapsible)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () =>
+                          setState(() => _showAuditAnalysis = !_showAuditAnalysis),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.insights_outlined,
+                                  size: 16,
+                                  color: Color(0xFF0F766E),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'AUDIT BENCHMARK MONITOR',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: summary.averagePricePerTicket >= 48.0
+                                        ? const Color(0xFFDCFCE7)
+                                        : const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    summary.totalTicketsSold > 0
+                                        ? 'Avg: ₹${summary.averagePricePerTicket.toStringAsFixed(2)}'
+                                        : 'Awaiting sales',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: summary.averagePricePerTicket >= 48.0
+                                          ? const Color(0xFF166534)
+                                          : const Color(0xFF92400E),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Icon(
+                              _showAuditAnalysis
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: const Color(0xFF64748B),
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              if (_showAuditAnalysis) ...[
-                const SizedBox(height: 6),
-                AuditComparisonCard(
-                  summary: summary,
-                  pricingConfig: pricing,
+                    if (_showAuditAnalysis)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                        child: AuditComparisonCard(
+                          summary: summary,
+                          pricingConfig: pricing,
+                        ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
 
               const SizedBox(height: 14),
 
-              // LIVE RECENT TRANSACTIONS LOG
+              // 6. LIVE RECENT TRANSACTIONS LOG
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: RecentTransactionsList(
                   transactions: summary.transactions,
@@ -270,10 +303,236 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentCustomerOrderBox(
+    BuildContext context,
+    SalesProvider provider,
+    pricing,
+    PriceCalculationResult? calc,
+  ) {
+    final isStaged = _stagedTickets != null && _stagedTickets! > 0 && calc != null;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isStaged ? const Color(0xFFF0FDF4) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isStaged ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+          width: isStaged ? 1.5 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isStaged ? const Color(0xFF16A34A) : Colors.black)
+                .withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isStaged
+                          ? const Color(0xFF166534)
+                          : const Color(0xFF64748B),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      isStaged ? 'CURRENT CUSTOMER' : 'NEW CUSTOMER',
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isStaged
+                        ? 'Customer Order Preview'
+                        : 'Select ticket quantity below',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isStaged
+                          ? const Color(0xFF166534)
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+              if (isStaged)
+                InkWell(
+                  onTap: () => setState(() => _stagedTickets = null),
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Text(
+                      'Clear',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFFDC2626),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          if (isStaged) ...[
+            // Main Amount & Details
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left: Ticket count & Stepper
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      iconSize: 24,
+                      color: const Color(0xFF166534),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {
+                        if (_stagedTickets! > 1) {
+                          setState(() => _stagedTickets = _stagedTickets! - 1);
+                        }
+                      },
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF86EFAC)),
+                      ),
+                      child: Text(
+                        '$_stagedTickets Tkts',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      iconSize: 24,
+                      color: const Color(0xFF166534),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {
+                        setState(() => _stagedTickets = _stagedTickets! + 1);
+                      },
+                    ),
+                  ],
+                ),
+
+                // Right: Total Bill Amount
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '₹${calc.totalAmount.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF15803D),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    Text(
+                      '₹${calc.effectiveRatePerTicket.toStringAsFixed(2)} / tkt',
+                      style: const TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF166534),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // CONFIRM & ENTER SALE BUTTON
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F766E),
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: const Icon(Icons.check_circle, size: 20),
+                label: Text(
+                  'ENTER SALE • ₹${calc.totalAmount.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                onPressed: () => _confirmStagedSale(provider, calc),
+              ),
+            ),
+          ] else ...[
+            // Empty State
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.touch_app_outlined,
+                    size: 18,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Tap any number (1–$_maxButtons) to stage customer sale',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -285,9 +544,10 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate dynamic button size for phone screen (4 columns)
+        // Dynamic grid with 4 columns
         const crossAxisCount = 4;
-        final itemWidth = (constraints.maxWidth - (crossAxisCount - 1) * 8) / crossAxisCount;
+        final itemWidth =
+            (constraints.maxWidth - (crossAxisCount - 1) * 8) / crossAxisCount;
 
         return Wrap(
           spacing: 8,
@@ -296,20 +556,24 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             final ticketCount = index + 1;
             final isFullSet = ticketCount == 12;
             final isMultiSet = ticketCount > 12 && ticketCount % 12 == 0;
-            final isSingle = ticketCount < 12;
+            final isSelected = _stagedTickets == ticketCount;
 
             final calc = PricingCalculator.calculate(
               ticketCount: ticketCount,
               config: pricing,
             );
 
-            // Styling based on ticket type (Set vs Single vs Bulk)
+            // Styling
             Color bgColor;
             Color borderColor;
             Color textColor;
             String? setBadgeText;
 
-            if (isFullSet) {
+            if (isSelected) {
+              bgColor = const Color(0xFFDCFCE7);
+              borderColor = const Color(0xFF15803D);
+              textColor = const Color(0xFF14532D);
+            } else if (isFullSet) {
               bgColor = const Color(0xFF0F766E);
               borderColor = const Color(0xFF042F2E);
               textColor = Colors.white;
@@ -319,35 +583,36 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
               borderColor = const Color(0xFF042F2E);
               textColor = Colors.white;
               setBadgeText = '${ticketCount ~/ 12} SETS';
-            } else if (!isSingle) {
-              bgColor = const Color(0xFFF0FDF4);
-              borderColor = const Color(0xFF86EFAC);
-              textColor = const Color(0xFF14532D);
             } else {
               bgColor = Colors.white;
-              borderColor = Colors.grey.shade300;
-              textColor = Colors.black87;
+              borderColor = const Color(0xFFE2E8F0);
+              textColor = const Color(0xFF0F172A);
             }
 
             return SizedBox(
               width: itemWidth,
-              height: 60,
+              height: 56,
               child: Material(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(10),
-                elevation: isFullSet || isMultiSet ? 2 : 0,
+                elevation: isSelected ? 2 : (isFullSet || isMultiSet ? 1 : 0),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  onTap: () => _handleTap(provider, ticketCount, calc),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _stagedTickets = ticketCount;
+                    });
+                  },
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: borderColor,
-                        width: isFullSet || isMultiSet ? 2 : 1,
+                        width: isSelected ? 2.5 : (isFullSet || isMultiSet ? 1.5 : 1),
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
                     child: Stack(
                       children: [
                         if (setBadgeText != null)
@@ -366,7 +631,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                               child: Text(
                                 setBadgeText,
                                 style: const TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 7.5,
                                   fontWeight: FontWeight.w900,
                                   color: Colors.black,
                                 ),
@@ -380,21 +645,21 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                               Text(
                                 '$ticketCount',
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 17,
                                   fontWeight: FontWeight.w900,
                                   color: textColor,
                                   height: 1.1,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 1),
                               Text(
                                 '₹${calc.totalAmount.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 10.5,
                                   fontWeight: FontWeight.w700,
                                   color: isFullSet || isMultiSet
                                       ? Colors.white.withValues(alpha: 0.9)
-                                      : const Color(0xFF15803D),
+                                      : const Color(0xFF16A34A),
                                   height: 1.0,
                                 ),
                               ),
@@ -413,17 +678,23 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
     );
   }
 
-  void _handleTap(
+  void _confirmStagedSale(
     SalesProvider provider,
-    int ticketCount,
     PriceCalculationResult calc,
   ) async {
-    HapticFeedback.lightImpact();
+    if (_stagedTickets == null || _stagedTickets! <= 0) return;
 
-    final tx = await provider.recordSale(ticketCount);
+    HapticFeedback.mediumImpact();
+    final count = _stagedTickets!;
+    final total = calc.totalAmount;
+
+    final tx = await provider.recordSale(count);
     if (!mounted || tx == null) return;
 
-    // Quick visual snackbar confirmation
+    setState(() {
+      _stagedTickets = null; // Reset for next customer
+    });
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -438,10 +709,10 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Logged: +$ticketCount tickets = ₹${calc.totalAmount.toStringAsFixed(0)} (${calc.formulaDescription})',
+                'Logged Customer Sale: +$count tickets (₹${total.toStringAsFixed(0)})',
                 style: const TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),

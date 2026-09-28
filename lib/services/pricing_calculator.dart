@@ -16,6 +16,8 @@ class PriceCalculationResult {
     required this.discountAmount,
     required this.formulaDescription,
   });
+
+  double get effectiveRatePerTicket => unitPrice;
 }
 
 class PricingCalculator {

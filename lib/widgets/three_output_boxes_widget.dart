@@ -36,73 +36,74 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
       children: [
         if (isReadOnlyMirror)
           Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.amber.shade900.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.amber.shade700, width: 1),
+              color: const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFDE68A)),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.visibility, size: 16, color: Colors.amber.shade900),
-                const SizedBox(width: 6),
+                Icon(Icons.visibility_outlined, size: 15, color: Color(0xFF92400E)),
+                SizedBox(width: 6),
                 Text(
-                  'LIVE AUDIT MIRROR (VIEW ONLY)',
+                  'LIVE AUDIT MIRROR • READ ONLY',
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                    color: Colors.amber.shade900,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    color: Color(0xFF92400E),
                   ),
                 ),
               ],
             ),
           ),
 
-        // Row 1: Box 1 (Timestamp) & Box 2 (Total Tickets)
+        // TOP METRICS ROW: Box 1 & Box 2
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // BOX 1: EXACT TIMESTAMP OF THE SALE
+            // BOX 1: LATEST SALE
             Expanded(
-              child: _buildBox(
+              child: _buildMinimalBox(
                 context: context,
-                boxNumber: 'BOX 1',
-                title: 'LATEST SALE TIME',
-                icon: Icons.access_time_filled,
-                primaryColor: Colors.blue.shade700,
-                backgroundColor: const Color(0xFFEBF3FC),
-                content: lastSale != null
+                badgeText: 'BOX 1',
+                title: 'LATEST SALE',
+                icon: Icons.history_rounded,
+                themeColor: const Color(0xFF2563EB),
+                child: lastSale != null
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             timeFormat.format(lastSale.timestamp),
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1E3A8A),
+                              color: Color(0xFF1E293B),
                               letterSpacing: -0.2,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
+                              color: const Color(0xFFEFF6FF),
                               borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0xFFDBEAFE)),
                             ),
                             child: Text(
                               '+${lastSale.ticketCount} tickets (₹${lastSale.totalAmount.toStringAsFixed(0)})',
-                              style: TextStyle(
-                                fontSize: 11,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.blue.shade900,
+                                color: Color(0xFF1D4ED8),
                               ),
                             ),
                           ),
@@ -111,25 +112,24 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                     : const Text(
                         'No sales yet',
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black45,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF94A3B8),
                         ),
                       ),
               ),
             ),
             const SizedBox(width: 10),
 
-            // BOX 2: CUMULATIVE TOTAL TICKETS SOLD TODAY
+            // BOX 2: TOTAL TICKETS
             Expanded(
-              child: _buildBox(
+              child: _buildMinimalBox(
                 context: context,
-                boxNumber: 'BOX 2',
-                title: 'TOTAL TICKETS SOLD',
-                icon: Icons.confirmation_number,
-                primaryColor: const Color(0xFF0F766E),
-                backgroundColor: const Color(0xFFE6F7F5),
-                content: Column(
+                badgeText: 'BOX 2',
+                title: 'TOTAL TICKETS',
+                icon: Icons.confirmation_number_outlined,
+                themeColor: const Color(0xFF0F766E),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -139,9 +139,9 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                         Text(
                           '$totalTickets',
                           style: const TextStyle(
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F766E),
+                            color: Color(0xFF0F172A),
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -149,9 +149,9 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                         const Text(
                           'tickets',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF0F766E),
+                            color: Color(0xFF64748B),
                           ),
                         ),
                       ],
@@ -159,10 +159,10 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Sets: ${(totalTickets / 12).toStringAsFixed(1)} (12s)',
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: const TextStyle(
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w600,
-                        color: Colors.teal.shade900.withValues(alpha: 0.7),
+                        color: Color(0xFF0F766E),
                       ),
                     ),
                   ],
@@ -174,94 +174,153 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // BOX 3: CUMULATIVE TOTAL REVENUE & LIVE AVERAGE TICKET PRICE
-        _buildBox(
-          context: context,
-          boxNumber: 'BOX 3',
-          title: 'CUMULATIVE REVENUE & LIVE AVERAGE PRICE',
-          icon: Icons.currency_rupee,
-          primaryColor: const Color(0xFF15803D),
-          backgroundColor: const Color(0xFFDCFCE7),
-          content: Row(
+        // BOX 3: CUMULATIVE REVENUE & LIVE AVERAGE PRICE
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Total Revenue
-              Expanded(
-                flex: 5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'TOTAL REVENUE',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                        color: Color(0xFF166534),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      currencyFormat.format(totalRev),
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF166534),
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                height: 38,
-                width: 1.5,
-                color: Colors.green.shade300,
-              ),
-              const SizedBox(width: 12),
-              // Live Average Price per ticket
-              Expanded(
-                flex: 6,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'LIVE AVERAGE PRICE',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                        color: Color(0xFF166534),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Text(
-                          totalTickets > 0
-                              ? avgFormat.format(avgPrice)
-                              : '₹0.00',
+              // Header tag
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF166534),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'BOX 3',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 9,
                             fontWeight: FontWeight.w900,
-                            color: avgPrice >= 48.0
-                                ? const Color(0xFF15803D)
-                                : const Color(0xFFB45309),
-                            letterSpacing: -0.5,
+                            color: Colors.white,
+                            letterSpacing: 0.4,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'CUMULATIVE REVENUE & LIVE AVERAGE PRICE',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Icon(
+                    Icons.account_balance_wallet_outlined,
+                    size: 14,
+                    color: Color(0xFF166534),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  // Total Revenue
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         const Text(
-                          '/ ticket',
+                          'TOTAL REVENUE',
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF166534),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          currencyFormat.format(totalRev),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0F172A),
+                            letterSpacing: -0.5,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  Container(
+                    height: 34,
+                    width: 1,
+                    color: const Color(0xFFE2E8F0),
+                  ),
+                  const SizedBox(width: 14),
+                  // Live Average Price per ticket
+                  Expanded(
+                    flex: 6,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'LIVE AVERAGE PRICE',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(
+                              totalTickets > 0
+                                  ? avgFormat.format(avgPrice)
+                                  : '₹0.00',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: avgPrice >= 48.0
+                                    ? const Color(0xFF15803D)
+                                    : (avgPrice > 0
+                                        ? const Color(0xFFD97706)
+                                        : const Color(0xFF64748B)),
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              '/ tkt',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -270,24 +329,23 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildBox({
+  Widget _buildMinimalBox({
     required BuildContext context,
-    required String boxNumber,
+    required String badgeText,
     required String title,
     required IconData icon,
-    required Color primaryColor,
-    required Color backgroundColor,
-    required Widget content,
+    required Color themeColor,
+    required Widget child,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primaryColor.withValues(alpha: 0.35), width: 1.5),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -300,50 +358,44 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 1.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        boxNumber,
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: themeColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      badgeText,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.4,
                       ),
                     ),
-                    const SizedBox(width: 5),
-                    Flexible(
-                      child: Text(
-                        title,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
-                          color: primaryColor.withValues(alpha: 0.9),
-                        ),
-                      ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                      color: Color(0xFF64748B),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 4),
-              Icon(icon, size: 14, color: primaryColor),
+              Icon(icon, size: 14, color: themeColor),
             ],
           ),
           const SizedBox(height: 8),
-          content,
+          child,
         ],
       ),
     );
