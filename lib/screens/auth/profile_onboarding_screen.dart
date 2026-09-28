@@ -151,7 +151,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                         controller: _nameController,
                         decoration: const InputDecoration(
                           labelText: 'Shopkeeper Name',
-                          hintText: 'e.g. Rajesh Kumar',
+                          hintText: 'Enter your name',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.person_outline),
                         ),
@@ -186,7 +186,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                         controller: _shopNameController,
                         decoration: const InputDecoration(
                           labelText: 'Shop Name',
-                          hintText: 'e.g. Nayarambalam',
+                          hintText: 'Enter shop name',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.storefront_outlined),
                         ),
@@ -247,7 +247,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                                 hintText: '570',
                                 border: OutlineInputBorder(),
                                 prefixText: '₹ ',
-                                helperText: 'e.g. ₹570 Nayarambalam',
+                                helperText: 'Discounted set rate',
                               ),
                             ),
                           ),

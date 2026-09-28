@@ -293,7 +293,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   decoration: InputDecoration(
                     counterText: '',
                     labelText: 'Mobile Number',
-                    hintText: '98765 43210',
+                    hintText: 'Enter 10-digit number',
                     prefixIcon: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
