@@ -43,8 +43,56 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
 
     if (currentShop == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Sales Terminal')),
-        body: const Center(child: Text('No shop selected')),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0F766E),
+          title: const Text(
+            'Sales Terminal',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white70),
+              onPressed: () => context.read<AuthProvider>().signOut(),
+            ),
+          ],
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.storefront_outlined,
+                    size: 56, color: Color(0xFF0F766E)),
+                const SizedBox(height: 16),
+                const Text(
+                  'No Retail Shops Registered',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please sign in with your mobile number to complete shop setup.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: Colors.black54),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F766E),
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Back to Login'),
+                  onPressed: () => context.read<AuthProvider>().signOut(),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -772,41 +820,52 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                   style: TextStyle(fontSize: 12, color: Colors.black54),
                 ),
                 const Divider(height: 20),
-                ...provider.shops.map((shop) {
-                  final isCurrent = provider.currentShop?.id == shop.id;
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      backgroundColor: isCurrent
-                          ? const Color(0xFF0F766E)
-                          : Colors.grey.shade200,
-                      child: Icon(
-                        Icons.storefront,
-                        color: isCurrent ? Colors.white : Colors.black54,
-                        size: 20,
+                if (provider.shops.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No retail shop terminals registered yet.',
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
                     ),
-                    title: Text(
-                      shop.name,
-                      style: TextStyle(
-                        fontWeight:
-                            isCurrent ? FontWeight.w800 : FontWeight.w600,
-                        color: isCurrent ? const Color(0xFF0F766E) : Colors.black87,
+                  )
+                else
+                  ...provider.shops.map((shop) {
+                    final isCurrent = provider.currentShop?.id == shop.id;
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: isCurrent
+                            ? const Color(0xFF0F766E)
+                            : Colors.grey.shade200,
+                        child: Icon(
+                          Icons.storefront,
+                          color: isCurrent ? Colors.white : Colors.black54,
+                          size: 20,
+                        ),
                       ),
-                    ),
-                    subtitle: Text(
-                      '${shop.code} • 1 Set (12) = ₹${shop.pricingConfig.setPrice12.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing: isCurrent
-                        ? const Icon(Icons.check_circle, color: Color(0xFF0F766E))
-                        : null,
-                    onTap: () {
-                      provider.selectShop(shop.id);
-                      Navigator.pop(context);
-                    },
-                  );
-                }),
+                      title: Text(
+                        shop.name,
+                        style: TextStyle(
+                          fontWeight:
+                              isCurrent ? FontWeight.w800 : FontWeight.w600,
+                          color: isCurrent ? const Color(0xFF0F766E) : Colors.black87,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${shop.code} • 1 Set (12) = ₹${shop.pricingConfig.setPrice12.toStringAsFixed(0)}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: isCurrent
+                          ? const Icon(Icons.check_circle, color: Color(0xFF0F766E))
+                          : null,
+                      onTap: () {
+                        provider.selectShop(shop.id);
+                        Navigator.pop(context);
+                      },
+                    );
+                  }),
               ],
             ),
           ),
@@ -826,7 +885,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
   }
 
   void _showAdminAuthDialog(BuildContext context) {
-    final usernameController = TextEditingController(text: 'admin');
+    final usernameController = TextEditingController();
     final passwordController = TextEditingController();
     bool obscurePassword = true;
     bool isLoading = false;

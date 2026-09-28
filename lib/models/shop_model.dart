@@ -61,49 +61,6 @@ class Shop {
     );
   }
 
-  // Pre-configured default shops
-  static List<Shop> get defaultShops => [
-    const Shop(
-      id: 'nayarambalam',
-      name: 'Nayarambalam Store',
-      location: 'Nayarambalam, Vypin',
-      code: 'NYR-01',
-      pricingConfig: PricingConfig(
-        singleTicketPrice: 50.0,
-        setPrice12: 570.0, // Nayarambalam specific rate
-        bulkFormula: BulkPricingFormula.proRata,
-        targetBenchmarkMin: 48.30,
-        targetBenchmarkMax: 48.50,
-        claimedAvgPrice: 47.20,
-      ),
-    ),
-    const Shop(
-      id: 'vypin_junction',
-      name: 'Vypin Junction Branch',
-      location: 'Vypin Junction',
-      code: 'VYP-02',
-      pricingConfig: PricingConfig(
-        singleTicketPrice: 50.0,
-        setPrice12: 580.0, // Standard branch rate
-        bulkFormula: BulkPricingFormula.proRata,
-        targetBenchmarkMin: 48.30,
-        targetBenchmarkMax: 48.50,
-        claimedAvgPrice: 47.20,
-      ),
-    ),
-    const Shop(
-      id: 'ernakulam_main',
-      name: 'Ernakulam North Stand',
-      location: 'Ernakulam North',
-      code: 'EKM-03',
-      pricingConfig: PricingConfig(
-        singleTicketPrice: 50.0,
-        setPrice12: 575.0,
-        bulkFormula: BulkPricingFormula.setPlusRemainder,
-        targetBenchmarkMin: 48.30,
-        targetBenchmarkMax: 48.50,
-        claimedAvgPrice: 47.20,
-      ),
-    ),
-  ];
+  // Pre-configured default shops (Empty by default; shops are created on user onboarding)
+  static List<Shop> get defaultShops => const [];
 }

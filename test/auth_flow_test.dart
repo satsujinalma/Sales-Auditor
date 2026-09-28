@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_auditor/main.dart';
 import 'package:sales_auditor/models/app_user.dart';
+import 'package:sales_auditor/models/pricing_config.dart';
+import 'package:sales_auditor/models/shop_model.dart';
 import 'package:sales_auditor/providers/admin_provider.dart';
 import 'package:sales_auditor/providers/auth_provider.dart';
 import 'package:sales_auditor/providers/sales_provider.dart';
@@ -15,8 +17,24 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  const testShop = Shop(
+    id: 'nayarambalam',
+    name: 'Nayarambalam Store',
+    location: 'Nayarambalam, Vypin',
+    code: 'NYR-01',
+    pricingConfig: PricingConfig(
+      singleTicketPrice: 50.0,
+      setPrice12: 570.0,
+      bulkFormula: BulkPricingFormula.proRata,
+      targetBenchmarkMin: 48.30,
+      targetBenchmarkMax: 48.50,
+      claimedAvgPrice: 47.20,
+    ),
+  );
+
   group('Authentication & Onboarding Flow Tests', () {
-    test('Unit Test: Fresh user verification & onboarding completion', () async {
+    test('Unit Test: Fresh user verification & onboarding completion',
+        () async {
       final salesRepo = MockLiveSalesRepository();
       await salesRepo.init();
       final authRepo = HybridAuthRepository(salesRepo);
@@ -80,8 +98,11 @@ void main() {
       expect(find.text('Sign In with Mobile'), findsOneWidget);
       expect(find.text('GET OTP'), findsOneWidget);
 
-      // Tap demo quick fill
-      await tester.tap(find.text('Demo Quick Fill: +91 98765 43210'));
+      // Enter mobile number
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Mobile Number'),
+        '9876543210',
+      );
       await tester.pump();
 
       // Tap GET OTP
@@ -93,8 +114,11 @@ void main() {
       expect(find.text('Verify Phone Number'), findsOneWidget);
       expect(find.text('VERIFY & SIGN IN'), findsOneWidget);
 
-      // Tap test OTP hint to auto-fill '123456'
-      await tester.tap(find.text('Test OTP: 123456 (Tap to auto-fill)'));
+      // Enter OTP
+      await tester.enterText(
+        find.byType(TextFormField),
+        '123456',
+      );
       await tester.pump();
 
       // Tap Verify & Sign In
@@ -137,7 +161,9 @@ void main() {
       expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
     });
 
-    test('Unit Test: Admin login with default credentials and update credentials', () async {
+    test(
+        'Unit Test: Admin login with default credentials and update credentials',
+        () async {
       final salesRepo = MockLiveSalesRepository();
       await salesRepo.init();
       final authRepo = HybridAuthRepository(salesRepo);
@@ -185,11 +211,14 @@ void main() {
       expect(updatedAdmin.role, UserRole.admin);
     });
 
-    testWidgets('Widget Test: Admin direct login with username & password to Admin Dashboard', (
+    testWidgets(
+        'Widget Test: Admin direct login with username & password to Admin Dashboard',
+        (
       WidgetTester tester,
     ) async {
       final salesRepo = MockLiveSalesRepository();
       await salesRepo.init();
+      await salesRepo.saveShop(testShop);
       final authRepo = HybridAuthRepository(salesRepo);
       await authRepo.init();
 
@@ -247,11 +276,16 @@ void main() {
       expect(find.text('ALL SHOPS SUMMARY'), findsOneWidget);
     });
 
-    testWidgets('Widget Test: Switching from Shopkeeper to Head App requires Master Admin password', (
+    testWidgets(
+        'Widget Test: Switching from Shopkeeper to Head App requires Master Admin password',
+        (
       WidgetTester tester,
     ) async {
       final salesRepo = MockLiveSalesRepository();
       await salesRepo.init();
+      await salesRepo.saveShop(testShop);
+      await salesRepo.setSelectedShopId(testShop.id);
+
       final authRepo = HybridAuthRepository(salesRepo);
       await authRepo.init();
 
@@ -296,7 +330,11 @@ void main() {
       expect(find.text('Head App Security'), findsOneWidget);
       expect(find.text('VERIFY & ENTER'), findsOneWidget);
 
-      // Try wrong password
+      // Enter username & wrong password
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Admin Username'),
+        'admin',
+      );
       await tester.enterText(
         find.widgetWithText(TextField, 'Admin Password'),
         'wrongpassword@123',

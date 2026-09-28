@@ -402,30 +402,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ],
             ),
           ),
-
-          const SizedBox(height: 20),
-
-          // Demo Helper / Quick Fill
-          Center(
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF0F766E),
-              ),
-              icon: const Icon(Icons.bolt, size: 16),
-              label: const Text(
-                'Demo Quick Fill: +91 98765 43210',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              onPressed: () {
-                setState(() {
-                  _phoneController.text = '9876543210';
-                });
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -512,7 +488,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   decoration: InputDecoration(
                     labelText: 'Admin Username',
-                    hintText: 'admin',
+                    hintText: 'Enter username',
                     prefixIcon: const Icon(
                       Icons.person_outline_rounded,
                       color: Color(0xFF1E293B),
@@ -548,7 +524,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   decoration: InputDecoration(
                     labelText: 'Admin Password',
-                    hintText: '••••••••',
+                    hintText: 'Enter password',
                     prefixIcon: const Icon(
                       Icons.lock_outline_rounded,
                       color: Color(0xFF1E293B),
@@ -666,31 +642,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                 ),
               ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Admin Demo Quick Fill
-          Center(
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF1E293B),
-              ),
-              icon: const Icon(Icons.bolt, size: 16, color: Colors.amber),
-              label: const Text(
-                'Demo Admin Fill (admin / vazhapazhamadmin@321)',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              onPressed: () {
-                setState(() {
-                  _adminUsernameController.text = 'admin';
-                  _adminPasswordController.text = 'vazhapazhamadmin@321';
-                });
-              },
             ),
           ),
         ],

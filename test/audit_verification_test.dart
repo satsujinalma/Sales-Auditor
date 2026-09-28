@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sales_auditor/models/pricing_config.dart';
+import 'package:sales_auditor/models/shop_model.dart';
 import 'package:sales_auditor/services/mock_live_sales_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,10 +9,28 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  const testShop = Shop(
+    id: 'nayarambalam',
+    name: 'Nayarambalam Store',
+    location: 'Nayarambalam, Vypin',
+    code: 'NYR-01',
+    pricingConfig: PricingConfig(
+      singleTicketPrice: 50.0,
+      setPrice12: 570.0,
+      bulkFormula: BulkPricingFormula.proRata,
+      targetBenchmarkMin: 48.30,
+      targetBenchmarkMax: 48.50,
+      claimedAvgPrice: 47.20,
+    ),
+  );
+
   group('Kerala Lottery Audit Scenario Verification Tests', () {
-    test('Scenario 1: Shopkeeper claims ₹47.20 avg, but customer buys 10 single tickets and only one 12-ticket set', () async {
+    test(
+        'Scenario 1: Shopkeeper claims ₹47.20 avg, but customer buys 10 single tickets and only one 12-ticket set',
+        () async {
       final repository = MockLiveSalesRepository();
       await repository.init();
+      await repository.saveShop(testShop);
       await repository.resetDaySales('nayarambalam');
 
       final shop = await repository.getShop('nayarambalam');
@@ -34,7 +53,8 @@ void main() {
         config: config,
       );
 
-      final summary = await repository.getDailySales('nayarambalam', DateTime.now());
+      final summary =
+          await repository.getDailySales('nayarambalam', DateTime.now());
 
       // Total tickets = 10 + 12 = 22
       expect(summary.totalTicketsSold, 22);
@@ -48,9 +68,12 @@ void main() {
       expect(summary.averagePricePerTicket > config.targetBenchmarkMin, true);
     });
 
-    test('Scenario 2: Shopkeeper sells exclusively in 12-ticket sets (100% bulk)', () async {
+    test(
+        'Scenario 2: Shopkeeper sells exclusively in 12-ticket sets (100% bulk)',
+        () async {
       final repository = MockLiveSalesRepository();
       await repository.init();
+      await repository.saveShop(testShop);
       await repository.resetDaySales('nayarambalam');
 
       final shop = await repository.getShop('nayarambalam');
@@ -65,7 +88,8 @@ void main() {
         );
       }
 
-      final summary = await repository.getDailySales('nayarambalam', DateTime.now());
+      final summary =
+          await repository.getDailySales('nayarambalam', DateTime.now());
 
       expect(summary.totalTicketsSold, 60);
       expect(summary.totalRevenue, 2850.0); // 5 * 570
@@ -73,9 +97,11 @@ void main() {
       expect(summary.bulkTicketsPercentage, 100.0);
     });
 
-    test('Scenario 3: Dynamic pricing configuration update at runtime', () async {
+    test('Scenario 3: Dynamic pricing configuration update at runtime',
+        () async {
       final repository = MockLiveSalesRepository();
       await repository.init();
+      await repository.saveShop(testShop);
       await repository.resetDaySales('nayarambalam');
 
       // Update Nayarambalam set price from ₹570 to ₹580
@@ -97,7 +123,8 @@ void main() {
         config: updatedShop.pricingConfig,
       );
 
-      final summary = await repository.getDailySales('nayarambalam', DateTime.now());
+      final summary =
+          await repository.getDailySales('nayarambalam', DateTime.now());
       expect(summary.totalRevenue, 580.0);
       expect(summary.averagePricePerTicket, closeTo(48.33, 0.01));
     });

@@ -266,45 +266,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // Test OTP hint
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.amber.shade400),
-                      ),
-                      child: InkWell(
-                        onTap: () => setState(() => _otpController.text = '123456'),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.lightbulb_outline,
-                              size: 14,
-                              color: Colors.amber.shade900,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Test OTP: 123456 (Tap to auto-fill)',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.amber.shade900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

@@ -43,14 +43,6 @@ class FirestoreSalesRepository implements SalesRepository {
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
 
-    // Seed default shops if empty
-    final snapshot = await _shopsRef.limit(1).get();
-    if (snapshot.docs.isEmpty) {
-      for (final shop in Shop.defaultShops) {
-        await _shopsRef.doc(shop.id).set(shop.toJson());
-      }
-    }
-
     // Seed admin PIN if not set
     final settingsDoc = await _settingsRef.get();
     if (!settingsDoc.exists) {
@@ -71,7 +63,6 @@ class FirestoreSalesRepository implements SalesRepository {
   @override
   Stream<List<Shop>> watchShops() {
     return _shopsRef.snapshots().map((snapshot) {
-      if (snapshot.docs.isEmpty) return Shop.defaultShops;
       return snapshot.docs.map((doc) => Shop.fromJson(doc.data())).toList();
     });
   }
@@ -79,7 +70,6 @@ class FirestoreSalesRepository implements SalesRepository {
   @override
   Future<List<Shop>> getShops() async {
     final snapshot = await _shopsRef.get();
-    if (snapshot.docs.isEmpty) return Shop.defaultShops;
     return snapshot.docs.map((doc) => Shop.fromJson(doc.data())).toList();
   }
 

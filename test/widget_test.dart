@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_auditor/main.dart';
 import 'package:sales_auditor/models/app_user.dart';
+import 'package:sales_auditor/models/pricing_config.dart';
+import 'package:sales_auditor/models/shop_model.dart';
 import 'package:sales_auditor/providers/admin_provider.dart';
 import 'package:sales_auditor/providers/auth_provider.dart';
 import 'package:sales_auditor/providers/sales_provider.dart';
@@ -15,11 +17,28 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  const testShop = Shop(
+    id: 'nayarambalam',
+    name: 'Nayarambalam Store',
+    location: 'Nayarambalam, Vypin',
+    code: 'NYR-01',
+    pricingConfig: PricingConfig(
+      singleTicketPrice: 50.0,
+      setPrice12: 570.0,
+      bulkFormula: BulkPricingFormula.proRata,
+      targetBenchmarkMin: 48.30,
+      targetBenchmarkMax: 48.50,
+      claimedAvgPrice: 47.20,
+    ),
+  );
+
   testWidgets('Full Lottery Sales Auditor UI & Interaction Smoke Test', (
     WidgetTester tester,
   ) async {
     final repository = MockLiveSalesRepository();
     await repository.init();
+    await repository.saveShop(testShop);
+    await repository.setSelectedShopId(testShop.id);
     await repository.resetDaySales('nayarambalam');
 
     final authRepository = HybridAuthRepository(repository);
@@ -66,7 +85,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Confirm and enter sale for Customer 1
-    final enterSaleBtn1 = find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹50');
+    final enterSaleBtn1 =
+        find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹50');
     expect(enterSaleBtn1, findsOneWidget);
     await tester.tap(enterSaleBtn1);
     await tester.pump();
@@ -84,7 +104,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Confirm and enter sale for Customer 2
-    final enterSaleBtn12 = find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹570');
+    final enterSaleBtn12 =
+        find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹570');
     expect(enterSaleBtn12, findsOneWidget);
     await tester.ensureVisible(enterSaleBtn12);
     await tester.tap(enterSaleBtn12);
@@ -119,7 +140,11 @@ void main() {
     expect(find.text('Head App Security'), findsOneWidget);
     expect(find.text('VERIFY & ENTER'), findsOneWidget);
 
-    // Enter Admin password
+    // Enter Admin username and password
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Admin Username'),
+      'admin',
+    );
     await tester.enterText(
       find.widgetWithText(TextField, 'Admin Password'),
       'vazhapazhamadmin@321',

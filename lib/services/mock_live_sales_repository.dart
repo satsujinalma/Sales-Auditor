@@ -23,7 +23,7 @@ class MockLiveSalesRepository implements SalesRepository {
 
   List<Shop> _shops = [];
   String _adminPin = '1234';
-  String _selectedShopId = 'nayarambalam';
+  String _selectedShopId = '';
   final Map<String, DailySalesSummary> _salesCache = {};
 
   bool _initialized = false;
@@ -38,7 +38,7 @@ class MockLiveSalesRepository implements SalesRepository {
       _adminPin = prefs.getString(_keyAdminPin) ?? '1234';
 
       // Load or set selected shop
-      _selectedShopId = prefs.getString(_keySelectedShop) ?? 'nayarambalam';
+      _selectedShopId = prefs.getString(_keySelectedShop) ?? '';
 
       // Load shops
       final shopsJson = prefs.getString(_keyShops);
@@ -48,8 +48,12 @@ class MockLiveSalesRepository implements SalesRepository {
             .map((item) => Shop.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
-        _shops = List.from(Shop.defaultShops);
+        _shops = [];
         await _saveShopsToPrefs(prefs);
+      }
+
+      if (_selectedShopId.isEmpty && _shops.isNotEmpty) {
+        _selectedShopId = _shops.first.id;
       }
 
       // Load today's sales for all shops
@@ -70,7 +74,7 @@ class MockLiveSalesRepository implements SalesRepository {
       }
     } catch (e) {
       // Fallback in-memory
-      _shops = List.from(Shop.defaultShops);
+      _shops = [];
     }
 
     _initialized = true;

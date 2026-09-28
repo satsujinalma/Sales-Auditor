@@ -751,7 +751,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         maxLength: 4,
                         autofocus: true,
                         decoration: InputDecoration(
-                          hintText: 'PIN (Default: 1234)',
+                          hintText: 'Enter 4-digit PIN',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -779,7 +779,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         if (ctx.mounted) Navigator.pop(ctx, true);
                       } else {
                         setDialogState(() {
-                          errorText = 'Invalid PIN. Default is 1234';
+                          errorText = 'Invalid PIN. Please try again.';
                         });
                       }
                     },
