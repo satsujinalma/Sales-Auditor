@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import 'otp_verification_screen.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -11,11 +10,13 @@ class PhoneLoginScreen extends StatefulWidget {
 }
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
-  int _selectedTab = 0; // 0: Shopkeeper (OTP), 1: Admin (Password)
+  int _selectedTab = 0; // 0: Shopkeeper, 1: Admin
 
-  // Shopkeeper OTP controllers
+  // Shopkeeper Login controllers
+  final _nameController = TextEditingController();
+  final _shopNameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _otpFormKey = GlobalKey<FormState>();
+  final _shopkeeperFormKey = GlobalKey<FormState>();
 
   // Admin Login controllers
   final _adminUsernameController = TextEditingController();
@@ -25,6 +26,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _shopNameController.dispose();
     _phoneController.dispose();
     _adminUsernameController.dispose();
     _adminPasswordController.dispose();
@@ -53,8 +56,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: _selectedTab == 0
-                            ? [const Color(0xFF0F766E), const Color(0xFF115E59)]
-                            : [const Color(0xFF1E293B), const Color(0xFF0F172A)],
+                            ? [
+                                const Color(0xFF0F766E),
+                                const Color(0xFF115E59),
+                              ]
+                            : [
+                                const Color(0xFF1E293B),
+                                const Color(0xFF0F172A),
+                              ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -119,7 +128,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           onTap: () {
                             if (_selectedTab != 0) {
                               setState(() => _selectedTab = 0);
-                              authProvider.resetOtpState();
                             }
                           },
                           child: Container(
@@ -132,7 +140,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               boxShadow: _selectedTab == 0
                                   ? [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.08),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.08),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -143,7 +152,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.phone_android,
+                                  Icons.storefront,
                                   size: 16,
                                   color: _selectedTab == 0
                                       ? const Color(0xFF0F766E)
@@ -151,7 +160,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Shopkeeper (OTP)',
+                                  'Shopkeeper Login',
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: _selectedTab == 0
@@ -172,7 +181,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           onTap: () {
                             if (_selectedTab != 1) {
                               setState(() => _selectedTab = 1);
-                              authProvider.resetOtpState();
                             }
                           },
                           child: Container(
@@ -185,7 +193,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               boxShadow: _selectedTab == 1
                                   ? [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.08),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.08),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -228,7 +237,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
                 // Form Card depending on selected tab
                 if (_selectedTab == 0)
-                  _buildShopkeeperOtpForm(context, authProvider)
+                  _buildShopkeeperLoginForm(context, authProvider)
                 else
                   _buildAdminCredentialsForm(context, authProvider),
               ],
@@ -239,12 +248,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 
-  Widget _buildShopkeeperOtpForm(
+  Widget _buildShopkeeperLoginForm(
     BuildContext context,
     AuthProvider authProvider,
   ) {
     return Form(
-      key: _otpFormKey,
+      key: _shopkeeperFormKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -266,60 +275,35 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Sign In with Mobile',
+                  'Shopkeeper Sign In',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 const Text(
-                  'Enter your 10-digit mobile number to receive a one-time password (OTP).',
+                  'Enter your name to open and operate your sales terminal.',
                   style: TextStyle(fontSize: 12, color: Colors.black54),
                 ),
                 const SizedBox(height: 18),
 
-                // Phone TextField
+                // Name TextField (Required)
                 TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  maxLength: 10,
+                  controller: _nameController,
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 1.0,
                   ),
                   decoration: InputDecoration(
-                    counterText: '',
-                    labelText: 'Mobile Number',
-                    hintText: 'Enter 10-digit number',
-                    prefixIcon: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('🇮🇳', style: TextStyle(fontSize: 18)),
-                          const SizedBox(width: 6),
-                          const Text(
-                            '+91',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            height: 20,
-                            width: 1,
-                            color: Colors.grey.shade300,
-                          ),
-                        ],
-                      ),
+                    labelText: 'Shopkeeper Name',
+                    hintText: 'Enter your name',
+                    prefixIcon: const Icon(
+                      Icons.person_outline_rounded,
+                      color: Color(0xFF0F766E),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -334,30 +318,110 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your mobile number';
-                    }
-                    if (value.trim().length != 10) {
-                      return 'Mobile number must be 10 digits';
+                      return 'Please enter your name';
                     }
                     return null;
                   },
                 ),
 
+                const SizedBox(height: 14),
+
+                // Shop / Counter Name (Optional)
+                TextFormField(
+                  controller: _shopNameController,
+                  keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.words,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Shop / Counter Name (Optional)',
+                    hintText: 'e.g. Nayarambalam Store',
+                    prefixIcon: const Icon(
+                      Icons.storefront_outlined,
+                      color: Color(0xFF0F766E),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF0F766E),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                // Mobile Number (Optional)
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    labelText: 'Mobile Number (Optional)',
+                    hintText: 'Enter 10-digit number',
+                    prefixIcon: const Icon(
+                      Icons.phone_android_outlined,
+                      color: Color(0xFF0F766E),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF0F766E),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+
                 if (authProvider.errorMessage != null) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    authProvider.errorMessage!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.red.shade700,
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 18,
+                          color: Colors.red.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            authProvider.errorMessage!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
 
-                // Send OTP Button
+                // Enter Terminal Button
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -370,10 +434,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       ),
                       elevation: 2,
                     ),
-                    onPressed: authProvider.isSendingOtp
+                    onPressed: authProvider.isLoggingIn
                         ? null
-                        : () => _handleSendOtp(authProvider),
-                    child: authProvider.isSendingOtp
+                        : () => _handleShopkeeperLogin(authProvider),
+                    child: authProvider.isLoggingIn
                         ? const SizedBox(
                             width: 22,
                             height: 22,
@@ -386,9 +450,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'GET OTP',
+                                'ENTER SALES TERMINAL',
                                 style: TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.8,
                                 ),
@@ -450,7 +514,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           SizedBox(height: 4),
                           Text(
                             'Sign in with Admin username & password to access audit dashboard & multi-shop monitor.',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                            style:
+                                TextStyle(fontSize: 12, color: Colors.black54),
                           ),
                         ],
                       ),
@@ -649,20 +714,18 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 
-  void _handleSendOtp(AuthProvider authProvider) async {
-    if (!_otpFormKey.currentState!.validate()) return;
+  void _handleShopkeeperLogin(AuthProvider authProvider) async {
+    if (!_shopkeeperFormKey.currentState!.validate()) return;
 
-    final phone = '+91 ${_phoneController.text.trim()}';
-    final success = await authProvider.sendOtp(phone);
-
-    if (success && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OtpVerificationScreen(phoneNumber: phone),
-        ),
-      );
-    }
+    await authProvider.loginAsShopkeeper(
+      name: _nameController.text.trim(),
+      shopName: _shopNameController.text.trim().isNotEmpty
+          ? _shopNameController.text.trim()
+          : null,
+      phoneNumber: _phoneController.text.trim().isNotEmpty
+          ? _phoneController.text.trim()
+          : null,
+    );
   }
 
   void _handleAdminLogin(AuthProvider authProvider) async {

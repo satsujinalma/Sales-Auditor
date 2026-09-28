@@ -32,46 +32,36 @@ void main() {
     ),
   );
 
-  group('Authentication & Onboarding Flow Tests', () {
-    test('Unit Test: Fresh user verification & onboarding completion',
-        () async {
+  group('Authentication & Flow Tests', () {
+    test('Unit Test: Direct Shopkeeper Name & Shop login', () async {
       final salesRepo = MockLiveSalesRepository();
       await salesRepo.init();
       final authRepo = HybridAuthRepository(salesRepo);
       await authRepo.init();
 
-      // Send OTP
-      await authRepo.sendOtp('+91 9876543210');
-
-      // Verify OTP for fresh user
-      final freshUser = await authRepo.verifyOtp(
-        phoneNumber: '+91 9876543210',
-        otp: '123456',
+      // Direct Login as Shopkeeper
+      final user = await authRepo.loginAsShopkeeper(
+        name: 'Rajesh Nayarambalam',
+        shopName: 'Nayarambalam Store',
       );
 
-      expect(freshUser.phoneNumber, '+919876543210');
-      expect(freshUser.isProfileComplete, false);
-
-      // Complete Onboarding as Shopkeeper
-      await authRepo.completeOnboarding(
-        user: freshUser.copyWith(
-          name: 'Rajesh Nayarambalam',
-          role: UserRole.shopkeeper,
-        ),
-      );
+      expect(user.name, 'Rajesh Nayarambalam');
+      expect(user.role, UserRole.shopkeeper);
+      expect(user.isProfileComplete, true);
+      expect(user.shopId, isNotNull);
 
       final currentUser = await authRepo.getCurrentUser();
       expect(currentUser, isNotNull);
       expect(currentUser!.name, 'Rajesh Nayarambalam');
-      expect(currentUser.isProfileComplete, true);
-      expect(currentUser.role, UserRole.shopkeeper);
 
       // Sign out
       await authRepo.signOut();
       expect(await authRepo.getCurrentUser(), isNull);
     });
 
-    testWidgets('Widget Test: Full Phone Login -> OTP -> Onboarding Flow', (
+    testWidgets(
+        'Widget Test: Full Shopkeeper Name Login -> Direct Sales Terminal Flow',
+        (
       WidgetTester tester,
     ) async {
       final salesRepo = MockLiveSalesRepository();
@@ -93,68 +83,31 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Step 1: Verify on Phone Login Screen
+      // Step 1: Verify on Login Screen
       expect(find.text('SALES AUDITOR'), findsOneWidget);
-      expect(find.text('Sign In with Mobile'), findsOneWidget);
-      expect(find.text('GET OTP'), findsOneWidget);
+      expect(find.text('Shopkeeper Sign In'), findsOneWidget);
+      expect(find.text('ENTER SALES TERMINAL'), findsOneWidget);
 
-      // Enter mobile number
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Mobile Number'),
-        '9876543210',
-      );
-      await tester.pump();
-
-      // Tap GET OTP
-      await tester.tap(find.text('GET OTP'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      // Step 2: Verify on OTP Verification Screen
-      expect(find.text('Verify Phone Number'), findsOneWidget);
-      expect(find.text('VERIFY & SIGN IN'), findsOneWidget);
-
-      // Enter OTP
-      await tester.enterText(
-        find.byType(TextFormField),
-        '123456',
-      );
-      await tester.pump();
-
-      // Tap Verify & Sign In
-      await tester.tap(find.text('VERIFY & SIGN IN'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      // Step 3: Fresh user should land on Profile Onboarding Screen
-      expect(find.text('Store & Profile Setup'), findsOneWidget);
-      expect(find.text('1. SHOPKEEPER DETAILS'), findsOneWidget);
-      expect(find.text('COMPLETE & ENTER SALES TERMINAL'), findsOneWidget);
-
-      // Fill in onboarding details
-      // 1. Name
+      // Enter Shopkeeper Name & Shop Name
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Shopkeeper Name'),
         'Sandeep Nayarambalam',
       );
-      // 2. Shop Name
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Shop Name'),
+        find.widgetWithText(TextFormField, 'Shop / Counter Name (Optional)'),
         'Nayarambalam Store',
       );
-
       await tester.pump();
 
-      // Scroll button into view and tap
-      final submitBtn = find.text('COMPLETE & ENTER SALES TERMINAL');
-      await tester.ensureVisible(submitBtn);
-      await tester.pumpAndSettle();
-
-      await tester.tap(submitBtn);
+      // Tap ENTER SALES TERMINAL
+      final enterBtn = find.text('ENTER SALES TERMINAL');
+      await tester.ensureVisible(enterBtn);
+      await tester.tap(enterBtn);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
 
-      // Step 4: User should now be in the main app (Shopkeeper Sales Terminal)
+      // Step 2: User should now be directly inside the Sales Terminal
       expect(find.text('BOX 1'), findsOneWidget);
       expect(find.text('BOX 2'), findsOneWidget);
       expect(find.text('BOX 3'), findsOneWidget);
@@ -236,8 +189,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // 1. Verify on PhoneLoginScreen
-      expect(find.text('Shopkeeper (OTP)'), findsOneWidget);
+      // 1. Verify on Login Screen
+      expect(find.text('Shopkeeper Login'), findsOneWidget);
       expect(find.text('Admin Login'), findsOneWidget);
 
       // 2. Switch to Admin Login tab
@@ -289,17 +242,10 @@ void main() {
       final authRepo = HybridAuthRepository(salesRepo);
       await authRepo.init();
 
-      // Onboard a shopkeeper
-      final user = await authRepo.verifyOtp(
-        phoneNumber: '+91 9999988888',
-        otp: '123456',
-      );
-      await authRepo.completeOnboarding(
-        user: user.copyWith(
-          name: 'Nayarambalam Operator',
-          role: UserRole.shopkeeper,
-          shopId: 'nayarambalam',
-        ),
+      // Log in a shopkeeper
+      await authRepo.loginAsShopkeeper(
+        name: 'Nayarambalam Operator',
+        shopName: 'Nayarambalam Store',
       );
 
       await tester.pumpWidget(

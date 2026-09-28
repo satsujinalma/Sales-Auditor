@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_auditor/main.dart';
-import 'package:sales_auditor/models/app_user.dart';
 import 'package:sales_auditor/models/pricing_config.dart';
 import 'package:sales_auditor/models/shop_model.dart';
 import 'package:sales_auditor/providers/admin_provider.dart';
@@ -43,16 +42,9 @@ void main() {
 
     final authRepository = HybridAuthRepository(repository);
     await authRepository.init();
-    final freshUser = await authRepository.verifyOtp(
-      phoneNumber: '+91 9876543210',
-      otp: '123456',
-    );
-    await authRepository.completeOnboarding(
-      user: freshUser.copyWith(
-        name: 'Test Shopkeeper',
-        role: UserRole.shopkeeper,
-        shopId: 'nayarambalam',
-      ),
+    await authRepository.loginAsShopkeeper(
+      name: 'Test Shopkeeper',
+      shopName: 'Nayarambalam Store',
     );
 
     await tester.pumpWidget(

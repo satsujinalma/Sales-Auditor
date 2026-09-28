@@ -4,8 +4,11 @@ import '../models/shop_model.dart';
 abstract class AuthRepository {
   Stream<AppUser?> authStateChanges();
   Future<AppUser?> getCurrentUser();
-  Future<void> sendOtp(String phoneNumber);
-  Future<AppUser> verifyOtp({required String phoneNumber, required String otp});
+  Future<AppUser> loginAsShopkeeper({
+    required String name,
+    String? phoneNumber,
+    String? shopName,
+  });
   Future<AppUser> loginWithAdminCredentials({
     required String username,
     required String password,

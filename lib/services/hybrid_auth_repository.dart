@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/app_user.dart';
+import '../models/pricing_config.dart';
 import '../models/shop_model.dart';
 import 'auth_repository.dart';
 import 'firestore_sales_repository.dart';
@@ -17,19 +17,13 @@ class HybridAuthRepository implements AuthRepository {
   static const String _keyAdminPassword = 'sales_auditor_admin_password_v1';
 
   final SalesRepository _salesRepository;
-  final FirebaseAuth? firebaseAuth;
   final _authStateController = StreamController<AppUser?>.broadcast();
   final _uuid = const Uuid();
 
   AppUser? _currentUser;
   bool _initialized = false;
-  String? _verificationId;
-  int? _resendToken;
 
-  HybridAuthRepository(
-    this._salesRepository, {
-    this.firebaseAuth,
-  });
+  HybridAuthRepository(this._salesRepository);
 
   Future<void> init() async {
     if (_initialized) return;
@@ -68,133 +62,76 @@ class HybridAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> sendOtp(String phoneNumber) async {
-    if (!_initialized) await init();
-
-    final normalizedPhone = phoneNumber.replaceAll(RegExp(r'\s+'), '');
-    final formattedPhone = normalizedPhone.startsWith('+')
-        ? normalizedPhone
-        : '+91$normalizedPhone';
-
-    try {
-      final auth = firebaseAuth ?? FirebaseAuth.instance;
-      final completer = Completer<void>();
-
-      await auth.verifyPhoneNumber(
-        phoneNumber: formattedPhone,
-        timeout: const Duration(seconds: 60),
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          // Automatic resolution on Android if SMS is intercepted
-          try {
-            await auth.signInWithCredential(credential);
-            final user = await _getOrCreateAppUser(formattedPhone);
-            _currentUser = user;
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString(_keyCurrentUser, jsonEncode(user.toJson()));
-            _authStateController.add(_currentUser);
-          } catch (_) {}
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          if (!completer.isCompleted) {
-            completer.completeError(
-              Exception(e.message ?? 'Verification failed (${e.code})'),
-            );
-          }
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          _verificationId = verificationId;
-          _resendToken = resendToken;
-          if (!completer.isCompleted) {
-            completer.complete();
-          }
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          _verificationId = verificationId;
-        },
-        forceResendingToken: _resendToken,
-      );
-
-      await completer.future;
-    } catch (e) {
-      // In test/mock environment or when native Firebase is offline
-      if (e is Exception &&
-          (e.toString().contains('Verification failed') ||
-              e.toString().contains('quota') ||
-              e.toString().contains('invalid-phone-number'))) {
-        rethrow;
-      }
-      // Mock fallback ID for testing/offline support
-      _verificationId =
-          'mock_verification_${DateTime.now().millisecondsSinceEpoch}';
-    }
-  }
-
-  @override
-  Future<AppUser> verifyOtp({
-    required String phoneNumber,
-    required String otp,
+  Future<AppUser> loginAsShopkeeper({
+    required String name,
+    String? phoneNumber,
+    String? shopName,
   }) async {
     if (!_initialized) await init();
 
-    if (otp.trim().length != 6) {
-      throw Exception('Invalid OTP. Please enter a 6-digit code.');
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) {
+      throw Exception('Please enter shopkeeper name');
     }
 
-    final normalizedPhone = phoneNumber.replaceAll(RegExp(r'\s+'), '');
-    final formattedPhone = normalizedPhone.startsWith('+')
-        ? normalizedPhone
-        : '+91$normalizedPhone';
+    String? assignedShopId;
+    final cleanShopName = shopName?.trim() ?? '';
 
-    // If using live Firebase verification
-    if (_verificationId != null && !_verificationId!.startsWith('mock_')) {
-      try {
-        final auth = firebaseAuth ?? FirebaseAuth.instance;
-        final credential = PhoneAuthProvider.credential(
-          verificationId: _verificationId!,
-          smsCode: otp.trim(),
-        );
-        await auth.signInWithCredential(credential);
-      } catch (e) {
-        if (e is FirebaseAuthException) {
-          throw Exception(e.message ?? 'Invalid OTP code.');
-        }
-        throw Exception('Invalid OTP code. Please try again.');
-      }
-    }
-
-    return await _getOrCreateAppUser(formattedPhone);
-  }
-
-  Future<AppUser> _getOrCreateAppUser(String formattedPhone) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString(_keyUsersList);
-    Map<String, dynamic> usersMap = {};
-
-    if (usersJson != null) {
-      try {
-        usersMap = jsonDecode(usersJson) as Map<String, dynamic>;
-      } catch (_) {}
-    }
-
-    AppUser user;
-    if (usersMap.containsKey(formattedPhone)) {
-      // Existing user
-      user =
-          AppUser.fromJson(usersMap[formattedPhone] as Map<String, dynamic>);
-    } else {
-      // Fresh user
-      user = AppUser(
-        id: _uuid.v4(),
-        phoneNumber: formattedPhone,
-        name: '',
-        role: UserRole.shopkeeper,
-        isProfileComplete: false,
-        createdAt: DateTime.now(),
+    // Check or create store
+    final existingShops = await _salesRepository.getShops();
+    if (cleanShopName.isNotEmpty) {
+      final match = existingShops.where(
+        (s) => s.name.toLowerCase() == cleanShopName.toLowerCase(),
       );
-      usersMap[formattedPhone] = user.toJson();
-      await prefs.setString(_keyUsersList, jsonEncode(usersMap));
+      if (match.isNotEmpty) {
+        assignedShopId = match.first.id;
+        await _salesRepository.setSelectedShopId(assignedShopId);
+      } else {
+        final newId = cleanShopName
+            .toLowerCase()
+            .replaceAll(RegExp(r'[^a-z0-9]'), '_')
+            .replaceAll(RegExp(r'_+'), '_');
+        final shopId = newId.isNotEmpty ? newId : _uuid.v4().substring(0, 8);
+        final code = cleanShopName.length >= 3
+            ? cleanShopName.substring(0, 3).toUpperCase()
+            : 'SHP';
+
+        final newShop = Shop(
+          id: shopId,
+          name: cleanShopName,
+          location: 'Kerala Retail Counter',
+          code: code,
+          pricingConfig: const PricingConfig(
+            singleTicketPrice: 50.0,
+            setPrice12: 570.0,
+            bulkFormula: BulkPricingFormula.proRata,
+            targetBenchmarkMin: 48.30,
+            targetBenchmarkMax: 48.50,
+            claimedAvgPrice: 47.20,
+          ),
+        );
+        await _salesRepository.saveShop(newShop);
+        await _salesRepository.setSelectedShopId(newShop.id);
+        assignedShopId = newShop.id;
+      }
+    } else if (existingShops.isNotEmpty) {
+      assignedShopId = existingShops.first.id;
+      await _salesRepository.setSelectedShopId(assignedShopId);
     }
 
+    final user = AppUser(
+      id: _uuid.v4(),
+      name: cleanName,
+      phoneNumber: phoneNumber?.trim().isNotEmpty == true
+          ? phoneNumber!.trim()
+          : 'SHOPKEEPER',
+      role: UserRole.shopkeeper,
+      isProfileComplete: true,
+      shopId: assignedShopId,
+      createdAt: DateTime.now(),
+    );
+
+    final prefs = await SharedPreferences.getInstance();
     _currentUser = user;
     await prefs.setString(_keyCurrentUser, jsonEncode(user.toJson()));
     _authStateController.add(_currentUser);
@@ -317,16 +254,10 @@ class HybridAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     if (!_initialized) await init();
-    try {
-      final auth = firebaseAuth ?? FirebaseAuth.instance;
-      await auth.signOut();
-    } catch (_) {}
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyCurrentUser);
     _currentUser = null;
-    _verificationId = null;
-    _resendToken = null;
     _authStateController.add(null);
   }
 }

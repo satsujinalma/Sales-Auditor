@@ -9,10 +9,7 @@ class AuthProvider extends ChangeNotifier {
 
   AppUser? _currentUser;
   bool _isLoading = true;
-  bool _isSendingOtp = false;
-  bool _isVerifyingOtp = false;
-  bool _isOtpSent = false;
-  String _phoneNumber = '';
+  bool _isLoggingIn = false;
   bool _isLoggingInAsAdmin = false;
   String? _errorMessage;
 
@@ -26,11 +23,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
   bool get isProfileComplete => _currentUser?.isProfileComplete ?? false;
   bool get isLoading => _isLoading;
-  bool get isSendingOtp => _isSendingOtp;
-  bool get isVerifyingOtp => _isVerifyingOtp;
+  bool get isLoggingIn => _isLoggingIn;
   bool get isLoggingInAsAdmin => _isLoggingInAsAdmin;
-  bool get isOtpSent => _isOtpSent;
-  String get phoneNumber => _phoneNumber;
   String? get errorMessage => _errorMessage;
 
   Future<void> _init() async {
@@ -51,7 +45,37 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> loginWithAdminCredentials(String username, String password) async {
+  Future<bool> loginAsShopkeeper({
+    required String name,
+    String? phoneNumber,
+    String? shopName,
+  }) async {
+    _isLoggingIn = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final user = await _authRepository.loginAsShopkeeper(
+        name: name.trim(),
+        phoneNumber: phoneNumber?.trim(),
+        shopName: shopName?.trim(),
+      );
+      _currentUser = user;
+      _isLoggingIn = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoggingIn = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> loginWithAdminCredentials(
+    String username,
+    String password,
+  ) async {
     _isLoggingInAsAdmin = true;
     _errorMessage = null;
     notifyListeners();
@@ -101,48 +125,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> sendOtp(String phone) async {
-    _isSendingOtp = true;
-    _errorMessage = null;
-    _phoneNumber = phone.trim();
-    notifyListeners();
-
-    try {
-      await _authRepository.sendOtp(_phoneNumber);
-      _isOtpSent = true;
-      _isSendingOtp = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = 'Failed to send OTP: $e';
-      _isSendingOtp = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> verifyOtp(String otp) async {
-    _isVerifyingOtp = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final user = await _authRepository.verifyOtp(
-        phoneNumber: _phoneNumber,
-        otp: otp.trim(),
-      );
-      _currentUser = user;
-      _isVerifyingOtp = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isVerifyingOtp = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
   Future<bool> completeOnboarding({
     required String name,
     required UserRole role,
@@ -178,17 +160,9 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void resetOtpState() {
-    _isOtpSent = false;
-    _errorMessage = null;
-    notifyListeners();
-  }
-
   Future<void> signOut() async {
     await _authRepository.signOut();
     _currentUser = null;
-    _isOtpSent = false;
-    _phoneNumber = '';
     notifyListeners();
   }
 
