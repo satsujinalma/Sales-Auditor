@@ -38,7 +38,7 @@ class KeralaLotteryAuditorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sales Auditor - Kerala Lottery',
+      title: 'Sales Audit - Kerala Lottery',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

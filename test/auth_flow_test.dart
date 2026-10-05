@@ -84,7 +84,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Step 1: Verify on Login Screen
-      expect(find.text('SALES AUDITOR'), findsOneWidget);
+      expect(find.text('SALES AUDIT'), findsOneWidget);
       expect(find.text('Shopkeeper Sign In'), findsOneWidget);
       expect(find.text('ENTER SALES TERMINAL'), findsOneWidget);
 

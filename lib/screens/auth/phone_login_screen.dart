@@ -92,7 +92,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 const SizedBox(height: 16),
 
                 const Text(
-                  'SALES AUDITOR',
+                  'SALES AUDIT',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 22,
