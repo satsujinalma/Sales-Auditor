@@ -91,11 +91,22 @@ class AppUpdateService {
 
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
-        final remoteVersion = data['latestVersion'] as String? ?? '';
-        final downloadUrl = data['apkUrl'] as String? ?? '';
-        final releaseNotes = data['releaseNotes'] as String? ??
-            'New features and updates available.';
-        final isMandatory = data['isMandatory'] as bool? ?? false;
+        final remoteVersion = (data['latestVersion'] ?? data['LatestVersion'] ?? '')
+            .toString()
+            .replaceAll(RegExp(r'^[vV]'), '')
+            .trim();
+        final downloadUrl =
+            (data['apkUrl'] ?? data['ApkUrl'] ?? data['downloadUrl'] ?? '')
+                .toString()
+                .trim();
+        final releaseNotes = (data['releaseNotes'] ??
+                data['ReleaseNotes'] ??
+                'New features and updates available.')
+            .toString();
+        final rawMandatory = data['isMandatory'] ?? data['IsMandatory'] ?? false;
+        final isMandatory = rawMandatory is bool
+            ? rawMandatory
+            : rawMandatory.toString().toLowerCase() == 'true';
 
         if (remoteVersion.isNotEmpty &&
             downloadUrl.isNotEmpty &&
