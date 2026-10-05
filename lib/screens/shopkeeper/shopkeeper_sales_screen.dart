@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../models/app_user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sales_provider.dart';
+import '../../services/app_update_service.dart';
 import '../../services/pricing_calculator.dart';
+import '../../widgets/app_update_dialog.dart';
 import '../../widgets/audit_comparison_card.dart';
 import '../../widgets/recent_transactions_list.dart';
 import '../../widgets/three_output_boxes_widget.dart';
@@ -25,6 +27,24 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
   int _maxButtons = 36; // Default grid 1 to 36 or 40
   int? _stagedTickets; // Currently selected customer order
   bool _showAuditAnalysis = false; // Collapsible to keep UI ultra-minimal
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForAppUpdates();
+    });
+  }
+
+  void _checkForAppUpdates() async {
+    try {
+      final updateService = AppUpdateService();
+      final updateInfo = await updateService.checkForUpdate();
+      if (updateInfo.hasUpdate && mounted) {
+        AppUpdateDialog.show(context, updateInfo, updateService: updateService);
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {

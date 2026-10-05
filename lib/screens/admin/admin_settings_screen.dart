@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/pricing_config.dart';
 import '../../providers/admin_provider.dart';
+import '../../services/app_update_service.dart';
+import '../../widgets/app_update_dialog.dart';
 
 class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -391,6 +393,11 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 onPressed: () => _saveConfiguration(adminProvider),
               ),
 
+              const SizedBox(height: 24),
+
+              // APP VERSION & OTA UPDATE
+              _buildAppUpdateSection(),
+
               const SizedBox(height: 32),
             ],
           ),
@@ -470,6 +477,101 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildAppUpdateSection() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.system_update_alt, size: 18, color: Color(0xFF0F766E)),
+              SizedBox(width: 8),
+              Text(
+                'APP VERSION & UPDATES',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Keep your Sales Auditor app up to date with the latest security and audit features.',
+            style: TextStyle(fontSize: 12, color: Colors.black87),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF0F766E),
+                side: const BorderSide(color: Color(0xFF0F766E), width: 1.5),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text(
+                'CHECK FOR UPDATES NOW',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+              ),
+              onPressed: _manualCheckForUpdates,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _manualCheckForUpdates() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFF0F766E)),
+      ),
+    );
+
+    try {
+      final service = AppUpdateService();
+      final info = await service.checkForUpdate();
+      if (!mounted) return;
+      Navigator.pop(context); // close loader
+
+      if (info.hasUpdate) {
+        AppUpdateDialog.show(context, info, updateService: service);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'You are on the latest version (v${info.currentVersion}). No updates found.',
+            ),
+            backgroundColor: const Color(0xFF0F766E),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to check for updates: $e'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
   }
 
   void _saveConfiguration(AdminProvider provider) async {
