@@ -6,6 +6,7 @@ import 'providers/sales_provider.dart';
 import 'screens/auth/auth_wrapper.dart';
 import 'services/hybrid_auth_repository.dart';
 import 'services/repository_factory.dart';
+import 'theme/liquid_glass_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,25 +41,9 @@ class KeralaLotteryAuditorApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sales Audit - Kerala Lottery',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0F766E), // Emerald/Teal Lottery theme
-          primary: const Color(0xFF0F766E),
-          secondary: const Color(0xFF166534),
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          elevation: 1,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+      themeMode: ThemeMode.dark,
+      darkTheme: LiquidGlassTheme.darkTheme,
+      theme: LiquidGlassTheme.darkTheme,
       home: const AuthWrapper(),
     );
   }

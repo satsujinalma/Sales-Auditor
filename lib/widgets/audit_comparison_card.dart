@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/daily_sales_summary.dart';
 import '../models/pricing_config.dart';
+import '../theme/liquid_glass_theme.dart';
+import 'glass/liquid_glass_container.dart';
 
 class AuditComparisonCard extends StatelessWidget {
   final DailySalesSummary summary;
@@ -32,45 +34,34 @@ class AuditComparisonCard extends StatelessWidget {
     IconData statusIcon;
 
     if (totalTickets == 0) {
-      statusColor = const Color(0xFF64748B);
+      statusColor = LiquidGlassColors.textMuted;
       statusTitle = 'Waiting for Sales';
       statusInsight =
           'No tickets entered yet today. Live audit check will appear here as sales happen.';
       statusIcon = Icons.hourglass_bottom;
     } else if (avgPrice >= targetMin) {
-      statusColor = const Color(0xFF15803D); // Green
+      statusColor = LiquidGlassColors.accentEmerald; // Green
       statusTitle = 'Full Profit Rate (₹${avgPrice.toStringAsFixed(2)} / tkt)';
       statusInsight =
           'Good profit! Most tickets were sold as singles (₹50). Total collection matches target (₹$targetMin – ₹$targetMax).';
       statusIcon = Icons.check_circle_outline;
     } else if (avgPrice > claimedPrice + 0.3) {
-      statusColor = const Color(0xFFD97706); // Amber
+      statusColor = LiquidGlassColors.accentAmber; // Amber
       statusTitle = 'Normal Set Sales (₹${avgPrice.toStringAsFixed(2)} / tkt)';
       statusInsight =
           'Customers bought mostly 12-ticket sets. Average collected is ₹${avgPrice.toStringAsFixed(2)} per ticket (better than shop claim of ₹$claimedPrice).';
       statusIcon = Icons.info_outline;
     } else {
-      statusColor = const Color(0xFFEA580C); // Orange
+      statusColor = LiquidGlassColors.accentRose; // Red/Rose
       statusTitle = 'High Discount Sets (₹${avgPrice.toStringAsFixed(2)} / tkt)';
       statusInsight =
           'Almost all sales (${bulkPercent.toStringAsFixed(0)}%) were 12-ticket sets at discount. Average collected is ₹${avgPrice.toStringAsFixed(2)} per ticket.';
       statusIcon = Icons.warning_amber_rounded;
     }
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return LiquidGlassContainer(
+      borderRadius: 18,
+      padding: const EdgeInsets.all(15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -78,14 +69,17 @@ class AuditComparisonCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  color: statusColor.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.35),
+                  ),
                 ),
-                child: Icon(statusIcon, size: 16, color: statusColor),
+                child: Icon(statusIcon, size: 17, color: statusColor),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,10 +89,11 @@ class AuditComparisonCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                        color: Color(0xFF64748B),
+                        letterSpacing: 0.5,
+                        color: LiquidGlassColors.textSecondary,
                       ),
                     ),
+                    const SizedBox(height: 1),
                     Text(
                       statusTitle,
                       style: TextStyle(
@@ -113,17 +108,17 @@ class AuditComparisonCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             statusInsight,
             style: const TextStyle(
-              fontSize: 11.5,
-              color: Color(0xFF334155),
-              height: 1.35,
+              fontSize: 12,
+              color: LiquidGlassColors.textGlow,
+              height: 1.4,
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // Price Comparison Meter
           Row(
@@ -131,7 +126,7 @@ class AuditComparisonCard extends StatelessWidget {
               _buildPriceBadge(
                 label: 'Shop Claim',
                 value: '₹${claimedPrice.toStringAsFixed(2)}',
-                color: const Color(0xFFD97706),
+                color: LiquidGlassColors.accentAmber,
                 isHighlight: false,
               ),
               const SizedBox(width: 8),
@@ -141,21 +136,21 @@ class AuditComparisonCard extends StatelessWidget {
                     ? '₹${avgPrice.toStringAsFixed(2)}'
                     : '₹0.00',
                 color: avgPrice >= targetMin
-                    ? const Color(0xFF15803D)
-                    : const Color(0xFF2563EB),
+                    ? LiquidGlassColors.accentEmerald
+                    : const Color(0xFF60A5FA),
                 isHighlight: true,
               ),
               const SizedBox(width: 8),
               _buildPriceBadge(
                 label: 'Target Range',
                 value: '₹$targetMin-$targetMax',
-                color: const Color(0xFF15803D),
+                color: LiquidGlassColors.accentEmerald,
                 isHighlight: false,
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // Sales Composition Progress Bar (Sets vs Singles)
           Row(
@@ -166,7 +161,7 @@ class AuditComparisonCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0F766E),
+                  color: LiquidGlassColors.accentEmerald,
                 ),
               ),
               Text(
@@ -174,12 +169,12 @@ class AuditComparisonCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF4338CA),
+                  color: LiquidGlassColors.accentViolet,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: SizedBox(
@@ -188,11 +183,29 @@ class AuditComparisonCard extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: (bulkPercent * 10).toInt().clamp(0, 1000),
-                    child: Container(color: const Color(0xFF0F766E)),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            LiquidGlassColors.accentEmerald,
+                            LiquidGlassColors.accentTeal,
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                   Expanded(
                     flex: (singlePercent * 10).toInt().clamp(0, 1000),
-                    child: Container(color: const Color(0xFF818CF8)),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            LiquidGlassColors.accentIndigo,
+                            LiquidGlassColors.accentViolet,
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -211,16 +224,16 @@ class AuditComparisonCard extends StatelessWidget {
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
         decoration: BoxDecoration(
           color: isHighlight
-              ? color.withValues(alpha: 0.08)
-              : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(10),
+              ? color.withValues(alpha: 0.16)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isHighlight
-                ? color.withValues(alpha: 0.4)
-                : const Color(0xFFE2E8F0),
+                ? color.withValues(alpha: 0.50)
+                : LiquidGlassColors.glassBorderSubtle,
             width: isHighlight ? 1.5 : 1,
           ),
         ),
@@ -231,10 +244,10 @@ class AuditComparisonCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF64748B),
+                color: LiquidGlassColors.textMuted,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
             Text(
               value,
               style: TextStyle(

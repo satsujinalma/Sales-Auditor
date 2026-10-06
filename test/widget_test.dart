@@ -77,8 +77,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Confirm and enter sale for Customer 1
-    final enterSaleBtn1 =
-        find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹50');
+    final enterSaleBtn1 = find.text('ENTER SALE • ₹50');
     expect(enterSaleBtn1, findsOneWidget);
     await tester.tap(enterSaleBtn1);
     await tester.pump();
@@ -96,8 +95,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Confirm and enter sale for Customer 2
-    final enterSaleBtn12 =
-        find.widgetWithText(ElevatedButton, 'ENTER SALE • ₹570');
+    final enterSaleBtn12 = find.text('ENTER SALE • ₹570');
     expect(enterSaleBtn12, findsOneWidget);
     await tester.ensureVisible(enterSaleBtn12);
     await tester.tap(enterSaleBtn12);

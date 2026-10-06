@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/pricing_config.dart';
 import '../../providers/admin_provider.dart';
+import '../../theme/liquid_glass_theme.dart';
+import '../../widgets/glass/liquid_glass_button.dart';
+import '../../widgets/glass/liquid_glass_container.dart';
+import '../../widgets/glass/liquid_glow_background.dart';
 
 class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -78,15 +82,15 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     final shops = adminProvider.shops;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: LiquidGlassColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Colors.transparent,
         title: const Text(
           'Pricing & Audit Settings',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
-            color: Colors.white,
+            color: LiquidGlassColors.textPrimary,
           ),
         ),
         actions: [
@@ -97,7 +101,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           ),
           IconButton(
             tooltip: 'Lock / Logout Admin',
-            icon: const Icon(Icons.lock_open, color: Colors.white70),
+            icon: const Icon(Icons.lock_open, color: LiquidGlassColors.textSecondary),
             onPressed: () {
               adminProvider.logout();
               Navigator.pop(context);
@@ -105,296 +109,326 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // SHOP SELECTOR
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'CONFIGURING PRICING FOR SHOP:',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+      body: LiquidGlowBackground(
+        primaryGlow: LiquidGlassColors.accentViolet,
+        secondaryGlow: LiquidGlassColors.accentEmerald,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // SHOP SELECTOR
+                LiquidGlassContainer(
+                  borderRadius: 16,
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'CONFIGURING PRICING FOR SHOP:',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                          color: LiquidGlassColors.textSecondary,
                         ),
                       ),
-                      initialValue: _editingShopId,
-                      items: shops.map((s) {
-                        return DropdownMenuItem(
-                          value: s.id,
-                          child: Text('${s.name} (${s.code})'),
-                        );
-                      }).toList(),
-                      onChanged: (newId) {
-                        if (newId != null) {
-                          setState(() {
-                            _editingShopId = newId;
-                            _loadShopValues(adminProvider);
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // BASE LOTTERY RATES SECTION
-              _buildSectionHeader('1. BASE TICKET & SET RATES', Icons.payments),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _singleTicketController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Single Ticket (₹)',
-                              hintText: '50',
-                              border: OutlineInputBorder(),
-                              prefixText: '₹ ',
-                            ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        dropdownColor: LiquidGlassColors.surfaceDark,
+                        style: const TextStyle(
+                          color: LiquidGlassColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: LiquidGlassColors.glassFillMedium,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _setPriceController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: '1 Set (12 Tkts) (₹)',
-                              hintText: '570 / 580',
-                              border: OutlineInputBorder(),
-                              prefixText: '₹ ',
-                              helperText: 'e.g. ₹570 Nayarambalam',
+                        initialValue: _editingShopId,
+                        items: shops.map((s) {
+                          return DropdownMenuItem(
+                            value: s.id,
+                            child: Text(
+                              '${s.name} (${s.code})',
+                              style: const TextStyle(color: LiquidGlassColors.textPrimary),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // FORMULA FOR > 12 TICKETS
-              _buildSectionHeader(
-                '2. BULK PRICING RULE (> 12 TICKETS)',
-                Icons.calculate,
-              ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  children: [
-                    _buildFormulaOption(
-                      formula: BulkPricingFormula.proRata,
-                      title: 'Pro-Rata Established Average Rate (Recommended)',
-                      subtitle:
-                          'Price = Quantity × (Set Price ÷ 12). For example, 15 tickets @ ₹47.50 = ₹712.50',
-                    ),
-                    const Divider(height: 16),
-                    _buildFormulaOption(
-                      formula: BulkPricingFormula.setPlusRemainder,
-                      title: 'Bundled Sets + Remainder Tier',
-                      subtitle:
-                          'Price = (Sets × Set Rate) + (Remainder × Single Rate). For example, 15 tickets = 1 set (₹570) + 3 singles (₹150) = ₹720',
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // TIERED PRICING TABLE (1 TO 12 TICKETS)
-              _buildSectionHeader(
-                '3. PRE-SET TIERED PRICING (1 TO 12 TICKETS)',
-                Icons.table_chart,
-              ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Configure exact price for quantities from 1 to 12 tickets:',
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
-                    ),
-                    const SizedBox(height: 10),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 1.8,
+                          );
+                        }).toList(),
+                        onChanged: (newId) {
+                          if (newId != null) {
+                            setState(() {
+                              _editingShopId = newId;
+                              _loadShopValues(adminProvider);
+                            });
+                          }
+                        },
                       ),
-                      itemCount: 12,
-                      itemBuilder: (context, index) {
-                        final count = index + 1;
-                        return TextFormField(
-                          controller: _tierControllers[count],
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: count == 12 ? '12 (1 Set)' : '$count Tkt',
-                            border: const OutlineInputBorder(),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            prefixText: '₹',
-                          ),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // AUDIT BENCHMARKS SECTION
-              _buildSectionHeader(
-                '4. AUDIT BENCHMARKS & CLAIMS',
-                Icons.analytics,
-              ),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _claimedAvgController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Shopkeeper Claim (₹)',
-                              hintText: '47.20',
-                              border: OutlineInputBorder(),
-                              prefixText: '₹ ',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _benchmarkMinController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Target Min (₹)',
-                              hintText: '48.30',
-                              border: OutlineInputBorder(),
-                              prefixText: '₹ ',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _benchmarkMaxController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Target Max (₹)',
-                              hintText: '48.50',
-                              border: OutlineInputBorder(),
-                              prefixText: '₹ ',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // SAVE BUTTON FOR PRICING
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F766E),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  elevation: 2,
-                ),
-                icon: const Icon(Icons.save),
-                label: const Text(
-                  'SAVE CONFIGURATION',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+                    ],
                   ),
                 ),
-                onPressed: () => _saveConfiguration(adminProvider),
-              ),
 
-              const SizedBox(height: 32),
-            ],
+                const SizedBox(height: 16),
+
+                // BASE LOTTERY RATES SECTION
+                _buildSectionHeader('1. BASE TICKET & SET RATES', Icons.payments),
+                LiquidGlassContainer(
+                  borderRadius: 16,
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _singleTicketController,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(color: LiquidGlassColors.textPrimary),
+                              decoration: _buildInputDeco(
+                                label: 'Single Ticket (₹)',
+                                hint: '50',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _setPriceController,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(color: LiquidGlassColors.textPrimary),
+                              decoration: _buildInputDeco(
+                                label: '1 Set (12 Tkts) (₹)',
+                                hint: '570 / 580',
+                                helper: 'e.g. ₹570 Nayarambalam',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // FORMULA FOR > 12 TICKETS
+                _buildSectionHeader(
+                  '2. BULK PRICING RULE (> 12 TICKETS)',
+                  Icons.calculate,
+                ),
+                LiquidGlassContainer(
+                  borderRadius: 16,
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    children: [
+                      _buildFormulaOption(
+                        formula: BulkPricingFormula.proRata,
+                        title: 'Pro-Rata Established Average Rate (Recommended)',
+                        subtitle:
+                            'Price = Quantity × (Set Price ÷ 12). For example, 15 tickets @ ₹47.50 = ₹712.50',
+                      ),
+                      Divider(height: 16, color: LiquidGlassColors.glassBorderSubtle),
+                      _buildFormulaOption(
+                        formula: BulkPricingFormula.setPlusRemainder,
+                        title: 'Bundled Sets + Remainder Tier',
+                        subtitle:
+                            'Price = (Sets × Set Rate) + (Remainder × Single Rate). For example, 15 tickets = 1 set (₹570) + 3 singles (₹150) = ₹720',
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // TIERED PRICING TABLE (1 TO 12 TICKETS)
+                _buildSectionHeader(
+                  '3. PRE-SET TIERED PRICING (1 TO 12 TICKETS)',
+                  Icons.table_chart,
+                ),
+                LiquidGlassContainer(
+                  borderRadius: 16,
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Configure exact price for quantities from 1 to 12 tickets:',
+                        style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
+                      ),
+                      const SizedBox(height: 10),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1.8,
+                        ),
+                        itemCount: 12,
+                        itemBuilder: (context, index) {
+                          final count = index + 1;
+                          return TextFormField(
+                            controller: _tierControllers[count],
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: LiquidGlassColors.textPrimary,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: count == 12 ? '12 (1 Set)' : '$count Tkt',
+                              labelStyle: const TextStyle(
+                                fontSize: 11,
+                                color: LiquidGlassColors.textSecondary,
+                              ),
+                              prefixText: '₹',
+                              prefixStyle: const TextStyle(
+                                color: LiquidGlassColors.accentEmerald,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              filled: true,
+                              fillColor: LiquidGlassColors.glassFillMedium,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // AUDIT BENCHMARKS SECTION
+                _buildSectionHeader(
+                  '4. AUDIT BENCHMARKS & CLAIMS',
+                  Icons.analytics,
+                ),
+                LiquidGlassContainer(
+                  borderRadius: 16,
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _claimedAvgController,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              style: const TextStyle(color: LiquidGlassColors.textPrimary),
+                              decoration: _buildInputDeco(
+                                label: 'Shop Claim (₹)',
+                                hint: '47.20',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _benchmarkMinController,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              style: const TextStyle(color: LiquidGlassColors.textPrimary),
+                              decoration: _buildInputDeco(
+                                label: 'Target Min (₹)',
+                                hint: '48.30',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _benchmarkMaxController,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              style: const TextStyle(color: LiquidGlassColors.textPrimary),
+                              decoration: _buildInputDeco(
+                                label: 'Target Max (₹)',
+                                hint: '48.50',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // SAVE BUTTON FOR PRICING
+                LiquidGlassButton(
+                  label: 'SAVE CONFIGURATION',
+                  icon: Icons.save,
+                  glowColor: LiquidGlassColors.accentViolet,
+                  onPressed: () => _saveConfiguration(adminProvider),
+                ),
+
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _buildInputDeco({
+    required String label,
+    required String hint,
+    String? helper,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: LiquidGlassColors.textSecondary, fontSize: 12),
+      hintText: hint,
+      hintStyle: const TextStyle(color: LiquidGlassColors.textMuted, fontSize: 12),
+      helperText: helper,
+      helperStyle: const TextStyle(color: LiquidGlassColors.textMuted, fontSize: 10),
+      prefixText: '₹ ',
+      prefixStyle: const TextStyle(
+        color: LiquidGlassColors.accentEmerald,
+        fontWeight: FontWeight.bold,
+      ),
+      filled: true,
+      fillColor: LiquidGlassColors.glassFillMedium,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
       ),
     );
   }
@@ -404,7 +438,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF0F766E)),
+          Icon(icon, size: 16, color: LiquidGlassColors.accentViolet),
           const SizedBox(width: 6),
           Text(
             title,
@@ -412,7 +446,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
-              color: Colors.black54,
+              color: LiquidGlassColors.textSecondary,
             ),
           ),
         ],
@@ -441,7 +475,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF0F766E) : Colors.grey,
+                  color: isSelected
+                      ? LiquidGlassColors.accentViolet
+                      : LiquidGlassColors.textMuted,
                   width: isSelected ? 5 : 2,
                 ),
               ),
@@ -455,13 +491,15 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      color: isSelected ? const Color(0xFF0F766E) : Colors.black87,
+                      color: isSelected
+                          ? LiquidGlassColors.textPrimary
+                          : LiquidGlassColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 11, color: Colors.black54),
+                    style: const TextStyle(fontSize: 11, color: LiquidGlassColors.textMuted),
                   ),
                 ],
               ),
@@ -505,9 +543,14 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pricing configuration saved successfully!'),
-          backgroundColor: Color(0xFF0F766E),
+        SnackBar(
+          content: const Text('Pricing configuration saved successfully!'),
+          backgroundColor: LiquidGlassColors.surfaceElevated,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(color: LiquidGlassColors.accentViolet.withValues(alpha: 0.5)),
+          ),
         ),
       );
     }
@@ -519,27 +562,46 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Change Admin PIN'),
+          backgroundColor: LiquidGlassColors.surfaceDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: LiquidGlassColors.glassBorderLight),
+          ),
+          title: const Text(
+            'Change Admin PIN',
+            style: TextStyle(color: LiquidGlassColors.textPrimary, fontWeight: FontWeight.bold),
+          ),
           content: TextField(
             controller: newPinController,
             keyboardType: TextInputType.number,
             maxLength: 4,
             obscureText: true,
-            decoration: const InputDecoration(
+            style: const TextStyle(color: LiquidGlassColors.textPrimary),
+            decoration: InputDecoration(
               hintText: 'Enter new 4-digit PIN',
-              border: OutlineInputBorder(),
+              hintStyle: const TextStyle(color: LiquidGlassColors.textMuted),
+              filled: true,
+              fillColor: LiquidGlassColors.glassFillMedium,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+              ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: LiquidGlassColors.textSecondary)),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F766E),
-                foregroundColor: Colors.white,
-              ),
+            LiquidGlassButton(
+              label: 'Update PIN',
+              glowColor: LiquidGlassColors.accentViolet,
+              isFullWidth: false,
+              height: 40,
               onPressed: () async {
                 final pin = newPinController.text.trim();
                 if (pin.length == 4) {
@@ -548,15 +610,15 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                     Navigator.pop(ctx);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Admin PIN updated successfully.'),
+                        SnackBar(
+                          content: const Text('Admin PIN updated successfully.'),
+                          backgroundColor: LiquidGlassColors.surfaceElevated,
                         ),
                       );
                     }
                   }
                 }
               },
-              child: const Text('Update PIN'),
             ),
           ],
         );

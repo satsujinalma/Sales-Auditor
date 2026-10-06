@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/daily_sales_summary.dart';
+import '../theme/liquid_glass_theme.dart';
+import 'glass/liquid_glass_container.dart';
 
 class ThreeOutputBoxesWidget extends StatelessWidget {
   final DailySalesSummary summary;
@@ -39,12 +41,11 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
           children: [
             // BOX 1: LATEST SALE
             Expanded(
-              child: _buildMinimalBox(
-                context: context,
+              child: _buildGlassBox(
                 badgeText: 'BOX 1',
                 title: 'LATEST SALE',
                 icon: Icons.history_rounded,
-                themeColor: const Color(0xFF2563EB),
+                badgeColor: const Color(0xFF3B82F6),
                 child: lastSale != null
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,20 +55,22 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1E293B),
+                              color: LiquidGlassColors.textPrimary,
                               letterSpacing: -0.2,
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                              horizontal: 7,
+                              vertical: 2.5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: const Color(0xFFDBEAFE)),
+                              color: const Color(0xFF3B82F6).withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                              ),
                             ),
                             child: Text(
                               '+${lastSale.ticketCount} tickets (₹${lastSale.totalAmount.toStringAsFixed(0)})',
@@ -76,7 +79,7 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF1D4ED8),
+                                color: Color(0xFF60A5FA),
                               ),
                             ),
                           ),
@@ -87,7 +90,7 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF94A3B8),
+                          color: LiquidGlassColors.textMuted,
                         ),
                       ),
               ),
@@ -96,12 +99,11 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
 
             // BOX 2: TOTAL TICKETS
             Expanded(
-              child: _buildMinimalBox(
-                context: context,
+              child: _buildGlassBox(
                 badgeText: 'BOX 2',
                 title: 'TOTAL TICKETS',
                 icon: Icons.confirmation_number_outlined,
-                themeColor: const Color(0xFF0F766E),
+                badgeColor: LiquidGlassColors.accentEmerald,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -114,17 +116,17 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
+                            color: LiquidGlassColors.textPrimary,
                             letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 5),
                         const Text(
                           'tickets',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF64748B),
+                            color: LiquidGlassColors.textSecondary,
                           ),
                         ),
                       ],
@@ -134,8 +136,8 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                       'Sets: ${(totalTickets / 12).toStringAsFixed(1)} (12s)',
                       style: const TextStyle(
                         fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F766E),
+                        fontWeight: FontWeight.w700,
+                        color: LiquidGlassColors.accentEmerald,
                       ),
                     ),
                   ],
@@ -148,20 +150,9 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
         const SizedBox(height: 10),
 
         // BOX 3: CUMULATIVE REVENUE & LIVE AVERAGE PRICE
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+        LiquidGlassContainer(
+          borderRadius: 16,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -173,43 +164,46 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1.5,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF166534),
-                          borderRadius: BorderRadius.circular(4),
+                          color: LiquidGlassColors.accentTeal.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: LiquidGlassColors.accentTeal.withValues(alpha: 0.40),
+                          ),
                         ),
                         child: const Text(
                           'BOX 3',
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: 0.4,
+                            color: Color(0xFF22D3EE),
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       const Text(
-                        'CUMULATIVE REVENUE & LIVE AVERAGE PRICE',
+                        'CUMULATIVE REVENUE & LIVE AVERAGE',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
-                          color: Color(0xFF64748B),
+                          letterSpacing: 0.5,
+                          color: LiquidGlassColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                   const Icon(
                     Icons.account_balance_wallet_outlined,
-                    size: 14,
-                    color: Color(0xFF166534),
+                    size: 15,
+                    color: LiquidGlassColors.accentTeal,
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   // Total Revenue
@@ -223,8 +217,8 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 0.4,
-                            color: Color(0xFF64748B),
+                            letterSpacing: 0.5,
+                            color: LiquidGlassColors.textMuted,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -233,7 +227,7 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
+                            color: LiquidGlassColors.textPrimary,
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -241,9 +235,9 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    height: 34,
+                    height: 36,
                     width: 1,
-                    color: const Color(0xFFE2E8F0),
+                    color: LiquidGlassColors.glassBorderSubtle,
                   ),
                   const SizedBox(width: 14),
                   // Live Average Price per ticket
@@ -257,8 +251,8 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 0.4,
-                            color: Color(0xFF64748B),
+                            letterSpacing: 0.5,
+                            color: LiquidGlassColors.textMuted,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -272,20 +266,20 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
                                 color: avgPrice >= 48.0
-                                    ? const Color(0xFF15803D)
+                                    ? const Color(0xFF34D399)
                                     : (avgPrice > 0
-                                        ? const Color(0xFFD97706)
-                                        : const Color(0xFF64748B)),
+                                        ? const Color(0xFFFBBF24)
+                                        : LiquidGlassColors.textMuted),
                                 letterSpacing: -0.4,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 5),
                             const Text(
                               '/ tkt',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF64748B),
+                                color: LiquidGlassColors.textSecondary,
                               ),
                             ),
                           ],
@@ -302,28 +296,16 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildMinimalBox({
-    required BuildContext context,
+  Widget _buildGlassBox({
     required String badgeText,
     required String title,
     required IconData icon,
-    required Color themeColor,
+    required Color badgeColor,
     required Widget child,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return LiquidGlassContainer(
+      borderRadius: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -339,15 +321,18 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                       vertical: 1.5,
                     ),
                     decoration: BoxDecoration(
-                      color: themeColor,
+                      color: badgeColor.withValues(alpha: 0.20),
                       borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: badgeColor.withValues(alpha: 0.40),
+                      ),
                     ),
                     child: Text(
                       badgeText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: badgeColor,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -359,12 +344,12 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.3,
-                      color: Color(0xFF64748B),
+                      color: LiquidGlassColors.textSecondary,
                     ),
                   ),
                 ],
               ),
-              Icon(icon, size: 14, color: themeColor),
+              Icon(icon, size: 14, color: badgeColor),
             ],
           ),
           const SizedBox(height: 8),

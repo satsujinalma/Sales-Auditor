@@ -4,7 +4,11 @@ import 'package:provider/provider.dart';
 import '../../models/daily_sales_summary.dart';
 import '../../providers/admin_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/liquid_glass_theme.dart';
 import '../../widgets/audit_comparison_card.dart';
+import '../../widgets/glass/liquid_glass_button.dart';
+import '../../widgets/glass/liquid_glass_container.dart';
+import '../../widgets/glass/liquid_glow_background.dart';
 import '../../widgets/recent_transactions_list.dart';
 import '../../widgets/three_output_boxes_widget.dart';
 import 'admin_settings_screen.dart';
@@ -32,16 +36,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final summary = adminProvider.selectedShopSummary;
 
     if (adminProvider.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: LiquidGlassColors.background,
+        body: LiquidGlowBackground(
+          child: const Center(
+            child: CircularProgressIndicator(color: LiquidGlassColors.accentViolet),
+          ),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: LiquidGlassColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B), // Navy/Slate for Head App
-        elevation: 3,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -49,7 +58,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.shield, color: Colors.amber, size: 16),
-                SizedBox(width: 5),
+                SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     'HEAD APP • AUDIT MONITOR',
@@ -58,7 +67,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       fontSize: 14,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
-                      color: Colors.white,
+                      color: LiquidGlassColors.textPrimary,
                     ),
                   ),
                 ),
@@ -71,7 +80,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 style: const TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w400,
-                  color: Colors.white70,
+                  color: LiquidGlassColors.textSecondary,
                 ),
               ),
           ],
@@ -79,31 +88,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         actions: [
           IconButton(
             tooltip: 'Shopkeeper Terminal Mode',
-            icon: const Icon(Icons.storefront, color: Colors.white),
+            icon: const Icon(Icons.storefront, color: LiquidGlassColors.accentEmerald),
             onPressed: widget.onSwitchToShopkeeper,
           ),
           IconButton(
             tooltip: 'Pricing & System Settings (PIN Protected)',
-            icon: const Icon(Icons.settings, color: Colors.white),
+            icon: const Icon(Icons.settings, color: LiquidGlassColors.accentViolet),
             onPressed: () => _openSettings(adminProvider),
           ),
           IconButton(
             tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout, color: Colors.white70, size: 20),
+            icon: const Icon(Icons.logout, color: LiquidGlassColors.textMuted, size: 20),
             onPressed: () => context.read<AuthProvider>().signOut(),
           ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: const Color(0xFF0F172A),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Container(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            child: LiquidGlassContainer(
+              borderRadius: 12,
               padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(10),
-              ),
               child: Row(
                 children: [
                   Expanded(
@@ -126,11 +131,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: _selectedTab == 0
-            ? _buildMirroredShopkeeperView(
-                context, adminProvider, selectedShop, summary)
-            : _buildAllShopsSummaryView(context, adminProvider, shops),
+      body: LiquidGlowBackground(
+        primaryGlow: LiquidGlassColors.accentViolet,
+        secondaryGlow: LiquidGlassColors.accentEmerald,
+        child: SafeArea(
+          child: _selectedTab == 0
+              ? _buildMirroredShopkeeperView(
+                  context, adminProvider, selectedShop, summary)
+              : _buildAllShopsSummaryView(context, adminProvider, shops),
+        ),
       ),
     );
   }
@@ -142,13 +151,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }) {
     final isSelected = _selectedTab == index;
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(9),
       onTap: () => setState(() => _selectedTab = index),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0F766E) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected
+              ? LiquidGlassColors.accentViolet.withValues(alpha: 0.35)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(9),
+          border: isSelected
+              ? Border.all(
+                  color: LiquidGlassColors.accentViolet.withValues(alpha: 0.6),
+                )
+              : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -156,16 +173,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Icon(
               icon,
               size: 14,
-              color: isSelected ? Colors.white : Colors.white60,
+              color: isSelected ? Colors.white : LiquidGlassColors.textMuted,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                 letterSpacing: 0.4,
-                color: isSelected ? Colors.white : Colors.white60,
+                color: isSelected ? Colors.white : LiquidGlassColors.textMuted,
               ),
             ),
           ],
@@ -182,7 +199,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     DailySalesSummary summary,
   ) {
     if (selectedShop == null) {
-      return const Center(child: Text('No shops configured.'));
+      return const Center(
+        child: Text(
+          'No shops configured.',
+          style: TextStyle(color: LiquidGlassColors.textSecondary),
+        ),
+      );
     }
 
     final pricing = selectedShop.pricingConfig;
@@ -193,31 +215,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // SHOP SELECTOR BAR
-          Container(
+          LiquidGlassContainer(
+            borderRadius: 14,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                    color: LiquidGlassColors.accentViolet.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.storefront,
-                    color: Color(0xFF0F766E),
+                    color: LiquidGlassColors.accentViolet,
                     size: 18,
                   ),
                 ),
@@ -228,7 +239,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.3,
-                    color: Color(0xFF64748B),
+                    color: LiquidGlassColors.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -236,15 +247,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       isExpanded: true,
+                      dropdownColor: LiquidGlassColors.surfaceDark,
                       value: adminProvider.selectedShopId,
                       icon: const Icon(
                         Icons.keyboard_arrow_down,
-                        color: Color(0xFF64748B),
+                        color: LiquidGlassColors.textSecondary,
                       ),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
+                        color: LiquidGlassColors.textPrimary,
                       ),
                       onChanged: (String? newShopId) {
                         if (newShopId != null) {
@@ -254,7 +266,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       items: adminProvider.shops.map((s) {
                         return DropdownMenuItem<String>(
                           value: s.id,
-                          child: Text('${s.name} (${s.code})'),
+                          child: Text(
+                            '${s.name} (${s.code})',
+                            style: const TextStyle(color: LiquidGlassColors.textPrimary),
+                          ),
                         );
                       }).toList(),
                     ),
@@ -270,9 +285,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
+              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFBBF7D0)),
+              border: Border.all(
+                color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.35),
+              ),
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -280,16 +297,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Icon(
                   Icons.remove_red_eye_outlined,
                   size: 14,
-                  color: Color(0xFF16A34A),
+                  color: LiquidGlassColors.accentEmerald,
                 ),
                 SizedBox(width: 6),
                 Text(
-                  'Live Audit',
+                  'Live Audit Mode',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.4,
-                    color: Color(0xFF166534),
+                    color: LiquidGlassColors.accentEmerald,
                   ),
                 ),
               ],
@@ -315,17 +332,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           const SizedBox(height: 14),
 
           // LIVE TRANSACTION AUDIT LOG
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: RecentTransactionsList(
-              transactions: summary.transactions,
-              isReadOnly: true,
-            ),
+          RecentTransactionsList(
+            transactions: summary.transactions,
+            isReadOnly: true,
           ),
 
           const SizedBox(height: 20),
@@ -372,23 +381,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Network Total Card
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
+          LiquidGlassContainer(
+            borderRadius: 18,
+            padding: const EdgeInsets.all(16),
+            fillColor: LiquidGlassColors.surfaceElevated.withValues(alpha: 0.7),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -407,7 +403,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Icon(Icons.hub, color: Colors.amber, size: 16),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -419,15 +415,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white60,
+                              color: LiquidGlassColors.textSecondary,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             '$totalNetworkTickets',
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                              color: LiquidGlassColors.textPrimary,
                             ),
                           ),
                         ],
@@ -442,15 +439,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white60,
+                              color: LiquidGlassColors.textSecondary,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             currencyFormat.format(totalNetworkRevenue),
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF4ADE80),
+                              color: LiquidGlassColors.accentEmerald,
                             ),
                           ),
                         ],
@@ -465,9 +463,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white60,
+                              color: LiquidGlassColors.textSecondary,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             totalNetworkTickets > 0
                                 ? avgFormat.format(networkAvg)
@@ -476,7 +475,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
                               color: networkAvg >= 48.30
-                                  ? const Color(0xFF4ADE80)
+                                  ? LiquidGlassColors.accentEmerald
                                   : Colors.amberAccent,
                             ),
                           ),
@@ -497,7 +496,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
-              color: Color(0xFF64748B),
+              color: LiquidGlassColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -524,25 +523,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   adminProvider.selectShop(shop.id);
                   setState(() => _selectedTab = 0);
                 },
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
+                borderRadius: BorderRadius.circular(16),
+                child: LiquidGlassContainer(
+                  borderRadius: 16,
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isBelowTarget
-                          ? const Color(0xFFFCD34D)
-                          : const Color(0xFFE2E8F0),
-                      width: isBelowTarget ? 1.5 : 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                  border: Border.all(
+                    color: isBelowTarget
+                        ? Colors.amber.withValues(alpha: 0.6)
+                        : LiquidGlassColors.glassBorderLight,
+                    width: isBelowTarget ? 1.5 : 1.0,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -555,14 +544,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0F766E)
-                                      .withValues(alpha: 0.1),
+                                  color: LiquidGlassColors.accentViolet.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
                                   Icons.storefront,
                                   size: 16,
-                                  color: Color(0xFF0F766E),
+                                  color: LiquidGlassColors.accentViolet,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -574,7 +562,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                     style: const TextStyle(
                                       fontSize: 13.5,
                                       fontWeight: FontWeight.w800,
-                                      color: Color(0xFF0F172A),
+                                      color: LiquidGlassColors.textPrimary,
                                     ),
                                   ),
                                   Text(
@@ -582,7 +570,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                     style: const TextStyle(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFF64748B),
+                                      color: LiquidGlassColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -595,15 +583,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
+                              color: LiquidGlassColors.glassFillMedium,
                               borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: LiquidGlassColors.glassBorderSubtle,
+                              ),
                             ),
                             child: Text(
                               'Set: ₹${pricing.setPrice12.toStringAsFixed(0)}',
                               style: const TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF475569),
+                                color: LiquidGlassColors.textSecondary,
                               ),
                             ),
                           ),
@@ -621,7 +612,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                   style: TextStyle(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF64748B),
+                                    color: LiquidGlassColors.textMuted,
                                   ),
                                 ),
                                 Text(
@@ -629,7 +620,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF0F766E),
+                                    color: LiquidGlassColors.accentEmerald,
                                   ),
                                 ),
                               ],
@@ -644,7 +635,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                   style: TextStyle(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF64748B),
+                                    color: LiquidGlassColors.textMuted,
                                   ),
                                 ),
                                 Text(
@@ -652,7 +643,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF166534),
+                                    color: LiquidGlassColors.accentEmerald,
                                   ),
                                 ),
                               ],
@@ -667,7 +658,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                   style: TextStyle(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF64748B),
+                                    color: LiquidGlassColors.textMuted,
                                   ),
                                 ),
                                 Text(
@@ -678,10 +669,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                     fontSize: 15,
                                     fontWeight: FontWeight.w900,
                                     color: avg >= pricing.targetBenchmarkMin
-                                        ? const Color(0xFF15803D)
+                                        ? LiquidGlassColors.accentEmerald
                                         : (avg > 0
-                                            ? const Color(0xFFD97706)
-                                            : const Color(0xFF64748B)),
+                                            ? Colors.amberAccent
+                                            : LiquidGlassColors.textMuted),
                                   ),
                                 ),
                               ],
@@ -690,7 +681,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           const Icon(
                             Icons.arrow_forward_ios,
                             size: 13,
-                            color: Color(0xFF94A3B8),
+                            color: LiquidGlassColors.textMuted,
                           ),
                         ],
                       ),
@@ -720,16 +711,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           return StatefulBuilder(
             builder: (ctx, setDialogState) {
               return AlertDialog(
+                backgroundColor: LiquidGlassColors.surfaceDark,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
+                  side: BorderSide(color: LiquidGlassColors.glassBorderLight),
                 ),
                 title: const Row(
                   children: [
-                    Icon(Icons.lock, color: Color(0xFF0F766E), size: 22),
+                    Icon(Icons.lock, color: LiquidGlassColors.accentViolet, size: 22),
                     SizedBox(width: 8),
                     Text(
                       'Admin Authentication',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: LiquidGlassColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -741,7 +738,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     children: [
                       const Text(
                         'Enter 4-digit Admin PIN to alter ticket pricing and shop rates.',
-                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                        style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
@@ -750,13 +747,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         keyboardType: TextInputType.number,
                         maxLength: 4,
                         autofocus: true,
+                        style: const TextStyle(color: LiquidGlassColors.textPrimary),
                         decoration: InputDecoration(
                           hintText: 'Enter 4-digit PIN',
+                          hintStyle: const TextStyle(color: LiquidGlassColors.textMuted),
+                          filled: true,
+                          fillColor: LiquidGlassColors.glassFillMedium,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: LiquidGlassColors.accentViolet),
                           ),
                           errorText: errorText,
-                          prefixIcon: const Icon(Icons.pin),
+                          prefixIcon: const Icon(Icons.pin, color: LiquidGlassColors.accentViolet),
                         ),
                       ),
                     ],
@@ -765,13 +775,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Cancel'),
+                    child: const Text('Cancel', style: TextStyle(color: LiquidGlassColors.textSecondary)),
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F766E),
-                      foregroundColor: Colors.white,
-                    ),
+                  LiquidGlassButton(
+                    label: 'Unlock',
+                    glowColor: LiquidGlassColors.accentViolet,
+                    isFullWidth: false,
+                    height: 40,
                     onPressed: () async {
                       final isValid =
                           await provider.verifyPin(pinController.text.trim());
@@ -783,7 +793,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         });
                       }
                     },
-                    child: const Text('Unlock'),
                   ),
                 ],
               );

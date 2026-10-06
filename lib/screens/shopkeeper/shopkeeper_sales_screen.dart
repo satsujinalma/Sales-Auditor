@@ -5,7 +5,11 @@ import '../../models/app_user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sales_provider.dart';
 import '../../services/pricing_calculator.dart';
+import '../../theme/liquid_glass_theme.dart';
 import '../../widgets/audit_comparison_card.dart';
+import '../../widgets/glass/liquid_glass_button.dart';
+import '../../widgets/glass/liquid_glass_container.dart';
+import '../../widgets/glass/liquid_glow_background.dart';
 import '../../widgets/recent_transactions_list.dart';
 import '../../widgets/three_output_boxes_widget.dart';
 
@@ -33,63 +37,58 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
     final summary = salesProvider.todaySummary;
 
     if (salesProvider.isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF8FAFC),
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF0F766E)),
+      return Scaffold(
+        backgroundColor: LiquidGlassColors.background,
+        body: LiquidGlowBackground(
+          child: const Center(
+            child: CircularProgressIndicator(color: LiquidGlassColors.accentEmerald),
+          ),
         ),
       );
     }
 
     if (currentShop == null) {
       return Scaffold(
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF0F766E),
-          title: const Text(
-            'Sales Terminal',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white70),
-              onPressed: () => context.read<AuthProvider>().signOut(),
-            ),
-          ],
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.storefront_outlined,
-                    size: 56, color: Color(0xFF0F766E)),
-                const SizedBox(height: 16),
-                const Text(
-                  'No Retail Shops Registered',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
+        backgroundColor: LiquidGlassColors.background,
+        body: LiquidGlowBackground(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: LiquidGlassContainer(
+                borderRadius: 20,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.storefront_outlined,
+                      size: 48,
+                      color: LiquidGlassColors.accentEmerald,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No Active Shop Found',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: LiquidGlassColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please sign in with your mobile number or shop details.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: LiquidGlassColors.textSecondary),
+                    ),
+                    const SizedBox(height: 20),
+                    LiquidGlassButton(
+                      label: 'Back to Login',
+                      icon: Icons.logout,
+                      onPressed: () => context.read<AuthProvider>().signOut(),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Please sign in with your mobile number to complete shop setup.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F766E),
-                    foregroundColor: Colors.white,
-                  ),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Back to Login'),
-                  onPressed: () => context.read<AuthProvider>().signOut(),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -105,16 +104,20 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
         : null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: LiquidGlassColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F766E),
-        elevation: 1,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.storefront, color: Colors.white, size: 17),
+                const Icon(
+                  Icons.storefront,
+                  color: LiquidGlassColors.accentEmerald,
+                  size: 17,
+                ),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
@@ -122,7 +125,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: LiquidGlassColors.textPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -131,10 +134,10 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             ),
             Text(
               '${currentShop.code} • 1 Set (12) = ₹${pricing.setPrice12.toStringAsFixed(0)}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.85),
+                color: LiquidGlassColors.textSecondary,
               ),
             ),
           ],
@@ -142,218 +145,220 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
         actions: [
           IconButton(
             tooltip: 'Switch Shop Terminal',
-            icon: const Icon(Icons.swap_horiz, color: Colors.white),
+            icon: const Icon(Icons.swap_horiz, color: LiquidGlassColors.textPrimary),
             onPressed: () => _showShopPicker(context, salesProvider),
           ),
           IconButton(
             tooltip: 'Admin Head App',
-            icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white),
+            icon: const Icon(
+              Icons.admin_panel_settings_outlined,
+              color: LiquidGlassColors.accentViolet,
+            ),
             onPressed: () => _handleSwitchToAdmin(context),
           ),
           IconButton(
             tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout, color: Colors.white70, size: 20),
+            icon: const Icon(Icons.logout, color: LiquidGlassColors.textMuted, size: 20),
             onPressed: () => context.read<AuthProvider>().signOut(),
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. TOP CUMULATIVE & METRICS STRIP (Box 1, Box 2, Box 3)
-              ThreeOutputBoxesWidget(summary: summary),
+      body: LiquidGlowBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. TOP CUMULATIVE & METRICS STRIP (Box 1, Box 2, Box 3)
+                ThreeOutputBoxesWidget(summary: summary),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // 2. CURRENT CUSTOMER SALE STAGING BOX
-              _buildCurrentCustomerOrderBox(context, salesProvider, pricing, calc),
+                // 2. CURRENT CUSTOMER SALE STAGING BOX
+                _buildCurrentCustomerOrderBox(context, salesProvider, pricing, calc),
 
-              const SizedBox(height: 14),
+                const SizedBox(height: 14),
 
-              // 3. ONE-TAP SELECTION GRID HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.touch_app_outlined,
-                        size: 16,
-                        color: Color(0xFF0F766E),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'ONE-TAP SALES ENTRY',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      // Grid size toggle (30, 36, 40)
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Row(
-                          children: [30, 36, 40].map((size) {
-                            final isSelected = _maxButtons == size;
-                            return InkWell(
-                              onTap: () => setState(() => _maxButtons = size),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? const Color(0xFF0F766E)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Text(
-                                  '$size',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : const Color(0xFF64748B),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // 4. ONE-TAP KEYPAD GRID (1 to 30/36/40)
-              _buildOneTapGrid(context, salesProvider, pricing),
-
-              const SizedBox(height: 14),
-
-              // 5. AUDIT BENCHMARK MONITOR (Collapsible)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Column(
+                // 3. ONE-TAP SELECTION GRID HEADER
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () =>
-                          setState(() => _showAuditAnalysis = !_showAuditAnalysis),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
+                    const Row(
+                      children: [
+                        Icon(
+                          Icons.touch_app_outlined,
+                          size: 16,
+                          color: LiquidGlassColors.accentEmerald,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.insights_outlined,
-                                  size: 16,
-                                  color: Color(0xFF0F766E),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'AUDIT BENCHMARK MONITOR',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
+                        SizedBox(width: 6),
+                        Text(
+                          'ONE-TAP SALES ENTRY',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                            color: LiquidGlassColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        // Grid size toggle (30, 36, 40)
+                        Container(
+                          padding: const EdgeInsets.all(2.5),
+                          decoration: BoxDecoration(
+                            color: LiquidGlassColors.glassFillMedium,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: LiquidGlassColors.glassBorderSubtle,
+                            ),
+                          ),
+                          child: Row(
+                            children: [30, 36, 40].map((size) {
+                              final isSelected = _maxButtons == size;
+                              return InkWell(
+                                onTap: () => setState(() => _maxButtons = size),
+                                child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
+                                    horizontal: 8,
+                                    vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: summary.averagePricePerTicket >= 48.0
-                                        ? const Color(0xFFDCFCE7)
-                                        : const Color(0xFFFEF3C7),
-                                    borderRadius: BorderRadius.circular(4),
+                                    color: isSelected
+                                        ? LiquidGlassColors.accentEmerald
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    summary.totalTicketsSold > 0
-                                        ? 'Avg: ₹${summary.averagePricePerTicket.toStringAsFixed(2)}'
-                                        : 'Awaiting sales',
+                                    '$size',
                                     style: TextStyle(
                                       fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: summary.averagePricePerTicket >= 48.0
-                                          ? const Color(0xFF166534)
-                                          : const Color(0xFF92400E),
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : LiquidGlassColors.textMuted,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                            Icon(
-                              _showAuditAnalysis
-                                  ? Icons.keyboard_arrow_up
-                                  : Icons.keyboard_arrow_down,
-                              color: const Color(0xFF64748B),
-                              size: 18,
-                            ),
-                          ],
+                              );
+                            }).toList(),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    if (_showAuditAnalysis)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-                        child: AuditComparisonCard(
-                          summary: summary,
-                          pricingConfig: pricing,
-                        ),
-                      ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 14),
+                const SizedBox(height: 8),
 
-              // 6. LIVE RECENT TRANSACTIONS LOG
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                // 4. ONE-TAP KEYPAD GRID (1 to 30/36/40)
+                _buildOneTapGrid(context, salesProvider, pricing),
+
+                const SizedBox(height: 14),
+
+                // 5. AUDIT BENCHMARK MONITOR (Collapsible)
+                LiquidGlassContainer(
+                  borderRadius: 16,
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () =>
+                            setState(() => _showAuditAnalysis = !_showAuditAnalysis),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 11,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.insights_outlined,
+                                    size: 16,
+                                    color: LiquidGlassColors.accentEmerald,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'AUDIT BENCHMARK MONITOR',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                      color: LiquidGlassColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: summary.averagePricePerTicket >= 48.0
+                                          ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.20)
+                                          : LiquidGlassColors.accentAmber.withValues(alpha: 0.20),
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: summary.averagePricePerTicket >= 48.0
+                                            ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.40)
+                                            : LiquidGlassColors.accentAmber.withValues(alpha: 0.40),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      summary.totalTicketsSold > 0
+                                          ? 'Avg: ₹${summary.averagePricePerTicket.toStringAsFixed(2)}'
+                                          : 'Awaiting sales',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: summary.averagePricePerTicket >= 48.0
+                                            ? LiquidGlassColors.accentEmerald
+                                            : LiquidGlassColors.accentAmber,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Icon(
+                                _showAuditAnalysis
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                color: LiquidGlassColors.textMuted,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_showAuditAnalysis)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                          child: AuditComparisonCard(
+                            summary: summary,
+                            pricingConfig: pricing,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                child: RecentTransactionsList(
+
+                const SizedBox(height: 14),
+
+                // 6. LIVE RECENT TRANSACTIONS LOG
+                RecentTransactionsList(
                   transactions: summary.transactions,
                   onUndo: () => _handleUndo(salesProvider),
                 ),
-              ),
 
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
@@ -368,23 +373,17 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
   ) {
     final isStaged = _stagedTickets != null && _stagedTickets! > 0 && calc != null;
 
-    return Container(
+    return LiquidGlassContainer(
+      borderRadius: 18,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isStaged ? const Color(0xFFF0FDF4) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isStaged ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
-          width: isStaged ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isStaged ? const Color(0xFF16A34A) : Colors.black)
-                .withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+      fillColor: isStaged
+          ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.10)
+          : LiquidGlassColors.glassFillMedium,
+      border: Border.all(
+        color: isStaged
+            ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.50)
+            : LiquidGlassColors.glassBorderLight,
+        width: isStaged ? 1.5 : 1,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -402,16 +401,19 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: isStaged
-                          ? const Color(0xFF166534)
-                          : const Color(0xFF64748B),
-                      borderRadius: BorderRadius.circular(4),
+                          ? LiquidGlassColors.accentEmerald
+                          : LiquidGlassColors.glassFillLight,
+                      borderRadius: BorderRadius.circular(5),
+                      border: isStaged
+                          ? null
+                          : Border.all(color: LiquidGlassColors.glassBorderSubtle),
                     ),
                     child: Text(
                       isStaged ? 'CURRENT CUSTOMER' : 'NEW CUSTOMER',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: isStaged ? Colors.white : LiquidGlassColors.textSecondary,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -425,8 +427,8 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: isStaged
-                          ? const Color(0xFF166534)
-                          : const Color(0xFF64748B),
+                          ? LiquidGlassColors.accentEmerald
+                          : LiquidGlassColors.textSecondary,
                     ),
                   ),
                 ],
@@ -442,7 +444,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFFDC2626),
+                        color: LiquidGlassColors.accentRose,
                       ),
                     ),
                   ),
@@ -464,7 +466,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     IconButton(
                       icon: const Icon(Icons.remove_circle_outline),
                       iconSize: 24,
-                      color: const Color(0xFF166534),
+                      color: LiquidGlassColors.accentEmerald,
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
                         if (_stagedTickets! > 1) {
@@ -474,27 +476,29 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+                        horizontal: 12,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: LiquidGlassColors.glassFillStrong,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF86EFAC)),
+                        border: Border.all(
+                          color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.4),
+                        ),
                       ),
                       child: Text(
                         '$_stagedTickets Tkts',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF0F172A),
+                          color: LiquidGlassColors.textPrimary,
                         ),
                       ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
                       iconSize: 24,
-                      color: const Color(0xFF166534),
+                      color: LiquidGlassColors.accentEmerald,
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
                         setState(() => _stagedTickets = _stagedTickets! + 1);
@@ -510,18 +514,18 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     Text(
                       '₹${calc.totalAmount.toStringAsFixed(0)}',
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF15803D),
+                        color: LiquidGlassColors.accentEmerald,
                         letterSpacing: -0.5,
                       ),
                     ),
                     Text(
                       '₹${calc.effectiveRatePerTicket.toStringAsFixed(2)} / tkt',
                       style: const TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF166534),
+                        color: LiquidGlassColors.textSecondary,
                       ),
                     ),
                   ],
@@ -532,49 +536,32 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             const SizedBox(height: 12),
 
             // CONFIRM & ENTER SALE BUTTON
-            SizedBox(
-              height: 48,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F766E),
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                icon: const Icon(Icons.check_circle, size: 20),
-                label: Text(
-                  'ENTER SALE • ₹${calc.totalAmount.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.6,
-                  ),
-                ),
-                onPressed: () => _confirmStagedSale(provider, calc),
-              ),
+            LiquidGlassButton(
+              label: 'ENTER SALE • ₹${calc.totalAmount.toStringAsFixed(0)}',
+              icon: Icons.check_circle,
+              glowColor: LiquidGlassColors.accentEmerald,
+              onPressed: () => _confirmStagedSale(provider, calc),
             ),
           ] else ...[
             // Empty State
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               alignment: Alignment.center,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.touch_app_outlined,
-                    size: 18,
-                    color: Colors.grey.shade400,
+                    size: 16,
+                    color: LiquidGlassColors.textMuted.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Tap any number (1–$_maxButtons) to stage customer sale',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: const TextStyle(
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
+                      color: LiquidGlassColors.textMuted,
                     ),
                   ),
                 ],
@@ -619,104 +606,111 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             String? setBadgeText;
 
             if (isSelected) {
-              bgColor = const Color(0xFFDCFCE7);
-              borderColor = const Color(0xFF15803D);
-              textColor = const Color(0xFF14532D);
+              bgColor = LiquidGlassColors.accentEmerald.withValues(alpha: 0.28);
+              borderColor = LiquidGlassColors.accentEmerald;
+              textColor = Colors.white;
             } else if (isFullSet) {
-              bgColor = const Color(0xFF0F766E);
-              borderColor = const Color(0xFF042F2E);
+              bgColor = const Color(0xFF0F766E).withValues(alpha: 0.45);
+              borderColor = LiquidGlassColors.accentTeal.withValues(alpha: 0.6);
               textColor = Colors.white;
               setBadgeText = '1 SET';
             } else if (isMultiSet) {
-              bgColor = const Color(0xFF115E59);
-              borderColor = const Color(0xFF042F2E);
+              bgColor = const Color(0xFF1E1B4B).withValues(alpha: 0.65);
+              borderColor = LiquidGlassColors.accentViolet.withValues(alpha: 0.6);
               textColor = Colors.white;
               setBadgeText = '${ticketCount ~/ 12} SETS';
             } else {
-              bgColor = Colors.white;
-              borderColor = const Color(0xFFE2E8F0);
-              textColor = const Color(0xFF0F172A);
+              bgColor = LiquidGlassColors.glassFillLight;
+              borderColor = LiquidGlassColors.glassBorderLight;
+              textColor = LiquidGlassColors.textPrimary;
             }
 
             return SizedBox(
               width: itemWidth,
               height: 56,
-              child: Material(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(10),
-                elevation: isSelected ? 2 : (isFullSet || isMultiSet ? 1 : 0),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      _stagedTickets = ticketCount;
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: borderColor,
-                        width: isSelected ? 2.5 : (isFullSet || isMultiSet ? 1.5 : 1),
-                      ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _stagedTickets = ticketCount;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: borderColor,
+                      width: isSelected ? 2.0 : 1.0,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                    child: Stack(
-                      children: [
-                        if (setBadgeText != null)
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.shade400,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              child: Text(
-                                setBadgeText,
-                                style: const TextStyle(
-                                  fontSize: 7.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.black,
-                                ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.4),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                  child: Stack(
+                    children: [
+                      if (setBadgeText != null)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isFullSet
+                                  ? LiquidGlassColors.accentTeal
+                                  : LiquidGlassColors.accentViolet,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(
+                              setBadgeText,
+                              style: const TextStyle(
+                                fontSize: 7.5,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
                               ),
                             ),
                           ),
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '$ticketCount',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w900,
-                                  color: textColor,
-                                  height: 1.1,
-                                ),
-                              ),
-                              const SizedBox(height: 1),
-                              Text(
-                                '₹${calc.totalAmount.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isFullSet || isMultiSet
-                                      ? Colors.white.withValues(alpha: 0.9)
-                                      : const Color(0xFF16A34A),
-                                  height: 1.0,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                      ],
-                    ),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '$ticketCount',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: textColor,
+                                height: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              '₹${calc.totalAmount.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: isFullSet || isMultiSet
+                                    ? Colors.white.withValues(alpha: 0.9)
+                                    : LiquidGlassColors.accentEmerald,
+                                height: 1.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -748,13 +742,16 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 2),
-        backgroundColor: const Color(0xFF0F766E),
+        backgroundColor: LiquidGlassColors.surfaceElevated,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.4)),
+        ),
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const Icon(Icons.check_circle, color: LiquidGlassColors.accentEmerald, size: 20),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -762,7 +759,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: LiquidGlassColors.textPrimary,
                 ),
               ),
             ),
@@ -770,7 +767,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
         ),
         action: SnackBarAction(
           label: 'UNDO',
-          textColor: Colors.amberAccent,
+          textColor: LiquidGlassColors.accentRose,
           onPressed: () => provider.undoLastSale(),
         ),
       ),
@@ -786,8 +783,12 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Last transaction cancelled and removed from totals.'),
-          backgroundColor: Colors.red.shade800,
+          backgroundColor: LiquidGlassColors.surfaceElevated,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: LiquidGlassColors.accentRose.withValues(alpha: 0.4)),
+          ),
         ),
       );
     }
@@ -796,8 +797,9 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
   void _showShopPicker(BuildContext context, SalesProvider provider) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: LiquidGlassColors.surfaceDark,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return SafeArea(
@@ -812,21 +814,25 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
+                    color: LiquidGlassColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Switching terminal will track sales under that shop profile',
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                  style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
                 ),
-                const Divider(height: 20),
+                Divider(
+                  height: 20,
+                  color: LiquidGlassColors.glassBorderSubtle,
+                ),
                 if (provider.shops.isEmpty)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: Text(
                         'No retail shop terminals registered yet.',
-                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                        style: TextStyle(fontSize: 13, color: LiquidGlassColors.textMuted),
                       ),
                     ),
                   )
@@ -837,11 +843,13 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
                         backgroundColor: isCurrent
-                            ? const Color(0xFF0F766E)
-                            : Colors.grey.shade200,
+                            ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.25)
+                            : LiquidGlassColors.glassFillMedium,
                         child: Icon(
                           Icons.storefront,
-                          color: isCurrent ? Colors.white : Colors.black54,
+                          color: isCurrent
+                              ? LiquidGlassColors.accentEmerald
+                              : LiquidGlassColors.textSecondary,
                           size: 20,
                         ),
                       ),
@@ -850,15 +858,17 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                         style: TextStyle(
                           fontWeight:
                               isCurrent ? FontWeight.w800 : FontWeight.w600,
-                          color: isCurrent ? const Color(0xFF0F766E) : Colors.black87,
+                          color: isCurrent
+                              ? LiquidGlassColors.accentEmerald
+                              : LiquidGlassColors.textPrimary,
                         ),
                       ),
                       subtitle: Text(
                         '${shop.code} • 1 Set (12) = ₹${shop.pricingConfig.setPrice12.toStringAsFixed(0)}',
-                        style: const TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: 12, color: LiquidGlassColors.textMuted),
                       ),
                       trailing: isCurrent
-                          ? const Icon(Icons.check_circle, color: Color(0xFF0F766E))
+                          ? const Icon(Icons.check_circle, color: LiquidGlassColors.accentEmerald)
                           : null,
                       onTap: () {
                         provider.selectShop(shop.id);
@@ -898,20 +908,21 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: Colors.white,
+              backgroundColor: LiquidGlassColors.surfaceDark,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
+                side: BorderSide(color: LiquidGlassColors.glassBorderLight),
               ),
               title: const Row(
                 children: [
-                  Icon(Icons.shield_outlined, color: Color(0xFF1E293B), size: 22),
+                  Icon(Icons.shield_outlined, color: LiquidGlassColors.accentViolet, size: 22),
                   SizedBox(width: 8),
                   Text(
                     'Head App Security',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
+                      color: LiquidGlassColors.textPrimary,
                     ),
                   ),
                 ],
@@ -923,7 +934,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                   children: [
                     const Text(
                       'Enter Master Admin credentials to unlock Central Head App access.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
                     ),
                     const SizedBox(height: 14),
                     if (errorMessage != null)
@@ -931,27 +942,42 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                         padding: const EdgeInsets.all(8),
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
+                          color: LiquidGlassColors.accentRose.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFFCA5A5)),
+                          border: Border.all(
+                            color: LiquidGlassColors.accentRose.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Text(
                           errorMessage!,
                           style: const TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFB91C1C),
+                            color: LiquidGlassColors.accentRose,
                           ),
                         ),
                       ),
                     TextField(
                       controller: usernameController,
+                      style: const TextStyle(color: LiquidGlassColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: 'Admin Username',
+                        labelStyle: const TextStyle(color: LiquidGlassColors.textSecondary),
                         isDense: true,
-                        prefixIcon: const Icon(Icons.person_outline, size: 20),
+                        prefixIcon: const Icon(
+                          Icons.person_outline,
+                          size: 20,
+                          color: LiquidGlassColors.textMuted,
+                        ),
+                        filled: true,
+                        fillColor: LiquidGlassColors.glassFillMedium,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
                         ),
                       ),
                     ),
@@ -959,16 +985,23 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     TextField(
                       controller: passwordController,
                       obscureText: obscurePassword,
+                      style: const TextStyle(color: LiquidGlassColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: 'Admin Password',
+                        labelStyle: const TextStyle(color: LiquidGlassColors.textSecondary),
                         isDense: true,
-                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline,
+                          size: 20,
+                          color: LiquidGlassColors.textMuted,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             obscurePassword
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                             size: 20,
+                            color: LiquidGlassColors.textMuted,
                           ),
                           onPressed: () {
                             setDialogState(() {
@@ -976,8 +1009,15 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                             });
                           },
                         ),
+                        filled: true,
+                        fillColor: LiquidGlassColors.glassFillMedium,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
                         ),
                       ),
                     ),
@@ -987,61 +1027,47 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
+                  child: const Text('Cancel', style: TextStyle(color: LiquidGlassColors.textSecondary)),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E293B),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          final username = usernameController.text.trim();
-                          final password = passwordController.text.trim();
+                LiquidGlassButton(
+                  label: 'VERIFY & ENTER',
+                  glowColor: LiquidGlassColors.accentViolet,
+                  isFullWidth: false,
+                  height: 42,
+                  isLoading: isLoading,
+                  onPressed: () async {
+                    final username = usernameController.text.trim();
+                    final password = passwordController.text.trim();
 
-                          if (username.isEmpty || password.isEmpty) {
-                            setDialogState(() {
-                              errorMessage = 'Please enter both username and password.';
-                            });
-                            return;
-                          }
+                    if (username.isEmpty || password.isEmpty) {
+                      setDialogState(() {
+                        errorMessage = 'Please enter both username and password.';
+                      });
+                      return;
+                    }
 
-                          setDialogState(() {
-                            isLoading = true;
-                            errorMessage = null;
-                          });
+                    setDialogState(() {
+                      isLoading = true;
+                      errorMessage = null;
+                    });
 
-                          final authProvider = context.read<AuthProvider>();
-                          final success = await authProvider
-                              .loginWithAdminCredentials(username, password);
+                    final authProvider = context.read<AuthProvider>();
+                    final success = await authProvider
+                        .loginWithAdminCredentials(username, password);
 
-                          if (dialogContext.mounted) {
-                            if (success) {
-                              Navigator.pop(dialogContext);
-                              widget.onSwitchToAdmin();
-                            } else {
-                              setDialogState(() {
-                                isLoading = false;
-                                errorMessage = authProvider.errorMessage ??
-                                    'Invalid admin credentials.';
-                              });
-                            }
-                          }
-                        },
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text('VERIFY & ENTER'),
+                    if (dialogContext.mounted) {
+                      if (success) {
+                        Navigator.pop(dialogContext);
+                        widget.onSwitchToAdmin();
+                      } else {
+                        setDialogState(() {
+                          isLoading = false;
+                          errorMessage = authProvider.errorMessage ??
+                              'Invalid admin credentials.';
+                        });
+                      }
+                    }
+                  },
                 ),
               ],
             );
