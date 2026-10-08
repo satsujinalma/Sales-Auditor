@@ -38,6 +38,15 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
     final currentShop = salesProvider.currentShop;
     final summary = salesProvider.todaySummary;
 
+    // For non-admin counter staff, lock session strictly to their assigned/approved shop
+    if (!isAdmin &&
+        authProvider.currentUser?.shopId != null &&
+        salesProvider.currentShop?.id != authProvider.currentUser!.shopId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        salesProvider.selectShop(authProvider.currentUser!.shopId!);
+      });
+    }
+
     if (salesProvider.isLoading) {
       return Scaffold(
         backgroundColor: LiquidGlassColors.background,
@@ -145,11 +154,12 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            tooltip: 'Switch Shop Terminal',
-            icon: const Icon(Icons.swap_horiz, color: LiquidGlassColors.textPrimary),
-            onPressed: () => _showShopPicker(context, salesProvider),
-          ),
+          if (isAdmin)
+            IconButton(
+              tooltip: 'Switch Shop Terminal',
+              icon: const Icon(Icons.swap_horiz, color: LiquidGlassColors.textPrimary),
+              onPressed: () => _showShopPicker(context, salesProvider),
+            ),
           IconButton(
             tooltip: 'Admin Head App',
             icon: const Icon(

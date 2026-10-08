@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/app_user.dart';
 import '../../providers/auth_provider.dart';
 import '../mode_selection_screen.dart';
+import 'pending_approval_screen.dart';
 import 'phone_login_screen.dart';
 import 'profile_onboarding_screen.dart';
 
@@ -15,7 +16,7 @@ class AuthWrapper extends StatelessWidget {
 
     if (authProvider.isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF8FAFC),
+        backgroundColor: Color(0xFFE2E8F0),
         body: Center(
           child: CircularProgressIndicator(color: Color(0xFF0F766E)),
         ),
@@ -32,8 +33,16 @@ class AuthWrapper extends StatelessWidget {
       return const ProfileOnboardingScreen();
     }
 
-    // Step 3: Existing / Completed user -> Show App based on user role
     final currentUser = authProvider.currentUser;
+
+    // Step 3: Non-Admin Counter Staff not approved yet -> Show Pending Approval Screen
+    if (currentUser != null &&
+        currentUser.role == UserRole.shopkeeper &&
+        !currentUser.isApproved) {
+      return PendingApprovalScreen(user: currentUser);
+    }
+
+    // Step 4: Approved Counter User or Admin -> ModeSelectionScreen
     return ModeSelectionScreen(
       initialMode: currentUser?.role == UserRole.admin
           ? AppMode.admin

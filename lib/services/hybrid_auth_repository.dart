@@ -18,9 +18,11 @@ class HybridAuthRepository implements AuthRepository {
 
   final SalesRepository _salesRepository;
   final _authStateController = StreamController<AppUser?>.broadcast();
+  final _usersStreamController = StreamController<List<AppUser>>.broadcast();
   final _uuid = const Uuid();
 
   AppUser? _currentUser;
+  final Map<String, AppUser> _usersCache = {};
   bool _initialized = false;
 
   HybridAuthRepository(this._salesRepository);
@@ -39,15 +41,48 @@ class HybridAuthRepository implements AuthRepository {
         await prefs.setString(_keyAdminPassword, 'vazhapazhamadmin@321');
       }
 
+      // Load registered users directory
+      final usersJson = prefs.getString(_keyUsersList);
+      if (usersJson != null) {
+        try {
+          final Map<String, dynamic> decoded = jsonDecode(usersJson);
+          _usersCache.clear();
+          decoded.forEach((key, value) {
+            if (value is Map<String, dynamic>) {
+              final user = AppUser.fromJson(value);
+              _usersCache[user.id] = user;
+            }
+          });
+        } catch (_) {}
+      }
+
       final userJson = prefs.getString(_keyCurrentUser);
       if (userJson != null) {
-        _currentUser =
-            AppUser.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+        final savedUser = AppUser.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+        // Sync with directory cache if exists
+        _currentUser = _usersCache[savedUser.id] ?? savedUser;
       }
     } catch (_) {}
 
     _initialized = true;
     _authStateController.add(_currentUser);
+    _notifyUsersChanged();
+  }
+
+  void _notifyUsersChanged() {
+    _usersStreamController.add(List.unmodifiable(_usersCache.values.toList()));
+  }
+
+  Future<void> _saveUsersToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final Map<String, dynamic> mapToSave = {};
+      for (final user in _usersCache.values) {
+        mapToSave[user.id] = user.toJson();
+      }
+      await prefs.setString(_keyUsersList, jsonEncode(mapToSave));
+      _notifyUsersChanged();
+    } catch (_) {}
   }
 
   @override
@@ -58,6 +93,29 @@ class HybridAuthRepository implements AuthRepository {
   @override
   Future<AppUser?> getCurrentUser() async {
     if (!_initialized) await init();
+    return _currentUser;
+  }
+
+  @override
+  Future<AppUser?> refreshCurrentUser() async {
+    if (!_initialized) await init();
+    if (_currentUser == null) return null;
+
+    if (_currentUser!.role == UserRole.admin) {
+      return _currentUser;
+    }
+
+    final latestInCache = _usersCache[_currentUser!.id];
+    if (latestInCache != null &&
+        (latestInCache.isApproved != _currentUser!.isApproved ||
+            latestInCache.approvalStatus != _currentUser!.approvalStatus ||
+            latestInCache.shopId != _currentUser!.shopId)) {
+      _currentUser = latestInCache;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyCurrentUser, jsonEncode(_currentUser!.toJson()));
+      _authStateController.add(_currentUser);
+    }
+
     return _currentUser;
   }
 
@@ -75,16 +133,20 @@ class HybridAuthRepository implements AuthRepository {
     }
 
     String? assignedShopId;
+    String? assignedShopName;
     final cleanShopName = shopName?.trim() ?? '';
 
     // Check or create store
     final existingShops = await _salesRepository.getShops();
     if (cleanShopName.isNotEmpty) {
       final match = existingShops.where(
-        (s) => s.name.toLowerCase() == cleanShopName.toLowerCase(),
+        (s) =>
+            s.name.toLowerCase() == cleanShopName.toLowerCase() ||
+            s.code.toLowerCase() == cleanShopName.toLowerCase(),
       );
       if (match.isNotEmpty) {
         assignedShopId = match.first.id;
+        assignedShopName = match.first.name;
         await _salesRepository.setSelectedShopId(assignedShopId);
       } else {
         final newId = cleanShopName
@@ -113,23 +175,61 @@ class HybridAuthRepository implements AuthRepository {
         await _salesRepository.saveShop(newShop);
         await _salesRepository.setSelectedShopId(newShop.id);
         assignedShopId = newShop.id;
+        assignedShopName = newShop.name;
       }
     } else if (existingShops.isNotEmpty) {
       assignedShopId = existingShops.first.id;
+      assignedShopName = existingShops.first.name;
       await _salesRepository.setSelectedShopId(assignedShopId);
     }
 
-    final user = AppUser(
-      id: _uuid.v4(),
-      name: cleanName,
-      phoneNumber: phoneNumber?.trim().isNotEmpty == true
-          ? phoneNumber!.trim()
-          : 'SHOPKEEPER',
-      role: UserRole.shopkeeper,
-      isProfileComplete: true,
-      shopId: assignedShopId,
-      createdAt: DateTime.now(),
-    );
+    final normalizedPhone = phoneNumber?.trim().isNotEmpty == true
+        ? phoneNumber!.trim().replaceAll(RegExp(r'\s+'), '')
+        : 'SHOPKEEPER';
+
+    // Check if user already exists with this phone or name in directory
+    AppUser? existingUser;
+    for (final user in _usersCache.values) {
+      if ((normalizedPhone != 'SHOPKEEPER' && user.phoneNumber == normalizedPhone) ||
+          (user.name.toLowerCase() == cleanName.toLowerCase() &&
+              user.shopId == assignedShopId)) {
+        existingUser = user;
+        break;
+      }
+    }
+
+    AppUser user;
+    if (existingUser != null) {
+      // Retain approval status if for the same shop; if changing shop, mark pending
+      final isSameShop = existingUser.shopId == assignedShopId;
+      user = existingUser.copyWith(
+        name: cleanName,
+        phoneNumber: normalizedPhone,
+        shopId: assignedShopId ?? existingUser.shopId,
+        shopName: assignedShopName ?? existingUser.shopName,
+        isApproved: isSameShop ? existingUser.isApproved : false,
+        approvalStatus: isSameShop
+            ? existingUser.approvalStatus
+            : ApprovalStatus.pending,
+      );
+    } else {
+      // Newly registering counter worker -> Requires Admin Approval
+      user = AppUser(
+        id: _uuid.v4(),
+        name: cleanName,
+        phoneNumber: normalizedPhone,
+        role: UserRole.shopkeeper,
+        shopId: assignedShopId,
+        shopName: assignedShopName,
+        isApproved: false,
+        approvalStatus: ApprovalStatus.pending,
+        isProfileComplete: true,
+        createdAt: DateTime.now(),
+      );
+    }
+
+    _usersCache[user.id] = user;
+    await _saveUsersToPrefs();
 
     final prefs = await SharedPreferences.getInstance();
     _currentUser = user;
@@ -159,6 +259,8 @@ class HybridAuthRepository implements AuthRepository {
       phoneNumber: 'ADMIN_DESK',
       name: 'Central Admin & Auditor',
       role: UserRole.admin,
+      isApproved: true,
+      approvalStatus: ApprovalStatus.approved,
       isProfileComplete: true,
       createdAt: DateTime.now(),
     );
@@ -222,33 +324,105 @@ class HybridAuthRepository implements AuthRepository {
   }) async {
     if (!_initialized) await init();
 
-    final completedUser = user.copyWith(isProfileComplete: true);
-    final prefs = await SharedPreferences.getInstance();
+    final completedUser = user.copyWith(
+      isProfileComplete: true,
+      shopId: initialShop?.id ?? user.shopId,
+      shopName: initialShop?.name ?? user.shopName,
+    );
 
-    // Save initial shop if creating a new shop
     if (initialShop != null) {
       await _salesRepository.saveShop(initialShop);
       await _salesRepository.setSelectedShopId(initialShop.id);
     }
 
-    // Save user in registered list
-    final usersJson = prefs.getString(_keyUsersList);
-    Map<String, dynamic> usersMap = {};
-    if (usersJson != null) {
-      try {
-        usersMap = jsonDecode(usersJson) as Map<String, dynamic>;
-      } catch (_) {}
-    }
+    _usersCache[completedUser.id] = completedUser;
+    await _saveUsersToPrefs();
 
-    final normalizedPhone =
-        completedUser.phoneNumber.replaceAll(RegExp(r'\s+'), '');
-    usersMap[normalizedPhone] = completedUser.toJson();
-    await prefs.setString(_keyUsersList, jsonEncode(usersMap));
-
-    // Update active session
     _currentUser = completedUser;
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyCurrentUser, jsonEncode(completedUser.toJson()));
     _authStateController.add(_currentUser);
+  }
+
+  // --- Admin Approval & User Management Methods ---
+
+  @override
+  Future<List<AppUser>> getAllUsers() async {
+    if (!_initialized) await init();
+    return List.unmodifiable(_usersCache.values.toList());
+  }
+
+  @override
+  Stream<List<AppUser>> watchAllUsers() {
+    return _usersStreamController.stream;
+  }
+
+  @override
+  Future<void> approveUser(String userId, {String? shopId}) async {
+    if (!_initialized) await init();
+
+    final user = _usersCache[userId];
+    if (user != null) {
+      final updatedUser = user.copyWith(
+        isApproved: true,
+        approvalStatus: ApprovalStatus.approved,
+        approvedAt: DateTime.now(),
+        shopId: shopId ?? user.shopId,
+      );
+      _usersCache[userId] = updatedUser;
+      await _saveUsersToPrefs();
+
+      if (_currentUser?.id == userId) {
+        _currentUser = updatedUser;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyCurrentUser, jsonEncode(updatedUser.toJson()));
+        _authStateController.add(_currentUser);
+      }
+    }
+  }
+
+  @override
+  Future<void> rejectUser(String userId) async {
+    if (!_initialized) await init();
+
+    final user = _usersCache[userId];
+    if (user != null) {
+      final updatedUser = user.copyWith(
+        isApproved: false,
+        approvalStatus: ApprovalStatus.rejected,
+      );
+      _usersCache[userId] = updatedUser;
+      await _saveUsersToPrefs();
+
+      if (_currentUser?.id == userId) {
+        _currentUser = updatedUser;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyCurrentUser, jsonEncode(updatedUser.toJson()));
+        _authStateController.add(_currentUser);
+      }
+    }
+  }
+
+  @override
+  Future<void> revokeUser(String userId) async {
+    if (!_initialized) await init();
+
+    final user = _usersCache[userId];
+    if (user != null) {
+      final updatedUser = user.copyWith(
+        isApproved: false,
+        approvalStatus: ApprovalStatus.pending,
+      );
+      _usersCache[userId] = updatedUser;
+      await _saveUsersToPrefs();
+
+      if (_currentUser?.id == userId) {
+        _currentUser = updatedUser;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyCurrentUser, jsonEncode(updatedUser.toJson()));
+        _authStateController.add(_currentUser);
+      }
+    }
   }
 
   @override

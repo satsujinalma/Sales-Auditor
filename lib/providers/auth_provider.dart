@@ -8,12 +8,14 @@ class AuthProvider extends ChangeNotifier {
   final AuthRepository _authRepository;
 
   AppUser? _currentUser;
+  List<AppUser> _allUsers = [];
   bool _isLoading = true;
   bool _isLoggingIn = false;
   bool _isLoggingInAsAdmin = false;
   String? _errorMessage;
 
   StreamSubscription<AppUser?>? _authSubscription;
+  StreamSubscription<List<AppUser>>? _usersSubscription;
 
   AuthProvider(this._authRepository) {
     _init();
@@ -21,11 +23,21 @@ class AuthProvider extends ChangeNotifier {
 
   AppUser? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null;
+  bool get isApproved =>
+      _currentUser?.role == UserRole.admin || (_currentUser?.isApproved ?? false);
   bool get isProfileComplete => _currentUser?.isProfileComplete ?? false;
   bool get isLoading => _isLoading;
   bool get isLoggingIn => _isLoggingIn;
   bool get isLoggingInAsAdmin => _isLoggingInAsAdmin;
   String? get errorMessage => _errorMessage;
+
+  List<AppUser> get allUsers => _allUsers;
+  List<AppUser> get pendingUsers => _allUsers
+      .where((u) => u.role == UserRole.shopkeeper && !u.isApproved && u.approvalStatus == ApprovalStatus.pending)
+      .toList();
+  List<AppUser> get approvedStaff => _allUsers
+      .where((u) => u.role == UserRole.shopkeeper && u.isApproved)
+      .toList();
 
   Future<void> _init() async {
     _isLoading = true;
@@ -33,8 +45,22 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       _currentUser = await _authRepository.getCurrentUser();
+      _allUsers = await _authRepository.getAllUsers();
+
       _authSubscription = _authRepository.authStateChanges().listen((user) {
         _currentUser = user;
+        notifyListeners();
+      });
+
+      _usersSubscription = _authRepository.watchAllUsers().listen((users) {
+        _allUsers = users;
+        // If current user is in users list, sync status
+        if (_currentUser != null && _currentUser!.role != UserRole.admin) {
+          final matched = users.where((u) => u.id == _currentUser!.id);
+          if (matched.isNotEmpty && matched.first.isApproved != _currentUser!.isApproved) {
+            _currentUser = matched.first;
+          }
+        }
         notifyListeners();
       });
     } catch (e) {
@@ -43,6 +69,16 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> refreshCurrentUser() async {
+    try {
+      final refreshed = await _authRepository.refreshCurrentUser();
+      if (refreshed != null) {
+        _currentUser = refreshed;
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   Future<bool> loginAsShopkeeper({
@@ -61,6 +97,7 @@ class AuthProvider extends ChangeNotifier {
         shopName: shopName?.trim(),
       );
       _currentUser = user;
+      _allUsers = await _authRepository.getAllUsers();
       _isLoggingIn = false;
       notifyListeners();
       return true;
@@ -86,6 +123,7 @@ class AuthProvider extends ChangeNotifier {
         password: password.trim(),
       );
       _currentUser = user;
+      _allUsers = await _authRepository.getAllUsers();
       _isLoggingInAsAdmin = false;
       notifyListeners();
       return true;
@@ -141,6 +179,7 @@ class AuthProvider extends ChangeNotifier {
         name: name.trim(),
         role: role,
         shopId: initialShop?.id,
+        shopName: initialShop?.name,
       );
 
       await _authRepository.completeOnboarding(
@@ -149,6 +188,7 @@ class AuthProvider extends ChangeNotifier {
       );
 
       _currentUser = updatedUser.copyWith(isProfileComplete: true);
+      _allUsers = await _authRepository.getAllUsers();
       _isLoading = false;
       notifyListeners();
       return true;
@@ -157,6 +197,41 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  // --- Admin Approval Actions ---
+
+  Future<void> approveUser(String userId, {String? shopId}) async {
+    try {
+      await _authRepository.approveUser(userId, shopId: shopId);
+      _allUsers = await _authRepository.getAllUsers();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to approve user: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> rejectUser(String userId) async {
+    try {
+      await _authRepository.rejectUser(userId);
+      _allUsers = await _authRepository.getAllUsers();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to reject user: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> revokeUser(String userId) async {
+    try {
+      await _authRepository.revokeUser(userId);
+      _allUsers = await _authRepository.getAllUsers();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to revoke user: $e';
+      notifyListeners();
     }
   }
 
@@ -169,6 +244,7 @@ class AuthProvider extends ChangeNotifier {
   @override
   void dispose() {
     _authSubscription?.cancel();
+    _usersSubscription?.cancel();
     super.dispose();
   }
 }

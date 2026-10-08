@@ -42,10 +42,11 @@ void main() {
 
     final authRepository = HybridAuthRepository(repository);
     await authRepository.init();
-    await authRepository.loginAsShopkeeper(
+    final user = await authRepository.loginAsShopkeeper(
       name: 'Test Shopkeeper',
       shopName: 'Nayarambalam Store',
     );
+    await authRepository.approveUser(user.id);
 
     await tester.pumpWidget(
       MultiProvider(
@@ -150,7 +151,7 @@ void main() {
 
     // Verify Admin Screen elements (Admin sees BOX 1 and Live Audit Mode)
     expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);
-    expect(find.text('LIVE MIRRORED UI'), findsOneWidget);
+    expect(find.text('MIRROR'), findsOneWidget);
     expect(find.text('BOX 1'), findsOneWidget);
     expect(find.text('SALES & PROFIT AUDIT'), findsOneWidget);
   });
