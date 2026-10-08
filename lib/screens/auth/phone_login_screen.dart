@@ -45,10 +45,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     return Scaffold(
       backgroundColor: LiquidGlassColors.background,
       body: LiquidGlowBackground(
-        primaryGlow: _selectedTab == 0
-            ? LiquidGlassColors.accentEmerald
-            : LiquidGlassColors.accentViolet,
-        secondaryGlow: const Color(0xFF6366F1),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(

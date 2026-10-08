@@ -68,8 +68,6 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
         ],
       ),
       body: LiquidGlowBackground(
-        primaryGlow: LiquidGlassColors.accentEmerald,
-        secondaryGlow: LiquidGlassColors.accentViolet,
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

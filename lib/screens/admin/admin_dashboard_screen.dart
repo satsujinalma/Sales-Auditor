@@ -132,8 +132,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
       ),
       body: LiquidGlowBackground(
-        primaryGlow: LiquidGlassColors.accentViolet,
-        secondaryGlow: LiquidGlassColors.accentEmerald,
         child: SafeArea(
           child: _selectedTab == 0
               ? _buildMirroredShopkeeperView(

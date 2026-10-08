@@ -37,22 +37,22 @@ class LiquidGlassContainer extends StatelessWidget {
       height: height,
       padding: padding,
       decoration: BoxDecoration(
-        color: fillColor ?? Colors.white.withValues(alpha: 0.88),
+        color: fillColor ?? Colors.white.withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(borderRadius),
         border: border ??
             Border.all(
-              color: LiquidGlassColors.glassBorderLight,
-              width: 1.0,
+              color: Colors.white.withValues(alpha: 0.95),
+              width: 1.2,
             ),
         boxShadow: shadows ??
             [
               BoxShadow(
-                color: const Color(0xFF0F172A).withValues(alpha: 0.035),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
               ),
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: Colors.white.withValues(alpha: 0.95),
                 blurRadius: 0,
                 offset: const Offset(0, -1),
               ),

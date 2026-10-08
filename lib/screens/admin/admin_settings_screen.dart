@@ -110,8 +110,6 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
         ],
       ),
       body: LiquidGlowBackground(
-        primaryGlow: LiquidGlassColors.accentViolet,
-        secondaryGlow: LiquidGlassColors.accentEmerald,
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
