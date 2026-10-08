@@ -23,6 +23,7 @@ class HybridAuthRepository implements AuthRepository {
 
   AppUser? _currentUser;
   final Map<String, AppUser> _usersCache = {};
+  StreamSubscription<List<AppUser>>? _firestoreUsersSub;
   bool _initialized = false;
 
   HybridAuthRepository(this._salesRepository);
@@ -41,7 +42,7 @@ class HybridAuthRepository implements AuthRepository {
         await prefs.setString(_keyAdminPassword, 'vazhapazhamadmin@321');
       }
 
-      // Load registered users directory
+      // 1. Load local cache from SharedPreferences
       final usersJson = prefs.getString(_keyUsersList);
       if (usersJson != null) {
         try {
@@ -62,6 +63,41 @@ class HybridAuthRepository implements AuthRepository {
         // Sync with directory cache if exists
         _currentUser = _usersCache[savedUser.id] ?? savedUser;
       }
+
+      // 2. Connect to Cloud Firestore if active
+      final salesRepo = _salesRepository;
+      if (salesRepo is FirestoreSalesRepository) {
+        try {
+          final cloudUsers = await salesRepo.getUsers();
+          for (final u in cloudUsers) {
+            _usersCache[u.id] = u;
+          }
+          if (_currentUser != null && _currentUser!.role != UserRole.admin) {
+            _currentUser = _usersCache[_currentUser!.id] ?? _currentUser;
+          }
+          await _saveUsersToPrefs(notify: false);
+
+          _firestoreUsersSub?.cancel();
+          _firestoreUsersSub = salesRepo.watchUsers().listen((cloudUsers) {
+            for (final u in cloudUsers) {
+              _usersCache[u.id] = u;
+            }
+            if (_currentUser != null && _currentUser!.role != UserRole.admin) {
+              final latest = _usersCache[_currentUser!.id];
+              if (latest != null &&
+                  (latest.isApproved != _currentUser!.isApproved ||
+                      latest.approvalStatus != _currentUser!.approvalStatus ||
+                      latest.shopId != _currentUser!.shopId)) {
+                _currentUser = latest;
+                _saveCurrentUserToPrefs(_currentUser!);
+                _authStateController.add(_currentUser);
+              }
+            }
+            _saveUsersToPrefs(notify: false);
+            _notifyUsersChanged();
+          });
+        } catch (_) {}
+      }
     } catch (_) {}
 
     _initialized = true;
@@ -73,7 +109,7 @@ class HybridAuthRepository implements AuthRepository {
     _usersStreamController.add(List.unmodifiable(_usersCache.values.toList()));
   }
 
-  Future<void> _saveUsersToPrefs() async {
+  Future<void> _saveUsersToPrefs({bool notify = true}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final Map<String, dynamic> mapToSave = {};
@@ -81,7 +117,16 @@ class HybridAuthRepository implements AuthRepository {
         mapToSave[user.id] = user.toJson();
       }
       await prefs.setString(_keyUsersList, jsonEncode(mapToSave));
-      _notifyUsersChanged();
+      if (notify) {
+        _notifyUsersChanged();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveCurrentUserToPrefs(AppUser user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyCurrentUser, jsonEncode(user.toJson()));
     } catch (_) {}
   }
 
@@ -105,17 +150,29 @@ class HybridAuthRepository implements AuthRepository {
       return _currentUser;
     }
 
+    // Refresh from Firestore if available
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        final cloudUsers = await salesRepo.getUsers();
+        for (final u in cloudUsers) {
+          _usersCache[u.id] = u;
+        }
+        await _saveUsersToPrefs(notify: false);
+      } catch (_) {}
+    }
+
     final latestInCache = _usersCache[_currentUser!.id];
     if (latestInCache != null &&
         (latestInCache.isApproved != _currentUser!.isApproved ||
             latestInCache.approvalStatus != _currentUser!.approvalStatus ||
             latestInCache.shopId != _currentUser!.shopId)) {
       _currentUser = latestInCache;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyCurrentUser, jsonEncode(_currentUser!.toJson()));
+      await _saveCurrentUserToPrefs(_currentUser!);
       _authStateController.add(_currentUser);
     }
 
+    _notifyUsersChanged();
     return _currentUser;
   }
 
@@ -187,6 +244,17 @@ class HybridAuthRepository implements AuthRepository {
         ? phoneNumber!.trim().replaceAll(RegExp(r'\s+'), '')
         : 'SHOPKEEPER';
 
+    // Check cloud users first if available
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        final cloudUsers = await salesRepo.getUsers();
+        for (final u in cloudUsers) {
+          _usersCache[u.id] = u;
+        }
+      } catch (_) {}
+    }
+
     // Check if user already exists with this phone or name in directory
     AppUser? existingUser;
     for (final user in _usersCache.values) {
@@ -231,9 +299,15 @@ class HybridAuthRepository implements AuthRepository {
     _usersCache[user.id] = user;
     await _saveUsersToPrefs();
 
-    final prefs = await SharedPreferences.getInstance();
+    // Sync to Cloud Firestore
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        await salesRepo.saveUser(user);
+      } catch (_) {}
+    }
+
     _currentUser = user;
-    await prefs.setString(_keyCurrentUser, jsonEncode(user.toJson()));
+    await _saveCurrentUserToPrefs(user);
     _authStateController.add(_currentUser);
 
     return user;
@@ -265,9 +339,20 @@ class HybridAuthRepository implements AuthRepository {
       createdAt: DateTime.now(),
     );
 
-    final prefs = await SharedPreferences.getInstance();
+    // If connected to Firestore, refresh all users so admin sees live state
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        final cloudUsers = await salesRepo.getUsers();
+        for (final u in cloudUsers) {
+          _usersCache[u.id] = u;
+        }
+        await _saveUsersToPrefs();
+      } catch (_) {}
+    }
+
     _currentUser = adminUser;
-    await prefs.setString(_keyCurrentUser, jsonEncode(adminUser.toJson()));
+    await _saveCurrentUserToPrefs(adminUser);
     _authStateController.add(_currentUser);
 
     return adminUser;
@@ -338,9 +423,15 @@ class HybridAuthRepository implements AuthRepository {
     _usersCache[completedUser.id] = completedUser;
     await _saveUsersToPrefs();
 
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        await salesRepo.saveUser(completedUser);
+      } catch (_) {}
+    }
+
     _currentUser = completedUser;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyCurrentUser, jsonEncode(completedUser.toJson()));
+    await _saveCurrentUserToPrefs(completedUser);
     _authStateController.add(_currentUser);
   }
 
@@ -349,6 +440,18 @@ class HybridAuthRepository implements AuthRepository {
   @override
   Future<List<AppUser>> getAllUsers() async {
     if (!_initialized) await init();
+
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        final cloudUsers = await salesRepo.getUsers();
+        for (final u in cloudUsers) {
+          _usersCache[u.id] = u;
+        }
+        await _saveUsersToPrefs(notify: false);
+      } catch (_) {}
+    }
+
     return List.unmodifiable(_usersCache.values.toList());
   }
 
@@ -372,10 +475,21 @@ class HybridAuthRepository implements AuthRepository {
       _usersCache[userId] = updatedUser;
       await _saveUsersToPrefs();
 
+      final salesRepo = _salesRepository;
+      if (salesRepo is FirestoreSalesRepository) {
+        try {
+          await salesRepo.updateUserApproval(
+            userId,
+            ApprovalStatus.approved,
+            true,
+            shopId: shopId ?? user.shopId,
+          );
+        } catch (_) {}
+      }
+
       if (_currentUser?.id == userId) {
         _currentUser = updatedUser;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_keyCurrentUser, jsonEncode(updatedUser.toJson()));
+        await _saveCurrentUserToPrefs(updatedUser);
         _authStateController.add(_currentUser);
       }
     }
@@ -394,10 +508,20 @@ class HybridAuthRepository implements AuthRepository {
       _usersCache[userId] = updatedUser;
       await _saveUsersToPrefs();
 
+      final salesRepo = _salesRepository;
+      if (salesRepo is FirestoreSalesRepository) {
+        try {
+          await salesRepo.updateUserApproval(
+            userId,
+            ApprovalStatus.rejected,
+            false,
+          );
+        } catch (_) {}
+      }
+
       if (_currentUser?.id == userId) {
         _currentUser = updatedUser;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_keyCurrentUser, jsonEncode(updatedUser.toJson()));
+        await _saveCurrentUserToPrefs(updatedUser);
         _authStateController.add(_currentUser);
       }
     }
@@ -416,10 +540,20 @@ class HybridAuthRepository implements AuthRepository {
       _usersCache[userId] = updatedUser;
       await _saveUsersToPrefs();
 
+      final salesRepo = _salesRepository;
+      if (salesRepo is FirestoreSalesRepository) {
+        try {
+          await salesRepo.updateUserApproval(
+            userId,
+            ApprovalStatus.pending,
+            false,
+          );
+        } catch (_) {}
+      }
+
       if (_currentUser?.id == userId) {
         _currentUser = updatedUser;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_keyCurrentUser, jsonEncode(updatedUser.toJson()));
+        await _saveCurrentUserToPrefs(updatedUser);
         _authStateController.add(_currentUser);
       }
     }

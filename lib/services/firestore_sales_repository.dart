@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/app_user.dart';
 import '../models/daily_sales_summary.dart';
 import '../models/pricing_config.dart';
 import '../models/sale_transaction.dart';
@@ -23,6 +24,9 @@ class FirestoreSalesRepository implements SalesRepository {
 
   CollectionReference<Map<String, dynamic>> get _dailySalesRef =>
       _firestore.collection('daily_sales');
+
+  CollectionReference<Map<String, dynamic>> get _usersRef =>
+      _firestore.collection('users');
 
   DocumentReference<Map<String, dynamic>> get _settingsRef =>
       _firestore.collection('settings').doc('admin_config');
@@ -270,5 +274,53 @@ class FirestoreSalesRepository implements SalesRepository {
     final creds = await getAdminCredentials();
     return creds['username'] == username.trim() &&
         creds['password'] == password.trim();
+  }
+
+  // --- Multi-Device Cloud Firestore User Directory Sync ---
+
+  Stream<List<AppUser>> watchUsers() {
+    return _usersRef.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => AppUser.fromJson(doc.data()))
+          .toList();
+    });
+  }
+
+  Future<List<AppUser>> getUsers() async {
+    try {
+      final snapshot = await _usersRef.get();
+      return snapshot.docs
+          .map((doc) => AppUser.fromJson(doc.data()))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveUser(AppUser user) async {
+    try {
+      await _usersRef.doc(user.id).set(user.toJson(), SetOptions(merge: true));
+    } catch (_) {}
+  }
+
+  Future<void> updateUserApproval(
+    String userId,
+    ApprovalStatus status,
+    bool isApproved, {
+    String? shopId,
+  }) async {
+    try {
+      final Map<String, dynamic> data = {
+        'approvalStatus': status.name,
+        'isApproved': isApproved,
+      };
+      if (isApproved) {
+        data['approvedAt'] = DateTime.now().toIso8601String();
+      }
+      if (shopId != null) {
+        data['shopId'] = shopId;
+      }
+      await _usersRef.doc(userId).set(data, SetOptions(merge: true));
+    } catch (_) {}
   }
 }

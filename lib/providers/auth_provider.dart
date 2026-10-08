@@ -76,8 +76,16 @@ class AuthProvider extends ChangeNotifier {
       final refreshed = await _authRepository.refreshCurrentUser();
       if (refreshed != null) {
         _currentUser = refreshed;
-        notifyListeners();
       }
+      _allUsers = await _authRepository.getAllUsers();
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> refreshUsers() async {
+    try {
+      _allUsers = await _authRepository.getAllUsers();
+      notifyListeners();
     } catch (_) {}
   }
 

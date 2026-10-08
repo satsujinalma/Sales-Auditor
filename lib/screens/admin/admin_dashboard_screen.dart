@@ -164,7 +164,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final isSelected = _selectedTab == index;
     return InkWell(
       borderRadius: BorderRadius.circular(9),
-      onTap: () => setState(() => _selectedTab = index),
+      onTap: () {
+        setState(() => _selectedTab = index);
+        if (index == 2) {
+          context.read<AuthProvider>().refreshUsers();
+        }
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -856,430 +861,468 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final approvedStaff = authProvider.approvedStaff;
     final shops = adminProvider.shops;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 1. HEADER SUMMARY CARD
-          LiquidGlassContainer(
-            borderRadius: 16,
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: LiquidGlassColors.accentViolet.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12),
+    return RefreshIndicator(
+      color: LiquidGlassColors.accentViolet,
+      onRefresh: () => authProvider.refreshUsers(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. HEADER SUMMARY CARD
+            LiquidGlassContainer(
+              borderRadius: 16,
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: LiquidGlassColors.accentViolet.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.security_rounded,
+                      color: LiquidGlassColors.accentViolet,
+                      size: 24,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.security_rounded,
-                    color: LiquidGlassColors.accentViolet,
-                    size: 24,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'STAFF & TERMINAL ACCESS',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: LiquidGlassColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${pendingUsers.length} pending approval • ${approvedStaff.length} approved staff',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: LiquidGlassColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Refresh Staff Directory',
+                    icon: const Icon(Icons.refresh_rounded, color: LiquidGlassColors.accentViolet, size: 20),
+                    onPressed: () => authProvider.refreshUsers(),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // 2. PENDING REQUESTS SECTION
+            Row(
+              children: [
+                const Icon(Icons.hourglass_top_rounded, color: LiquidGlassColors.accentAmber, size: 16),
+                const SizedBox(width: 6),
+                const Text(
+                  'PENDING ACCESS REQUESTS',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: LiquidGlassColors.textPrimary,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'STAFF & TERMINAL ACCESS',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: LiquidGlassColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${pendingUsers.length} pending approval • ${approvedStaff.length} approved staff',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: LiquidGlassColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: pendingUsers.isNotEmpty
+                        ? LiquidGlassColors.accentAmber.withValues(alpha: 0.2)
+                        : LiquidGlassColors.glassFillMedium,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${pendingUsers.length}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: pendingUsers.isNotEmpty
+                          ? LiquidGlassColors.accentAmber
+                          : LiquidGlassColors.textMuted,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
-          // 2. PENDING REQUESTS SECTION
-          Row(
-            children: [
-              const Icon(Icons.hourglass_top_rounded, color: LiquidGlassColors.accentAmber, size: 16),
-              const SizedBox(width: 6),
-              const Text(
-                'PENDING ACCESS REQUESTS',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  color: LiquidGlassColors.textPrimary,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: pendingUsers.isNotEmpty
-                      ? LiquidGlassColors.accentAmber.withValues(alpha: 0.2)
-                      : LiquidGlassColors.glassFillMedium,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${pendingUsers.length}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: pendingUsers.isNotEmpty
-                        ? LiquidGlassColors.accentAmber
-                        : LiquidGlassColors.textMuted,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          if (pendingUsers.isEmpty)
-            LiquidGlassContainer(
-              borderRadius: 14,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-              child: const Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.check_circle_outline, color: LiquidGlassColors.accentEmerald, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'No pending requests. All counter staff are verified.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: LiquidGlassColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            ...pendingUsers.map((user) {
-              final targetShop = shops.firstWhere(
-                (s) => s.id == user.shopId,
-                orElse: () => Shop(
-                  id: user.shopId ?? '',
-                  name: user.shopName ?? 'Requested Counter',
-                  location: '',
-                  code: 'SHP',
-                  pricingConfig: const PricingConfig(),
-                ),
-              );
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: LiquidGlassContainer(
-                  borderRadius: 16,
-                  padding: const EdgeInsets.all(14),
-                  border: Border.all(
-                    color: LiquidGlassColors.accentAmber.withValues(alpha: 0.4),
-                    width: 1.2,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            if (pendingUsers.isEmpty)
+              LiquidGlassContainer(
+                borderRadius: 14,
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                child: const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: LiquidGlassColors.accentAmber.withValues(alpha: 0.2),
-                                child: Text(
-                                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 13,
-                                    color: LiquidGlassColors.accentAmber,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      Icon(Icons.check_circle_outline, color: LiquidGlassColors.accentEmerald, size: 18),
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'No pending requests. All counter staff are verified.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: LiquidGlassColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...pendingUsers.map((user) {
+                final targetShop = shops.firstWhere(
+                  (s) => s.id == user.shopId,
+                  orElse: () => Shop(
+                    id: user.shopId ?? '',
+                    name: user.shopName ?? 'Requested Counter',
+                    location: '',
+                    code: 'SHP',
+                    pricingConfig: const PricingConfig(),
+                  ),
+                );
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: LiquidGlassContainer(
+                    borderRadius: 16,
+                    padding: const EdgeInsets.all(14),
+                    border: Border.all(
+                      color: LiquidGlassColors.accentAmber.withValues(alpha: 0.4),
+                      width: 1.2,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
                                 children: [
-                                  Text(
-                                    user.name,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      color: LiquidGlassColors.textPrimary,
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: LiquidGlassColors.accentAmber.withValues(alpha: 0.2),
+                                    child: Text(
+                                      user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 13,
+                                        color: LiquidGlassColors.accentAmber,
+                                      ),
                                     ),
                                   ),
-                                  Text(
-                                    user.phoneNumber,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                      color: LiquidGlassColors.textSecondary,
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          user.name,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                            color: LiquidGlassColors.textPrimary,
+                                          ),
+                                        ),
+                                        Text(
+                                          user.phoneNumber,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                            color: LiquidGlassColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: LiquidGlassColors.accentAmber.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              'APPROVAL REQUIRED',
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: LiquidGlassColors.accentAmber,
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: LiquidGlassColors.accentAmber.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: LiquidGlassColors.glassFillMedium,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.storefront, size: 14, color: LiquidGlassColors.accentTeal),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Assigned Counter: ${targetShop.name} (${targetShop.code})',
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: LiquidGlassColors.textPrimary,
+                              child: const Text(
+                                'APPROVAL REQUIRED',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: LiquidGlassColors.accentAmber,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: LiquidGlassButton(
-                              label: 'APPROVE STAFF',
-                              icon: Icons.check,
-                              height: 38,
-                              glowColor: LiquidGlassColors.accentEmerald,
-                              onPressed: () => authProvider.approveUser(user.id),
-                            ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: LiquidGlassColors.glassFillMedium,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          const SizedBox(width: 10),
-                          InkWell(
-                            onTap: () => authProvider.rejectUser(user.id),
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFE4E6),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFFDA4AF)),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(Icons.close, size: 14, color: Color(0xFFE11D48)),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Reject',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFFE11D48),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-
-          const SizedBox(height: 20),
-
-          // 3. APPROVED COUNTER STAFF (Grouped by Shop)
-          const Row(
-            children: [
-              Icon(Icons.verified_user_outlined, color: LiquidGlassColors.accentEmerald, size: 16),
-              SizedBox(width: 6),
-              Text(
-                'ACTIVE AUTHORIZED COUNTERS & STAFF',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  color: LiquidGlassColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          if (approvedStaff.isEmpty)
-            LiquidGlassContainer(
-              borderRadius: 14,
-              padding: const EdgeInsets.all(16),
-              child: const Center(
-                child: Text(
-                  'No staff members approved yet.',
-                  style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
-                ),
-              ),
-            )
-          else
-            ...shops.map((shop) {
-              final staffForShop = approvedStaff.where((u) => u.shopId == shop.id).toList();
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: LiquidGlassContainer(
-                  borderRadius: 16,
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+                          child: Row(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(Icons.storefront, size: 16, color: LiquidGlassColors.accentEmerald),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${shop.name} (${shop.code})',
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: LiquidGlassColors.textPrimary,
+                              const Icon(Icons.storefront, size: 14, color: LiquidGlassColors.accentTeal),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Assigned Counter: ${targetShop.name} (${targetShop.code})',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: LiquidGlassColors.textPrimary,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${staffForShop.length} Staff',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: LiquidGlassColors.accentEmerald,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: LiquidGlassButton(
+                                label: 'APPROVE STAFF',
+                                icon: Icons.check,
+                                height: 38,
+                                glowColor: LiquidGlassColors.accentEmerald,
+                                onPressed: () => authProvider.approveUser(user.id),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      if (staffForShop.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            'No counter workers assigned to this shop yet.',
-                            style: TextStyle(fontSize: 11, color: LiquidGlassColors.textMuted),
-                          ),
-                        )
-                      else
-                        ...staffForShop.map((staff) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: LiquidGlassColors.glassFillMedium,
-                                borderRadius: BorderRadius.circular(10),
+                            const SizedBox(width: 10),
+                            InkWell(
+                              onTap: () => authProvider.rejectUser(user.id),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFE4E6),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFFDA4AF)),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.close, size: 14, color: Color(0xFFE11D48)),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Reject',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFFE11D48),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+
+            const SizedBox(height: 20),
+
+            // 3. APPROVED COUNTER STAFF (Grouped by Shop)
+            const Row(
+              children: [
+                Icon(Icons.verified_user_outlined, color: LiquidGlassColors.accentEmerald, size: 16),
+                SizedBox(width: 6),
+                Text(
+                  'ACTIVE AUTHORIZED COUNTERS & STAFF',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: LiquidGlassColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            if (approvedStaff.isEmpty)
+              LiquidGlassContainer(
+                borderRadius: 14,
+                padding: const EdgeInsets.all(16),
+                child: const Center(
+                  child: Text(
+                    'No staff members approved yet.',
+                    style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
+                  ),
+                ),
+              )
+            else
+              ...shops.map((shop) {
+                final staffForShop = approvedStaff.where((u) => u.shopId == shop.id).toList();
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: LiquidGlassContainer(
+                    borderRadius: 16,
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.person, size: 14, color: LiquidGlassColors.accentViolet),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        staff.name,
-                                        style: const TextStyle(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: LiquidGlassColors.textPrimary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '(${staff.phoneNumber})',
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: LiquidGlassColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(Icons.storefront, size: 16, color: LiquidGlassColors.accentEmerald),
                                   ),
-                                  InkWell(
-                                    onTap: () => authProvider.revokeUser(staff.id),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      child: const Text(
-                                        'Revoke',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: LiquidGlassColors.accentRose,
-                                        ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '${shop.name} (${shop.code})',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: LiquidGlassColors.textPrimary,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          );
-                        }),
-                    ],
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '${staffForShop.length} Staff',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: LiquidGlassColors.accentEmerald,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        if (staffForShop.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              'No counter workers assigned to this shop yet.',
+                              style: TextStyle(fontSize: 11, color: LiquidGlassColors.textMuted),
+                            ),
+                          )
+                        else
+                          ...staffForShop.map((staff) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: LiquidGlassColors.glassFillMedium,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.person, size: 14, color: LiquidGlassColors.accentViolet),
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: Text(
+                                              staff.name,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: LiquidGlassColors.textPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: Text(
+                                              '(${staff.phoneNumber})',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: LiquidGlassColors.textSecondary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    InkWell(
+                                      onTap: () => authProvider.revokeUser(staff.id),
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        child: const Text(
+                                          'Revoke',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: LiquidGlassColors.accentRose,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
 
-          const SizedBox(height: 24),
-        ],
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
