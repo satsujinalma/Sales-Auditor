@@ -377,14 +377,28 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
       borderRadius: 18,
       padding: const EdgeInsets.all(14),
       fillColor: isStaged
-          ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.10)
-          : LiquidGlassColors.glassFillMedium,
+          ? const Color(0xFFF0FDF4)
+          : Colors.white.withValues(alpha: 0.85),
       border: Border.all(
         color: isStaged
-            ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.50)
-            : LiquidGlassColors.glassBorderLight,
-        width: isStaged ? 1.5 : 1,
+            ? const Color(0xFF10B981)
+            : Colors.white.withValues(alpha: 0.95),
+        width: isStaged ? 1.5 : 1.2,
       ),
+      shadows: isStaged
+          ? [
+              BoxShadow(
+                color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.95),
+                blurRadius: 0,
+                offset: const Offset(0, -1),
+              ),
+            ]
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -396,17 +410,17 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                      horizontal: 7,
+                      vertical: 2.5,
                     ),
                     decoration: BoxDecoration(
                       color: isStaged
                           ? LiquidGlassColors.accentEmerald
                           : LiquidGlassColors.glassFillLight,
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(6),
                       border: isStaged
                           ? null
-                          : Border.all(color: LiquidGlassColors.glassBorderSubtle),
+                          : Border.all(color: LiquidGlassColors.glassBorderLight),
                     ),
                     child: Text(
                       isStaged ? 'CURRENT CUSTOMER' : 'NEW CUSTOMER',
@@ -436,16 +450,27 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
               if (isStaged)
                 InkWell(
                   onTap: () => setState(() => _stagedTickets = null),
-                  borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    child: Text(
-                      'Clear',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: LiquidGlassColors.accentRose,
-                      ),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFE4E6),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.close, size: 12, color: Color(0xFFE11D48)),
+                        SizedBox(width: 3),
+                        Text(
+                          'Clear',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFE11D48),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -590,8 +615,6 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
           runSpacing: 8,
           children: List.generate(_maxButtons, (index) {
             final ticketCount = index + 1;
-            final isFullSet = ticketCount == 12;
-            final isMultiSet = ticketCount > 12 && ticketCount % 12 == 0;
             final isSelected = _stagedTickets == ticketCount;
 
             final calc = PricingCalculator.calculate(
@@ -599,132 +622,18 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
               config: pricing,
             );
 
-            // Styling
-            Color bgColor;
-            Color borderColor;
-            Color textColor;
-            Color priceColor;
-            String? setBadgeText;
-            Color badgeBgColor = LiquidGlassColors.accentEmerald;
-
-            if (isSelected) {
-              bgColor = LiquidGlassColors.accentEmerald;
-              borderColor = LiquidGlassColors.accentEmerald;
-              textColor = Colors.white;
-              priceColor = Colors.white.withValues(alpha: 0.95);
-            } else if (isFullSet) {
-              bgColor = const Color(0xFFF0FDF4);
-              borderColor = LiquidGlassColors.accentEmeraldBright;
-              textColor = LiquidGlassColors.accentEmerald;
-              priceColor = LiquidGlassColors.accentEmerald;
-              setBadgeText = '1 SET';
-              badgeBgColor = LiquidGlassColors.accentEmerald;
-            } else if (isMultiSet) {
-              bgColor = const Color(0xFFFAF5FF);
-              borderColor = LiquidGlassColors.accentViolet;
-              textColor = LiquidGlassColors.accentViolet;
-              priceColor = LiquidGlassColors.accentViolet;
-              setBadgeText = '${ticketCount ~/ 12} SETS';
-              badgeBgColor = LiquidGlassColors.accentViolet;
-            } else {
-              bgColor = Colors.white.withValues(alpha: 0.88);
-              borderColor = LiquidGlassColors.glassBorderLight;
-              textColor = LiquidGlassColors.textPrimary;
-              priceColor = LiquidGlassColors.accentEmerald;
-            }
-
             return SizedBox(
               width: itemWidth,
-              height: 56,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
+              height: 62,
+              child: _OneTapKeypadButton(
+                ticketCount: ticketCount,
+                isSelected: isSelected,
+                calc: calc,
                 onTap: () {
-                  HapticFeedback.selectionClick();
                   setState(() {
                     _stagedTickets = ticketCount;
                   });
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: borderColor,
-                      width: isSelected ? 2.0 : 1.0,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: const Color(0xFF0F172A).withValues(alpha: 0.03),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                  child: Stack(
-                    children: [
-                      if (setBadgeText != null)
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : badgeBgColor,
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            child: Text(
-                              setBadgeText,
-                              style: TextStyle(
-                                fontSize: 7.5,
-                                fontWeight: FontWeight.w900,
-                                color: isSelected
-                                    ? LiquidGlassColors.accentEmerald
-                                    : Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '$ticketCount',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                color: textColor,
-                                height: 1.1,
-                              ),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              '₹${calc.totalAmount.toStringAsFixed(0)}',
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                color: priceColor,
-                                height: 1.0,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             );
           }),
@@ -1088,4 +997,369 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
       },
     );
   }
+}
+
+/// Tactile, juicy Liquid Glass Keypad Button with spring bounce & haptics
+class _OneTapKeypadButton extends StatefulWidget {
+  final int ticketCount;
+  final bool isSelected;
+  final PriceCalculationResult calc;
+  final VoidCallback onTap;
+
+  const _OneTapKeypadButton({
+    required this.ticketCount,
+    required this.isSelected,
+    required this.calc,
+    required this.onTap,
+  });
+
+  @override
+  State<_OneTapKeypadButton> createState() => _OneTapKeypadButtonState();
+}
+
+class _OneTapKeypadButtonState extends State<_OneTapKeypadButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 70),
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.93).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final count = widget.ticketCount;
+    final isFullSet = count == 12;
+    final isMultiSet24 = count == 24;
+    final isMultiSet36 = count == 36;
+    final isOtherMultiSet = count > 12 && count % 12 == 0 && !isMultiSet24 && !isMultiSet36;
+    final isSelected = widget.isSelected;
+
+    // Harmonious Vibrant Color Palettes:
+    // 1. Singles (1 - 11): Crisp Sky Ice Gradient
+    // 2. 12 (1 SET): Hero Juicy Emerald Neon Glass
+    // 3. Low Bulk (13 - 23): Fresh Seafoam Mint Glaze
+    // 4. 24 (2 SETS): Hero Juicy Electric Violet Neon Glass
+    // 5. Mid Bulk (25 - 35): Soft Lavender Glaze
+    // 6. 36 (3 SETS): Hero Juicy Royal Blue Neon Glass
+    // 7. High Bulk (37 - 40): Soft Coral / Rose Glaze
+
+    List<Color> gradientColors;
+    Color borderColor;
+    Color numberColor;
+    Color priceTextColor;
+    Color pricePillColor;
+    String? setBadgeText;
+    Color? badgeBgColor;
+    List<BoxShadow> shadows;
+
+    if (isSelected) {
+      gradientColors = const [Color(0xFF0F766E), Color(0xFF0D9488)];
+      borderColor = const Color(0xFF2DD4BF);
+      numberColor = Colors.white;
+      priceTextColor = Colors.white;
+      pricePillColor = Colors.white.withValues(alpha: 0.22);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF0F766E).withValues(alpha: 0.45),
+          blurRadius: 12,
+          spreadRadius: 1,
+          offset: const Offset(0, 3),
+        ),
+      ];
+    } else if (isFullSet) {
+      // 1 SET (12): Hero Glowing Emerald
+      gradientColors = const [Color(0xFF10B981), Color(0xFF059669)];
+      borderColor = const Color(0xFF34D399);
+      numberColor = Colors.white;
+      priceTextColor = const Color(0xFFFEF08A); // Soft Gold
+      pricePillColor = const Color(0xFF064E3B).withValues(alpha: 0.35);
+      setBadgeText = '1 SET';
+      badgeBgColor = const Color(0xFFF59E0B);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF10B981).withValues(alpha: 0.40),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.8),
+          blurRadius: 0,
+          offset: const Offset(0, -1),
+        ),
+      ];
+    } else if (isMultiSet24) {
+      // 2 SETS (24): Hero Glowing Electric Violet
+      gradientColors = const [Color(0xFF8B5CF6), Color(0xFF6D28D9)];
+      borderColor = const Color(0xFFA78BFA);
+      numberColor = Colors.white;
+      priceTextColor = const Color(0xFFFEF08A);
+      pricePillColor = const Color(0xFF4C1D95).withValues(alpha: 0.35);
+      setBadgeText = '2 SETS';
+      badgeBgColor = const Color(0xFFF59E0B);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF8B5CF6).withValues(alpha: 0.40),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.8),
+          blurRadius: 0,
+          offset: const Offset(0, -1),
+        ),
+      ];
+    } else if (isMultiSet36) {
+      // 3 SETS (36): Hero Glowing Royal Blue
+      gradientColors = const [Color(0xFF3B82F6), Color(0xFF1D4ED8)];
+      borderColor = const Color(0xFF60A5FA);
+      numberColor = Colors.white;
+      priceTextColor = const Color(0xFFFEF08A);
+      pricePillColor = const Color(0xFF1E3A8A).withValues(alpha: 0.35);
+      setBadgeText = '3 SETS';
+      badgeBgColor = const Color(0xFFF59E0B);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF3B82F6).withValues(alpha: 0.40),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.8),
+          blurRadius: 0,
+          offset: const Offset(0, -1),
+        ),
+      ];
+    } else if (isOtherMultiSet) {
+      gradientColors = const [Color(0xFF6366F1), Color(0xFF4338CA)];
+      borderColor = const Color(0xFF818CF8);
+      numberColor = Colors.white;
+      priceTextColor = const Color(0xFFFEF08A);
+      pricePillColor = Colors.black.withValues(alpha: 0.2);
+      setBadgeText = '${count ~/ 12} SETS';
+      badgeBgColor = const Color(0xFFF59E0B);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF6366F1).withValues(alpha: 0.35),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ];
+    } else if (count <= 11) {
+      // Singles 1 to 11: Crisp Cyan / Ice Sky Glass
+      gradientColors = [
+        Colors.white,
+        const Color(0xFFE0F2FE),
+      ];
+      borderColor = const Color(0xFFBAE6FD);
+      numberColor = const Color(0xFF0F172A);
+      priceTextColor = const Color(0xFF0284C7);
+      pricePillColor = const Color(0xFF0284C7).withValues(alpha: 0.12);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF0284C7).withValues(alpha: 0.08),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.95),
+          blurRadius: 0,
+          offset: const Offset(0, -1),
+        ),
+      ];
+    } else if (count <= 23) {
+      // Low Bulk 13 to 23: Fresh Mint / Aqua Glaze
+      gradientColors = [
+        Colors.white,
+        const Color(0xFFDCFCE7),
+      ];
+      borderColor = const Color(0xFFA7F3D0);
+      numberColor = const Color(0xFF0F172A);
+      priceTextColor = const Color(0xFF059669);
+      pricePillColor = const Color(0xFF059669).withValues(alpha: 0.12);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF059669).withValues(alpha: 0.08),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.95),
+          blurRadius: 0,
+          offset: const Offset(0, -1),
+        ),
+      ];
+    } else if (count <= 35) {
+      // Mid Bulk 25 to 35: Soft Lavender / Lilac Glaze
+      gradientColors = [
+        Colors.white,
+        const Color(0xFFF3E8FF),
+      ];
+      borderColor = const Color(0xFFDDD6FE);
+      numberColor = const Color(0xFF0F172A);
+      priceTextColor = const Color(0xFF7C3AED);
+      pricePillColor = const Color(0xFF7C3AED).withValues(alpha: 0.12);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.95),
+          blurRadius: 0,
+          offset: const Offset(0, -1),
+        ),
+      ];
+    } else {
+      // High Bulk 37 to 40: Soft Coral / Rose Glaze
+      gradientColors = [
+        Colors.white,
+        const Color(0xFFFFE4E6),
+      ];
+      borderColor = const Color(0xFFFECDD3);
+      numberColor = const Color(0xFF0F172A);
+      priceTextColor = const Color(0xFFE11D48);
+      pricePillColor = const Color(0xFFE11D48).withValues(alpha: 0.12);
+      shadows = [
+        BoxShadow(
+          color: const Color(0xFFE11D48).withValues(alpha: 0.08),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.95),
+          blurRadius: 0,
+          offset: const Offset(0, -1),
+        ),
+      ];
+    }
+
+    return AnimatedBuilder(
+      animation: _scale,
+      builder: (context, child) => Transform.scale(
+        scale: _scale.value,
+        child: child,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(15),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTapDown: (_) {
+            _controller.forward();
+            HapticFeedback.lightImpact();
+          },
+          onTapUp: (_) {
+            _controller.reverse();
+          },
+          onTapCancel: () {
+            _controller.reverse();
+          },
+          onTap: widget.onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: gradientColors,
+              ),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: isSelected ? const Color(0xFF0F766E) : borderColor,
+                width: isSelected ? 2.2 : 1.2,
+              ),
+              boxShadow: shadows,
+            ),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: Stack(
+            children: [
+              if (setBadgeText != null)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeBgColor ?? Colors.amber,
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      setBadgeText,
+                      style: const TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$count',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: numberColor,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: pricePillColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '₹${widget.calc.totalAmount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: priceTextColor,
+                          height: 1.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
 }
