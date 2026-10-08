@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class LiquidGlassColors {
   // Light Mode Backgrounds
-  static const Color background = Color(0xFFF8FAFC); // Slate 50
+  static const Color background = Color(0xFFE2E8F0); // Slate 200 cool grey
   static const Color surfaceLight = Color(0xFFFFFFFF); // Pure white
   static const Color surfaceElevated = Color(0xFFF1F5F9); // Slate 100
   static const Color surfaceCard = Color(0xFFF8FAFC);

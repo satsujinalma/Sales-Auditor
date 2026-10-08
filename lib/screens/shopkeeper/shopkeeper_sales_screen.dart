@@ -276,54 +276,59 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.insights_outlined,
-                                    size: 16,
-                                    color: LiquidGlassColors.accentEmerald,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'AUDIT BENCHMARK MONITOR',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
-                                      color: LiquidGlassColors.textPrimary,
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.insights_outlined,
+                                      size: 16,
+                                      color: LiquidGlassColors.accentEmerald,
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: summary.averagePricePerTicket >= 48.0
-                                          ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.20)
-                                          : LiquidGlassColors.accentAmber.withValues(alpha: 0.20),
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(
-                                        color: summary.averagePricePerTicket >= 48.0
-                                            ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.40)
-                                            : LiquidGlassColors.accentAmber.withValues(alpha: 0.40),
+                                    const SizedBox(width: 8),
+                                    const Flexible(
+                                      child: Text(
+                                        'AUDIT MONITOR',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.5,
+                                          color: LiquidGlassColors.textPrimary,
+                                        ),
                                       ),
                                     ),
-                                    child: Text(
-                                      summary.totalTicketsSold > 0
-                                          ? 'Avg: ₹${summary.averagePricePerTicket.toStringAsFixed(2)}'
-                                          : 'Awaiting sales',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
                                         color: summary.averagePricePerTicket >= 48.0
-                                            ? LiquidGlassColors.accentEmerald
-                                            : LiquidGlassColors.accentAmber,
+                                            ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.20)
+                                            : LiquidGlassColors.accentAmber.withValues(alpha: 0.20),
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: summary.averagePricePerTicket >= 48.0
+                                              ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.40)
+                                              : LiquidGlassColors.accentAmber.withValues(alpha: 0.40),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        summary.totalTicketsSold > 0
+                                            ? 'Avg: ₹${summary.averagePricePerTicket.toStringAsFixed(2)}'
+                                            : 'Awaiting sales',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: summary.averagePricePerTicket >= 48.0
+                                              ? LiquidGlassColors.accentEmerald
+                                              : LiquidGlassColors.accentAmber,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                               Icon(
                                 _showAuditAnalysis
@@ -406,48 +411,54 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 2.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isStaged
-                          ? LiquidGlassColors.accentEmerald
-                          : LiquidGlassColors.glassFillLight,
-                      borderRadius: BorderRadius.circular(6),
-                      border: isStaged
-                          ? null
-                          : Border.all(color: LiquidGlassColors.glassBorderLight),
-                    ),
-                    child: Text(
-                      isStaged ? 'CURRENT CUSTOMER' : 'NEW CUSTOMER',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: isStaged ? Colors.white : LiquidGlassColors.textSecondary,
-                        letterSpacing: 0.5,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isStaged
+                            ? LiquidGlassColors.accentEmerald
+                            : LiquidGlassColors.glassFillLight,
+                        borderRadius: BorderRadius.circular(6),
+                        border: isStaged
+                            ? null
+                            : Border.all(color: LiquidGlassColors.glassBorderLight),
+                      ),
+                      child: Text(
+                        isStaged ? 'CURRENT CUSTOMER' : 'NEW CUSTOMER',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          color: isStaged ? Colors.white : LiquidGlassColors.textSecondary,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isStaged
-                        ? 'Customer Order Preview'
-                        : 'Select ticket quantity below',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isStaged
-                          ? LiquidGlassColors.accentEmerald
-                          : LiquidGlassColors.textSecondary,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        isStaged
+                            ? 'Order Preview'
+                            : 'Select ticket quantity below',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isStaged
+                              ? LiquidGlassColors.accentEmerald
+                              : LiquidGlassColors.textSecondary,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              if (isStaged)
+              if (isStaged) ...[
+                const SizedBox(width: 8),
                 InkWell(
                   onTap: () => setState(() => _stagedTickets = null),
                   borderRadius: BorderRadius.circular(8),
@@ -474,6 +485,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     ),
                   ),
                 ),
+              ],
             ],
           ),
 

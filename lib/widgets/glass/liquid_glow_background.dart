@@ -15,23 +15,22 @@ class LiquidGlowBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Soft pastel ambient tones with high diffusion and gentle falloff
-    final topGlow = secondaryGlow ?? const Color(0xFFDDD6FE); // Soft Lilac/Lavender mist
-    final midGlow = primaryGlow ?? const Color(0xFF99F6E4); // Soft Aquamarine/Seafoam mist
-    const bottomGlow = Color(0xFFBAE6FD); // Soft Ice Sky mist
+    // Cohesive slate / titanium ambient tones with high diffusion and gentle falloff
+    final topGlow = secondaryGlow ?? const Color(0xFFCBD5E1); // Soft Titanium Slate mist
+    final midGlow = primaryGlow ?? Colors.white; // Soft Specular White ambient glow
+    const bottomGlow = Color(0xFFD5DBE2); // Neutral Cool Grey mist
 
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFF1F5F9), // Soft Slate 100
-            Color(0xFFE8EEF5), // Arctic Pearl
-            Color(0xFFEDE9FE), // Soft Lavender haze
-            Color(0xFFE0F2FE), // Soft Ice Azure haze
+            Color(0xFFEAEEF3), // Clean cool grey
+            Color(0xFFE2E8F0), // Modern slate grey
+            Color(0xFFDCE2EA), // Balanced neutral grey base
           ],
-          stops: [0.0, 0.35, 0.70, 1.0],
+          stops: [0.0, 0.50, 1.0],
         ),
       ),
       child: Stack(
@@ -41,7 +40,7 @@ class LiquidGlowBackground extends StatelessWidget {
             child: RepaintBoundary(
               child: Stack(
                 children: [
-                  // Ambient Diffuse Field 1 (Top Right - Soft Lavender / Iris)
+                  // Ambient Diffuse Field 1 (Top Right - Soft Titanium Slate)
                   Positioned(
                     top: -100,
                     right: -80,
@@ -52,7 +51,7 @@ class LiquidGlowBackground extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            topGlow.withValues(alpha: 0.35),
+                            topGlow.withValues(alpha: 0.40),
                             topGlow.withValues(alpha: 0.12),
                             Colors.transparent,
                           ],
@@ -62,7 +61,7 @@ class LiquidGlowBackground extends StatelessWidget {
                     ),
                   ),
 
-                  // Ambient Diffuse Field 2 (Middle Left - Soft Aquamarine / Seafoam)
+                  // Ambient Diffuse Field 2 (Middle Left - Specular White Highlight)
                   Positioned(
                     top: 240,
                     left: -100,
@@ -73,8 +72,8 @@ class LiquidGlowBackground extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            midGlow.withValues(alpha: 0.30),
-                            midGlow.withValues(alpha: 0.10),
+                            midGlow.withValues(alpha: 0.50),
+                            midGlow.withValues(alpha: 0.15),
                             Colors.transparent,
                           ],
                           stops: const [0.0, 0.50, 1.0],
@@ -83,7 +82,7 @@ class LiquidGlowBackground extends StatelessWidget {
                     ),
                   ),
 
-                  // Ambient Diffuse Field 3 (Bottom Center-Right - Soft Ice Azure)
+                  // Ambient Diffuse Field 3 (Bottom Center-Right - Neutral Cool Grey)
                   Positioned(
                     bottom: -100,
                     right: -60,
@@ -94,7 +93,7 @@ class LiquidGlowBackground extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            bottomGlow.withValues(alpha: 0.35),
+                            bottomGlow.withValues(alpha: 0.40),
                             bottomGlow.withValues(alpha: 0.10),
                             Colors.transparent,
                           ],
