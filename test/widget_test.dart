@@ -61,14 +61,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Verify initial Shopkeeper UI components
-    expect(find.text('BOX 1'), findsOneWidget);
-    expect(find.text('BOX 2'), findsOneWidget);
-    expect(find.text('BOX 3'), findsOneWidget);
+    // Verify initial Shopkeeper UI components (Non-admin counter user)
+    expect(find.text('TOTAL TICKETS'), findsOneWidget);
+    expect(find.text('TOTAL REVENUE'), findsOneWidget);
     expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
+    // Box 1 (Latest Sale) and Audit Monitor must be hidden from regular shopkeeper users
+    expect(find.text('BOX 1'), findsNothing);
+    expect(find.text('AUDIT MONITOR'), findsNothing);
 
     // Initial state
-    expect(find.text('No sales yet'), findsOneWidget);
+    expect(find.text('0'), findsWidgets);
 
     // Tap button '1' (1 ticket @ ₹50 staged)
     final btn1 = find.widgetWithText(InkWell, '1').first;
@@ -83,7 +85,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Verify Box 2 updated to 1 ticket
+    // Verify counter updated to 1 ticket
     expect(find.text('1'), findsWidgets);
     expect(find.text('₹50'), findsWidgets);
 
@@ -102,14 +104,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Total tickets should now be 1 + 12 = 13 tickets
+    // Total tickets should now be 1 + 12 = 13 tickets, total collection ₹620
     expect(find.text('13'), findsWidgets);
     expect(find.text('₹620'), findsWidgets);
-    expect(find.text('₹47.69'), findsWidgets);
 
-    // Test Undo functionality
-    final undoBtn = find.widgetWithText(ElevatedButton, 'Undo');
+    // Test Undo functionality (Undo Last Entry button)
+    final undoBtn = find.text('Undo Last Entry');
     if (undoBtn.evaluate().isNotEmpty) {
+      await tester.ensureVisible(undoBtn);
       await tester.tap(undoBtn);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -146,8 +148,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    // Verify Admin Screen elements
+    // Verify Admin Screen elements (Admin sees BOX 1 and Live Audit Mode)
     expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);
     expect(find.text('LIVE MIRRORED UI'), findsOneWidget);
+    expect(find.text('BOX 1'), findsOneWidget);
+    expect(find.text('SALES & PROFIT AUDIT'), findsOneWidget);
   });
 }

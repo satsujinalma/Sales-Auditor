@@ -7,11 +7,13 @@ import 'glass/liquid_glass_container.dart';
 class ThreeOutputBoxesWidget extends StatelessWidget {
   final DailySalesSummary summary;
   final bool isReadOnlyMirror;
+  final bool isAdmin;
 
   const ThreeOutputBoxesWidget({
     super.key,
     required this.summary,
     this.isReadOnlyMirror = false,
+    this.isAdmin = true,
   });
 
   @override
@@ -32,6 +34,97 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
     final totalTickets = summary.totalTicketsSold;
     final totalRev = summary.totalRevenue;
     final avgPrice = summary.averagePricePerTicket;
+
+    if (!isAdmin) {
+      // NON-ADMIN / COUNTER USER VIEW:
+      // Symmetrical 2-card layout (Total Tickets & Total Collection)
+      // Completely hides Box 1 (Latest Sale) and Live Average Price / Profit Audit
+      return Row(
+        children: [
+          // CARD 1: TOTAL TICKETS
+          Expanded(
+            child: _buildGlassBox(
+              badgeText: 'TICKETS',
+              title: 'TOTAL TICKETS',
+              icon: Icons.confirmation_number_outlined,
+              badgeColor: LiquidGlassColors.accentEmerald,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '$totalTickets',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: LiquidGlassColors.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const Text(
+                        'tickets',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: LiquidGlassColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Sets: ${(totalTickets / 12).toStringAsFixed(1)} (12s)',
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: LiquidGlassColors.accentEmerald,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // CARD 2: TOTAL REVENUE
+          Expanded(
+            child: _buildGlassBox(
+              badgeText: 'COLLECTION',
+              title: 'TOTAL REVENUE',
+              icon: Icons.account_balance_wallet_outlined,
+              badgeColor: LiquidGlassColors.accentTeal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    currencyFormat.format(totalRev),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: LiquidGlassColors.textPrimary,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Daily Collection',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      color: LiquidGlassColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -32,6 +32,8 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final isAdmin = authProvider.currentUser?.role == UserRole.admin;
     final salesProvider = context.watch<SalesProvider>();
     final currentShop = salesProvider.currentShop;
     final summary = salesProvider.todaySummary;
@@ -170,8 +172,11 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. TOP CUMULATIVE & METRICS STRIP (Box 1, Box 2, Box 3)
-                ThreeOutputBoxesWidget(summary: summary),
+                // 1. TOP CUMULATIVE & METRICS STRIP (Box 1, Box 2, Box 3 for Admin; 2-Card Symmetrical for Non-Admin)
+                ThreeOutputBoxesWidget(
+                  summary: summary,
+                  isAdmin: isAdmin,
+                ),
 
                 const SizedBox(height: 12),
 
@@ -256,110 +261,145 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                 // 4. ONE-TAP KEYPAD GRID (1 to 30/36/40)
                 _buildOneTapGrid(context, salesProvider, pricing),
 
+                // 5. AUDIT BENCHMARK MONITOR (Visible only to Admin)
+                if (isAdmin) ...[
+                  const SizedBox(height: 14),
+                  LiquidGlassContainer(
+                    borderRadius: 16,
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () =>
+                              setState(() => _showAuditAnalysis = !_showAuditAnalysis),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 11,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.insights_outlined,
+                                        size: 16,
+                                        color: LiquidGlassColors.accentEmerald,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Flexible(
+                                        child: Text(
+                                          'AUDIT MONITOR',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.5,
+                                            color: LiquidGlassColors.textPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: summary.averagePricePerTicket >= 48.0
+                                              ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.20)
+                                              : LiquidGlassColors.accentAmber.withValues(alpha: 0.20),
+                                          borderRadius: BorderRadius.circular(5),
+                                          border: Border.all(
+                                            color: summary.averagePricePerTicket >= 48.0
+                                                ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.40)
+                                                : LiquidGlassColors.accentAmber.withValues(alpha: 0.40),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          summary.totalTicketsSold > 0
+                                              ? 'Avg: ₹${summary.averagePricePerTicket.toStringAsFixed(2)}'
+                                              : 'Awaiting sales',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            color: summary.averagePricePerTicket >= 48.0
+                                                ? LiquidGlassColors.accentEmerald
+                                                : LiquidGlassColors.accentAmber,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  _showAuditAnalysis
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: LiquidGlassColors.textMuted,
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_showAuditAnalysis)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                            child: AuditComparisonCard(
+                              summary: summary,
+                              pricingConfig: pricing,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 14),
 
-                // 5. AUDIT BENCHMARK MONITOR (Collapsible)
-                LiquidGlassContainer(
-                  borderRadius: 16,
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () =>
-                            setState(() => _showAuditAnalysis = !_showAuditAnalysis),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 11,
+                // 6. LIVE RECENT TRANSACTIONS LOG (Full log for Admin, simple Undo button for Counter User)
+                if (isAdmin)
+                  RecentTransactionsList(
+                    transactions: summary.transactions,
+                    onUndo: () => _handleUndo(salesProvider),
+                  )
+                else if (summary.transactions.any((t) => !t.isCancelled))
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: InkWell(
+                      onTap: () => _handleUndo(salesProvider),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: LiquidGlassColors.glassFillMedium,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: LiquidGlassColors.accentRose.withValues(alpha: 0.35),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.insights_outlined,
-                                      size: 16,
-                                      color: LiquidGlassColors.accentEmerald,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Flexible(
-                                      child: Text(
-                                        'AUDIT MONITOR',
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 0.5,
-                                          color: LiquidGlassColors.textPrimary,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 7,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: summary.averagePricePerTicket >= 48.0
-                                            ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.20)
-                                            : LiquidGlassColors.accentAmber.withValues(alpha: 0.20),
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(
-                                          color: summary.averagePricePerTicket >= 48.0
-                                              ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.40)
-                                              : LiquidGlassColors.accentAmber.withValues(alpha: 0.40),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        summary.totalTicketsSold > 0
-                                            ? 'Avg: ₹${summary.averagePricePerTicket.toStringAsFixed(2)}'
-                                            : 'Awaiting sales',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                          color: summary.averagePricePerTicket >= 48.0
-                                              ? LiquidGlassColors.accentEmerald
-                                              : LiquidGlassColors.accentAmber,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.undo, size: 14, color: LiquidGlassColors.accentRose),
+                            SizedBox(width: 5),
+                            Text(
+                              'Undo Last Entry',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: LiquidGlassColors.accentRose,
                               ),
-                              Icon(
-                                _showAuditAnalysis
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: LiquidGlassColors.textMuted,
-                                size: 18,
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      if (_showAuditAnalysis)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-                          child: AuditComparisonCard(
-                            summary: summary,
-                            pricingConfig: pricing,
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 14),
-
-                // 6. LIVE RECENT TRANSACTIONS LOG
-                RecentTransactionsList(
-                  transactions: summary.transactions,
-                  onUndo: () => _handleUndo(salesProvider),
-                ),
 
                 const SizedBox(height: 24),
               ],
