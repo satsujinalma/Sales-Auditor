@@ -98,10 +98,10 @@ class RecentTransactionsList extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: activeTransactions.length > 8 ? 8 : activeTransactions.length,
-            separatorBuilder: (context, index) => Divider(
+            separatorBuilder: (context, index) => const Divider(
               height: 1,
               thickness: 0.8,
-              color: LiquidGlassColors.glassBorderSubtle,
+              color: LiquidGlassColors.glassBorderLight,
             ),
             itemBuilder: (context, index) {
               final tx = activeTransactions[index];

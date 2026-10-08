@@ -603,26 +603,34 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             Color bgColor;
             Color borderColor;
             Color textColor;
+            Color priceColor;
             String? setBadgeText;
+            Color badgeBgColor = LiquidGlassColors.accentEmerald;
 
             if (isSelected) {
-              bgColor = LiquidGlassColors.accentEmerald.withValues(alpha: 0.28);
+              bgColor = LiquidGlassColors.accentEmerald;
               borderColor = LiquidGlassColors.accentEmerald;
               textColor = Colors.white;
+              priceColor = Colors.white.withValues(alpha: 0.95);
             } else if (isFullSet) {
-              bgColor = const Color(0xFF0F766E).withValues(alpha: 0.45);
-              borderColor = LiquidGlassColors.accentTeal.withValues(alpha: 0.6);
-              textColor = Colors.white;
+              bgColor = const Color(0xFFF0FDF4);
+              borderColor = LiquidGlassColors.accentEmeraldBright;
+              textColor = LiquidGlassColors.accentEmerald;
+              priceColor = LiquidGlassColors.accentEmerald;
               setBadgeText = '1 SET';
+              badgeBgColor = LiquidGlassColors.accentEmerald;
             } else if (isMultiSet) {
-              bgColor = const Color(0xFF1E1B4B).withValues(alpha: 0.65);
-              borderColor = LiquidGlassColors.accentViolet.withValues(alpha: 0.6);
-              textColor = Colors.white;
+              bgColor = const Color(0xFFFAF5FF);
+              borderColor = LiquidGlassColors.accentViolet;
+              textColor = LiquidGlassColors.accentViolet;
+              priceColor = LiquidGlassColors.accentViolet;
               setBadgeText = '${ticketCount ~/ 12} SETS';
+              badgeBgColor = LiquidGlassColors.accentViolet;
             } else {
-              bgColor = LiquidGlassColors.glassFillLight;
+              bgColor = Colors.white.withValues(alpha: 0.88);
               borderColor = LiquidGlassColors.glassBorderLight;
               textColor = LiquidGlassColors.textPrimary;
+              priceColor = LiquidGlassColors.accentEmerald;
             }
 
             return SizedBox(
@@ -647,12 +655,18 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.4),
+                              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.35),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
                           ]
-                        : null,
+                        : [
+                            BoxShadow(
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
                   child: Stack(
@@ -667,17 +681,17 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                               vertical: 1,
                             ),
                             decoration: BoxDecoration(
-                              color: isFullSet
-                                  ? LiquidGlassColors.accentTeal
-                                  : LiquidGlassColors.accentViolet,
+                              color: isSelected ? Colors.white : badgeBgColor,
                               borderRadius: BorderRadius.circular(3),
                             ),
                             child: Text(
                               setBadgeText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 7.5,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.black,
+                                color: isSelected
+                                    ? LiquidGlassColors.accentEmerald
+                                    : Colors.white,
                               ),
                             ),
                           ),
@@ -701,9 +715,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                               style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: isFullSet || isMultiSet
-                                    ? Colors.white.withValues(alpha: 0.9)
-                                    : LiquidGlassColors.accentEmerald,
+                                color: priceColor,
                                 height: 1.0,
                               ),
                             ),
@@ -797,7 +809,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
   void _showShopPicker(BuildContext context, SalesProvider provider) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: LiquidGlassColors.surfaceDark,
+      backgroundColor: LiquidGlassColors.surfaceLight,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -908,7 +920,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: LiquidGlassColors.surfaceDark,
+              backgroundColor: LiquidGlassColors.surfaceLight,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
                 side: BorderSide(color: LiquidGlassColors.glassBorderLight),

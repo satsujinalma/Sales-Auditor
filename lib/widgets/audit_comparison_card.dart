@@ -137,7 +137,7 @@ class AuditComparisonCard extends StatelessWidget {
                     : '₹0.00',
                 color: avgPrice >= targetMin
                     ? LiquidGlassColors.accentEmerald
-                    : const Color(0xFF60A5FA),
+                    : LiquidGlassColors.accentCyan,
                 isHighlight: true,
               ),
               const SizedBox(width: 8),
@@ -227,13 +227,13 @@ class AuditComparisonCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
         decoration: BoxDecoration(
           color: isHighlight
-              ? color.withValues(alpha: 0.16)
-              : Colors.white.withValues(alpha: 0.05),
+              ? color.withValues(alpha: 0.12)
+              : LiquidGlassColors.surfaceElevated,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isHighlight
-                ? color.withValues(alpha: 0.50)
-                : LiquidGlassColors.glassBorderSubtle,
+                ? color.withValues(alpha: 0.40)
+                : LiquidGlassColors.glassBorderLight,
             width: isHighlight ? 1.5 : 1,
           ),
         ),
@@ -244,7 +244,7 @@ class AuditComparisonCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
-                color: LiquidGlassColors.textMuted,
+                color: LiquidGlassColors.textSecondary,
               ),
             ),
             const SizedBox(height: 3),

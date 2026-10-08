@@ -158,12 +158,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? LiquidGlassColors.accentViolet.withValues(alpha: 0.35)
+              ? LiquidGlassColors.accentViolet
               : Colors.transparent,
           borderRadius: BorderRadius.circular(9),
-          border: isSelected
-              ? Border.all(
-                  color: LiquidGlassColors.accentViolet.withValues(alpha: 0.6),
+          boxShadow: isSelected
+              ? LiquidGlassTheme.neonGlow(
+                  color: LiquidGlassColors.accentViolet,
+                  intensity: 0.25,
                 )
               : null,
         ),
@@ -173,7 +174,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Icon(
               icon,
               size: 14,
-              color: isSelected ? Colors.white : LiquidGlassColors.textMuted,
+              color: isSelected ? Colors.white : LiquidGlassColors.textSecondary,
             ),
             const SizedBox(width: 6),
             Text(
@@ -182,7 +183,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 fontSize: 10.5,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                 letterSpacing: 0.4,
-                color: isSelected ? Colors.white : LiquidGlassColors.textMuted,
+                color: isSelected ? Colors.white : LiquidGlassColors.textSecondary,
               ),
             ),
           ],
@@ -247,7 +248,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       isExpanded: true,
-                      dropdownColor: LiquidGlassColors.surfaceDark,
+                      dropdownColor: LiquidGlassColors.surfaceLight,
                       value: adminProvider.selectedShopId,
                       icon: const Icon(
                         Icons.keyboard_arrow_down,
@@ -711,7 +712,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           return StatefulBuilder(
             builder: (ctx, setDialogState) {
               return AlertDialog(
-                backgroundColor: LiquidGlassColors.surfaceDark,
+                backgroundColor: LiquidGlassColors.surfaceLight,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
                   side: BorderSide(color: LiquidGlassColors.glassBorderLight),

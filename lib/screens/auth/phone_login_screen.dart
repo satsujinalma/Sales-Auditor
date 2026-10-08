@@ -136,12 +136,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
                                 color: _selectedTab == 0
-                                    ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.3)
+                                    ? LiquidGlassColors.accentEmerald
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(10),
-                                border: _selectedTab == 0
-                                    ? Border.all(
-                                        color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.6),
+                                boxShadow: _selectedTab == 0
+                                    ? LiquidGlassTheme.neonGlow(
+                                        color: LiquidGlassColors.accentEmerald,
+                                        intensity: 0.25,
                                       )
                                     : null,
                               ),
@@ -153,7 +154,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                     size: 16,
                                     color: _selectedTab == 0
                                         ? Colors.white
-                                        : LiquidGlassColors.textMuted,
+                                        : LiquidGlassColors.textSecondary,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
@@ -161,11 +162,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: _selectedTab == 0
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
                                       color: _selectedTab == 0
                                           ? Colors.white
-                                          : LiquidGlassColors.textMuted,
+                                          : LiquidGlassColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -185,12 +186,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
                                 color: _selectedTab == 1
-                                    ? LiquidGlassColors.accentViolet.withValues(alpha: 0.3)
+                                    ? LiquidGlassColors.accentViolet
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(10),
-                                border: _selectedTab == 1
-                                    ? Border.all(
-                                        color: LiquidGlassColors.accentViolet.withValues(alpha: 0.6),
+                                boxShadow: _selectedTab == 1
+                                    ? LiquidGlassTheme.neonGlow(
+                                        color: LiquidGlassColors.accentViolet,
+                                        intensity: 0.25,
                                       )
                                     : null,
                               ),
@@ -202,7 +204,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                     size: 16,
                                     color: _selectedTab == 1
                                         ? Colors.white
-                                        : LiquidGlassColors.textMuted,
+                                        : LiquidGlassColors.textSecondary,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
@@ -210,11 +212,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: _selectedTab == 1
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
                                       color: _selectedTab == 1
                                           ? Colors.white
-                                          : LiquidGlassColors.textMuted,
+                                          : LiquidGlassColors.textSecondary,
                                     ),
                                   ),
                                 ],

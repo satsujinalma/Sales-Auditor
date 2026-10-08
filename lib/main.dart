@@ -41,9 +41,8 @@ class KeralaLotteryAuditorApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sales Audit - Kerala Lottery',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.dark,
-      darkTheme: LiquidGlassTheme.darkTheme,
-      theme: LiquidGlassTheme.darkTheme,
+      themeMode: ThemeMode.light,
+      theme: LiquidGlassTheme.lightTheme,
       home: const AuthWrapper(),
     );
   }

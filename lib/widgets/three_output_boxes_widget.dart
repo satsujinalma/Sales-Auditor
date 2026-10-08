@@ -66,10 +66,10 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                               vertical: 2.5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF3B82F6).withValues(alpha: 0.18),
+                              color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                                color: const Color(0xFF3B82F6).withValues(alpha: 0.30),
                               ),
                             ),
                             child: Text(
@@ -79,7 +79,7 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF60A5FA),
+                                color: Color(0xFF1D4ED8),
                               ),
                             ),
                           ),
@@ -168,10 +168,10 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: LiquidGlassColors.accentTeal.withValues(alpha: 0.22),
+                          color: LiquidGlassColors.accentTeal.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(5),
                           border: Border.all(
-                            color: LiquidGlassColors.accentTeal.withValues(alpha: 0.40),
+                            color: LiquidGlassColors.accentTeal.withValues(alpha: 0.30),
                           ),
                         ),
                         child: const Text(
@@ -179,7 +179,7 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF22D3EE),
+                            color: LiquidGlassColors.accentTeal,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -237,7 +237,7 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                   Container(
                     height: 36,
                     width: 1,
-                    color: LiquidGlassColors.glassBorderSubtle,
+                    color: LiquidGlassColors.glassBorderLight,
                   ),
                   const SizedBox(width: 14),
                   // Live Average Price per ticket
@@ -266,9 +266,9 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
                                 color: avgPrice >= 48.0
-                                    ? const Color(0xFF34D399)
+                                    ? LiquidGlassColors.accentEmerald
                                     : (avgPrice > 0
-                                        ? const Color(0xFFFBBF24)
+                                        ? LiquidGlassColors.accentAmber
                                         : LiquidGlassColors.textMuted),
                                 letterSpacing: -0.4,
                               ),

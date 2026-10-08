@@ -5,6 +5,10 @@ import '../../models/pricing_config.dart';
 import '../../models/shop_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sales_provider.dart';
+import '../../theme/liquid_glass_theme.dart';
+import '../../widgets/glass/liquid_glass_button.dart';
+import '../../widgets/glass/liquid_glass_container.dart';
+import '../../widgets/glass/liquid_glow_background.dart';
 
 class ProfileOnboardingScreen extends StatefulWidget {
   const ProfileOnboardingScreen({super.key});
@@ -43,288 +47,293 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
     final currentUser = authProvider.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: LiquidGlassColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F766E),
-        elevation: 2,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text(
           'Store & Profile Setup',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
-            color: Colors.white,
+            color: LiquidGlassColors.textPrimary,
           ),
         ),
         actions: [
           IconButton(
             tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout, color: Colors.white70),
+            icon: const Icon(Icons.logout, color: LiquidGlassColors.textMuted, size: 20),
             onPressed: () => authProvider.signOut(),
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Welcome Banner
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+      body: LiquidGlowBackground(
+        primaryGlow: LiquidGlassColors.accentEmerald,
+        secondaryGlow: LiquidGlassColors.accentViolet,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Welcome Banner
+                  LiquidGlassContainer(
+                    borderRadius: 18,
+                    padding: const EdgeInsets.all(16),
+                    fillColor: LiquidGlassColors.accentEmerald.withValues(alpha: 0.12),
+                    border: Border.all(
+                      color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.35),
                     ),
-                    borderRadius: BorderRadius.circular(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: LiquidGlassColors.accentEmerald,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.storefront,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'FIRST TIME SHOP SETUP',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                  color: LiquidGlassColors.accentEmerald,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                currentUser?.phoneNumber ?? 'Mobile Verified',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: LiquidGlassColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Configure your store profile to begin live sales tracking.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: LiquidGlassColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F766E).withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.storefront,
-                          color: Color(0xFF4ADE80),
-                          size: 26,
-                        ),
+
+                  const SizedBox(height: 18),
+
+                  // 1. PERSONAL DETAILS
+                  _buildSectionHeader('1. SHOPKEEPER DETAILS', Icons.person_outline),
+                  LiquidGlassContainer(
+                    borderRadius: 16,
+                    padding: const EdgeInsets.all(14),
+                    child: TextFormField(
+                      controller: _nameController,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: LiquidGlassColors.textPrimary,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      decoration: _buildInputDeco(
+                        label: 'Shopkeeper Name',
+                        hint: 'Enter your name',
+                        icon: Icons.person_outline,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // 2. STORE DETAILS
+                  _buildSectionHeader('2. STORE DETAILS', Icons.storefront_outlined),
+                  LiquidGlassContainer(
+                    borderRadius: 16,
+                    padding: const EdgeInsets.all(14),
+                    child: TextFormField(
+                      controller: _shopNameController,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: LiquidGlassColors.textPrimary,
+                      ),
+                      decoration: _buildInputDeco(
+                        label: 'Shop Name',
+                        hint: 'e.g. Nayarambalam Counter',
+                        icon: Icons.storefront_outlined,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter shop name';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // 3. PRICING CONFIGURATION FOR THIS SHOP
+                  _buildSectionHeader(
+                    '3. SHOP PRICING STRUCTURE (KERALA LOTTERY)',
+                    Icons.currency_rupee,
+                  ),
+                  LiquidGlassContainer(
+                    borderRadius: 16,
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Configure the base rate and 1-Set (12 tickets) discount for this shop:',
+                          style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
                           children: [
-                            const Text(
-                              'FIRST TIME SHOP SETUP',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.8,
-                                color: Colors.amber,
+                            Expanded(
+                              child: TextFormField(
+                                controller: _singleTicketPriceController,
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: LiquidGlassColors.textPrimary,
+                                ),
+                                decoration: _buildInputDeco(
+                                  label: '1 Ticket MRP (₹)',
+                                  hint: '50',
+                                  prefixText: '₹ ',
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              currentUser?.phoneNumber ?? 'Mobile Verified',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            const Text(
-                              'Configure your store profile to begin live sales tracking.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.white70,
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _setPriceController,
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: LiquidGlassColors.textPrimary,
+                                ),
+                                decoration: _buildInputDeco(
+                                  label: '1 Set (12 Tkts) (₹)',
+                                  hint: '570',
+                                  prefixText: '₹ ',
+                                  helper: 'Discounted set rate',
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 1. PERSONAL DETAILS
-                _buildSectionHeader('1. SHOPKEEPER DETAILS', Icons.person),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Shopkeeper Name',
-                          hintText: 'Enter your name',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person_outline),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your name';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 2. STORE DETAILS
-                _buildSectionHeader(
-                  '2. STORE DETAILS',
-                  Icons.store,
-                ),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _shopNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Shop Name',
-                          hintText: 'Enter shop name',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.storefront_outlined),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter shop name';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 3. PRICING CONFIGURATION FOR THIS SHOP
-                _buildSectionHeader(
-                  '3. SHOP PRICING STRUCTURE (KERALA LOTTERY)',
-                  Icons.currency_rupee,
-                ),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Configure the base rate and 1-Set (12 tickets) discount for this shop:',
-                        style: TextStyle(fontSize: 12, color: Colors.black54),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _singleTicketPriceController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: '1 Ticket MRP (₹)',
-                                hintText: '50',
-                                border: OutlineInputBorder(),
-                                prefixText: '₹ ',
-                              ),
-                            ),
+                        const SizedBox(height: 14),
+                        const Text(
+                          'Formula for transactions > 12 tickets:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: LiquidGlassColors.textPrimary,
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _setPriceController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: '1 Set (12 Tkts) (₹)',
-                                hintText: '570',
-                                border: OutlineInputBorder(),
-                                prefixText: '₹ ',
-                                helperText: 'Discounted set rate',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Formula for transactions > 12 tickets:',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      _buildFormulaChoice(
-                        formula: BulkPricingFormula.proRata,
-                        title: 'Pro-Rata Set Rate (Recommended)',
-                        description:
-                            'Price = Qty × (Set Price ÷ 12). e.g., 15 tickets @ ₹47.50 = ₹712.50',
-                      ),
-                      const Divider(height: 14),
-                      _buildFormulaChoice(
-                        formula: BulkPricingFormula.setPlusRemainder,
-                        title: 'Bundled Sets + Remainder',
-                        description:
-                            'Price = (Sets × Set Rate) + (Remainder × Single Rate)',
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        _buildFormulaChoice(
+                          formula: BulkPricingFormula.proRata,
+                          title: 'Pro-Rata Set Rate (Recommended)',
+                          description:
+                              'Price = Qty × (Set Price ÷ 12). e.g., 15 tickets @ ₹47.50 = ₹712.50',
+                        ),
+                        const Divider(height: 14, color: LiquidGlassColors.glassBorderLight),
+                        _buildFormulaChoice(
+                          formula: BulkPricingFormula.setPlusRemainder,
+                          title: 'Bundled Sets + Remainder',
+                          description:
+                              'Price = (Sets × Set Rate) + (Remainder × Single Rate)',
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // SUBMIT BUTTON
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F766E),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 2,
-                    ),
-                    icon: authProvider.isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(Icons.check_circle_outline),
-                    label: Text(
-                      authProvider.isLoading
-                          ? 'SAVING SETUP...'
-                          : 'COMPLETE & ENTER SALES TERMINAL',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                  // SUBMIT BUTTON
+                  LiquidGlassButton(
+                    label: 'COMPLETE & ENTER SALES TERMINAL',
+                    icon: Icons.check_circle_outline,
+                    glowColor: LiquidGlassColors.accentEmerald,
+                    isLoading: authProvider.isLoading,
                     onPressed: authProvider.isLoading
                         ? null
                         : () => _handleSubmit(authProvider),
                   ),
-                ),
 
-                const SizedBox(height: 30),
-              ],
+                  const SizedBox(height: 30),
+                ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _buildInputDeco({
+    required String label,
+    required String hint,
+    IconData? icon,
+    String? prefixText,
+    String? helper,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: LiquidGlassColors.textSecondary, fontSize: 12),
+      hintText: hint,
+      hintStyle: const TextStyle(color: LiquidGlassColors.textMuted, fontSize: 12),
+      helperText: helper,
+      helperStyle: const TextStyle(color: LiquidGlassColors.textMuted, fontSize: 10),
+      prefixText: prefixText,
+      prefixStyle: const TextStyle(
+        color: LiquidGlassColors.accentEmerald,
+        fontWeight: FontWeight.bold,
+      ),
+      prefixIcon: icon != null ? Icon(icon, color: LiquidGlassColors.accentEmerald, size: 20) : null,
+      filled: true,
+      fillColor: LiquidGlassColors.glassFillMedium,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: LiquidGlassColors.glassBorderLight),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: LiquidGlassColors.glassBorderLight),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: LiquidGlassColors.accentEmerald, width: 1.5),
       ),
     );
   }
@@ -350,7 +359,9 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF0F766E) : Colors.grey,
+                  color: isSelected
+                      ? LiquidGlassColors.accentEmerald
+                      : LiquidGlassColors.textMuted,
                   width: isSelected ? 5 : 2,
                 ),
               ),
@@ -365,13 +376,17 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
                       fontSize: 12,
                       fontWeight:
                           isSelected ? FontWeight.w800 : FontWeight.w600,
-                      color:
-                          isSelected ? const Color(0xFF0F766E) : Colors.black87,
+                      color: isSelected
+                          ? LiquidGlassColors.accentEmerald
+                          : LiquidGlassColors.textPrimary,
                     ),
                   ),
                   Text(
                     description,
-                    style: const TextStyle(fontSize: 10, color: Colors.black54),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: LiquidGlassColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -387,7 +402,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF0F766E)),
+          Icon(icon, size: 16, color: LiquidGlassColors.accentEmerald),
           const SizedBox(width: 6),
           Text(
             title,
@@ -395,7 +410,7 @@ class _ProfileOnboardingScreenState extends State<ProfileOnboardingScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
-              color: Colors.black54,
+              color: LiquidGlassColors.textSecondary,
             ),
           ),
         ],

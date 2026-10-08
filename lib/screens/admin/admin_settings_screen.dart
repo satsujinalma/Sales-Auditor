@@ -136,7 +136,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        dropdownColor: LiquidGlassColors.surfaceDark,
+                        dropdownColor: LiquidGlassColors.surfaceLight,
                         style: const TextStyle(
                           color: LiquidGlassColors.textPrimary,
                           fontSize: 14,
@@ -562,7 +562,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          backgroundColor: LiquidGlassColors.surfaceDark,
+          backgroundColor: LiquidGlassColors.surfaceLight,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(color: LiquidGlassColors.glassBorderLight),
