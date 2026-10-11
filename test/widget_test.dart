@@ -63,15 +63,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Verify initial Shopkeeper UI components (Non-admin counter user)
-    expect(find.text('TOTAL TICKETS'), findsOneWidget);
-    expect(find.text('TOTAL REVENUE'), findsOneWidget);
+    expect(find.text('TOTAL TICKETS'), findsNothing);
+    expect(find.text('TOTAL REVENUE'), findsNothing);
     expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
     // Box 1 (Latest Sale) and Audit Monitor must be hidden from regular shopkeeper users
     expect(find.text('BOX 1'), findsNothing);
     expect(find.text('AUDIT MONITOR'), findsNothing);
-
-    // Initial state
-    expect(find.text('0'), findsWidgets);
 
     // Tap button '1' (1 ticket @ ₹50 staged)
     final btn1 = find.widgetWithText(InkWell, '1').first;
@@ -106,8 +103,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Total tickets should now be 1 + 12 = 13 tickets, total collection ₹620
-    expect(find.text('13'), findsWidgets);
-    expect(find.text('₹620'), findsWidgets);
+    final summaryAfterSale = await repository.getDailySales(testShop.id, DateTime.now());
+    expect(summaryAfterSale.totalTicketsSold, 13);
+    expect(summaryAfterSale.totalRevenue, 620.0);
 
     // Test Undo functionality (Undo Last Entry button)
     final undoBtn = find.text('Undo Last Entry');
@@ -118,8 +116,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // After undoing last 12 tickets, total should revert to 1 ticket @ ₹50
-      expect(find.text('1'), findsWidgets);
-      expect(find.text('₹50'), findsWidgets);
+      final revertedSummary = await repository.getDailySales(testShop.id, DateTime.now());
+      expect(revertedSummary.totalTicketsSold, 1);
+      expect(revertedSummary.totalRevenue, 50.0);
     }
 
     // Switch to Admin / Head App Mode (prompts for Master Admin credentials)

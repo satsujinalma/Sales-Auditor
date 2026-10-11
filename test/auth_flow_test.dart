@@ -213,8 +213,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Step 5: User is now directly inside the Sales Terminal
-      expect(find.text('TOTAL TICKETS'), findsOneWidget);
-      expect(find.text('TOTAL REVENUE'), findsOneWidget);
+      expect(find.text('TOTAL TICKETS'), findsNothing);
+      expect(find.text('TOTAL REVENUE'), findsNothing);
       expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
       expect(find.text('BOX 1'), findsNothing);
       expect(find.text('AUDIT MONITOR'), findsNothing);

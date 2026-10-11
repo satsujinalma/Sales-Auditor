@@ -182,13 +182,14 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. TOP CUMULATIVE & METRICS STRIP (Box 1, Box 2, Box 3 for Admin; 2-Card Symmetrical for Non-Admin)
-                ThreeOutputBoxesWidget(
-                  summary: summary,
-                  isAdmin: isAdmin,
-                ),
-
-                const SizedBox(height: 12),
+                // 1. TOP CUMULATIVE & METRICS STRIP (Visible only to Admin; completely hidden for counter staff/user)
+                if (isAdmin) ...[
+                  ThreeOutputBoxesWidget(
+                    summary: summary,
+                    isAdmin: true,
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
                 // 2. CURRENT CUSTOMER SALE STAGING BOX
                 _buildCurrentCustomerOrderBox(context, salesProvider, pricing, calc),
@@ -199,25 +200,31 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.touch_app_outlined,
-                          size: 16,
-                          color: LiquidGlassColors.accentEmerald,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          'ONE-TAP SALES ENTRY',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                            color: LiquidGlassColors.textPrimary,
+                    const Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.touch_app_outlined,
+                            size: 16,
+                            color: LiquidGlassColors.accentEmerald,
                           ),
-                        ),
-                      ],
+                          SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'ONE-TAP SALES ENTRY',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                                color: LiquidGlassColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Row(
                       children: [
                         // Grid size toggle (30, 36, 40)
@@ -549,10 +556,13 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
               children: [
                 // Left: Ticket count & Stepper
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.remove_circle_outline),
-                      iconSize: 24,
+                      iconSize: 22,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                       color: LiquidGlassColors.accentEmerald,
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
@@ -561,10 +571,11 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                         }
                       },
                     ),
+                    const SizedBox(width: 4),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 5,
+                        horizontal: 10,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: LiquidGlassColors.glassFillStrong,
@@ -576,15 +587,18 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                       child: Text(
                         '$_stagedTickets Tkts',
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w900,
                           color: LiquidGlassColors.textPrimary,
                         ),
                       ),
                     ),
+                    const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
-                      iconSize: 24,
+                      iconSize: 22,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                       color: LiquidGlassColors.accentEmerald,
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
@@ -594,28 +608,39 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                   ],
                 ),
 
+                const SizedBox(width: 8),
+
                 // Right: Total Bill Amount
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '₹${calc.totalAmount.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: LiquidGlassColors.accentEmerald,
-                        letterSpacing: -0.5,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '₹${calc.totalAmount.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: LiquidGlassColors.accentEmerald,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
                       ),
-                    ),
-                    Text(
-                      '₹${calc.effectiveRatePerTicket.toStringAsFixed(2)} / tkt',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: LiquidGlassColors.textSecondary,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '₹${calc.effectiveRatePerTicket.toStringAsFixed(2)} / tkt',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: LiquidGlassColors.textSecondary,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -632,7 +657,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
           ] else ...[
             // Empty State
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               alignment: Alignment.center,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -643,12 +668,15 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     color: LiquidGlassColors.textMuted.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Tap any number (1–$_maxButtons) to stage customer sale',
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: LiquidGlassColors.textMuted,
+                  Flexible(
+                    child: Text(
+                      'Tap any number (1–$_maxButtons) to stage customer sale',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: LiquidGlassColors.textMuted,
+                      ),
                     ),
                   ),
                 ],
@@ -686,7 +714,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
 
             return SizedBox(
               width: itemWidth,
-              height: 62,
+              height: 64,
               child: _OneTapKeypadButton(
                 ticketCount: ticketCount,
                 isSelected: isSelected,
@@ -1384,33 +1412,40 @@ class _OneTapKeypadButtonState extends State<_OneTapKeypadButton>
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      '$count',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: numberColor,
-                        height: 1.1,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '$count',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: numberColor,
+                          height: 1.1,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
+                        horizontal: 5,
                         vertical: 1.5,
                       ),
                       decoration: BoxDecoration(
                         color: pricePillColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(
-                        '₹${widget.calc.totalAmount.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: priceTextColor,
-                          height: 1.0,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '₹${widget.calc.totalAmount.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            color: priceTextColor,
+                            height: 1.0,
+                          ),
                         ),
                       ),
                     ),

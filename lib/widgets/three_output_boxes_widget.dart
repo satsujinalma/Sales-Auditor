@@ -406,42 +406,48 @@ class ThreeOutputBoxesWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: badgeColor.withValues(alpha: 0.20),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: badgeColor.withValues(alpha: 0.40),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: badgeColor.withValues(alpha: 0.20),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: badgeColor.withValues(alpha: 0.40),
+                        ),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                          color: badgeColor,
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      badgeText,
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: badgeColor,
-                        letterSpacing: 0.4,
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        title,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                          color: LiquidGlassColors.textSecondary,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.3,
-                      color: LiquidGlassColors.textSecondary,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 4),
               Icon(icon, size: 14, color: badgeColor),
             ],
           ),
