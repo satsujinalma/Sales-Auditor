@@ -109,9 +109,15 @@ class AuthProvider extends ChangeNotifier {
         shopName: shopName?.trim(),
       );
       _currentUser = user;
-      _allUsers = await _authRepository.getAllUsers();
       _isLoggingIn = false;
       notifyListeners();
+
+      // Refresh directory in background without holding UI
+      _authRepository.getAllUsers().then((users) {
+        _allUsers = users;
+        notifyListeners();
+      }).catchError((_) {});
+
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');

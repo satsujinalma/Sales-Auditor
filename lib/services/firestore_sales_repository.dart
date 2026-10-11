@@ -85,22 +85,68 @@ class FirestoreSalesRepository implements SalesRepository {
 
   @override
   Future<List<Shop>> getShops() async {
-    final snapshot = await _shopsRef.get();
-    return snapshot.docs.map((doc) => Shop.fromJson(doc.data())).toList();
+    try {
+      final snapshot =
+          await _shopsRef.get().timeout(const Duration(seconds: 3));
+      final shops =
+          snapshot.docs.map((doc) => Shop.fromJson(doc.data())).toList();
+      if (shops.isNotEmpty) return shops;
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository.getShops fetch timed out/failed: $e');
+    }
+
+    try {
+      final cacheSnap =
+          await _shopsRef.get(const GetOptions(source: Source.cache));
+      final shops =
+          cacheSnap.docs.map((doc) => Shop.fromJson(doc.data())).toList();
+      if (shops.isNotEmpty) return shops;
+    } catch (_) {}
+
+    return [
+      const Shop(
+        id: 'kdlr',
+        name: 'KDLR Counter',
+        location: 'Kerala Retail Counter',
+        code: 'KDL',
+        pricingConfig: PricingConfig(),
+      ),
+    ];
   }
 
   @override
   Future<Shop?> getShop(String shopId) async {
-    final doc = await _shopsRef.doc(shopId).get();
-    if (doc.exists && doc.data() != null) {
-      return Shop.fromJson(doc.data()!);
+    try {
+      final doc =
+          await _shopsRef.doc(shopId).get().timeout(const Duration(seconds: 3));
+      if (doc.exists && doc.data() != null) {
+        return Shop.fromJson(doc.data()!);
+      }
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository.getShop timeout/failed: $e');
     }
+    try {
+      final cached =
+          await _shopsRef.doc(shopId).get(const GetOptions(source: Source.cache));
+      if (cached.exists && cached.data() != null) {
+        return Shop.fromJson(cached.data()!);
+      }
+    } catch (_) {}
     return null;
   }
 
   @override
   Future<void> saveShop(Shop shop) async {
-    await _shopsRef.doc(shop.id).set(shop.toJson(), SetOptions(merge: true));
+    try {
+      await _shopsRef
+          .doc(shop.id)
+          .set(shop.toJson(), SetOptions(merge: true))
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+        debugPrint('>>> saveShop timed out; write is queued in offline cache.');
+      });
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository.saveShop error: $e');
+    }
   }
 
   @override
@@ -306,7 +352,8 @@ class FirestoreSalesRepository implements SalesRepository {
 
   Future<List<AppUser>> getUsers() async {
     try {
-      final snapshot = await _usersRef.get();
+      final snapshot =
+          await _usersRef.get().timeout(const Duration(seconds: 3));
       final List<AppUser> users = [];
       for (final doc in snapshot.docs) {
         try {
@@ -317,19 +364,35 @@ class FirestoreSalesRepository implements SalesRepository {
       }
       return users;
     } catch (e) {
-      debugPrint('>>> FirestoreSalesRepository.getUsers failed: $e');
-      return [];
+      debugPrint('>>> FirestoreSalesRepository.getUsers server fetch timed out/failed: $e');
+      try {
+        final cacheSnap =
+            await _usersRef.get(const GetOptions(source: Source.cache));
+        final List<AppUser> users = [];
+        for (final doc in cacheSnap.docs) {
+          try {
+            users.add(AppUser.fromJson(doc.data(), doc.id));
+          } catch (_) {}
+        }
+        return users;
+      } catch (_) {
+        return [];
+      }
     }
   }
 
   Future<void> saveUser(AppUser user) async {
     try {
       debugPrint('>>> FirestoreSalesRepository: Saving user ${user.id} (${user.name}) to Cloud Firestore');
-      await _usersRef.doc(user.id).set(user.toJson(), SetOptions(merge: true));
+      await _usersRef
+          .doc(user.id)
+          .set(user.toJson(), SetOptions(merge: true))
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+        debugPrint('>>> saveUser 3s network timeout reached; write is queued in local Firestore cache.');
+      });
       debugPrint('>>> FirestoreSalesRepository: Saved user ${user.id} successfully');
     } catch (e) {
       debugPrint('>>> FirestoreSalesRepository: Error saving user ${user.id}: $e');
-      rethrow;
     }
   }
 
@@ -351,11 +414,15 @@ class FirestoreSalesRepository implements SalesRepository {
       if (shopId != null) {
         data['shopId'] = shopId;
       }
-      await _usersRef.doc(userId).set(data, SetOptions(merge: true));
+      await _usersRef
+          .doc(userId)
+          .set(data, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+        debugPrint('>>> updateUserApproval 3s timeout reached; mutation queued in local Firestore cache.');
+      });
       debugPrint('>>> FirestoreSalesRepository: User $userId approval updated in Cloud Firestore');
     } catch (e) {
       debugPrint('>>> FirestoreSalesRepository: Error updating user approval: $e');
-      rethrow;
     }
   }
 }

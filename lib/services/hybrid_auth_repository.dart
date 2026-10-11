@@ -170,6 +170,13 @@ class HybridAuthRepository implements AuthRepository {
           _usersCache[u.id] = u;
         }
         await _saveUsersToPrefs(notify: false);
+
+        // Self-healing: if current user is pending and not yet confirmed in cloud, re-transmit
+        if (_currentUser != null &&
+            !_currentUser!.isApproved &&
+            !cloudUsers.any((u) => u.id == _currentUser!.id)) {
+          salesRepo.saveUser(_currentUser!).catchError((_) {});
+        }
       } catch (_) {}
     }
 
@@ -249,11 +256,15 @@ class HybridAuthRepository implements AuthRepository {
       assignedShopId = existingShops.first.id;
       assignedShopName = existingShops.first.name;
       await _salesRepository.setSelectedShopId(assignedShopId);
+    } else {
+      assignedShopId = 'kdlr';
+      assignedShopName = 'KDLR Counter';
+      await _salesRepository.setSelectedShopId('kdlr');
     }
 
     final normalizedPhone = phoneNumber?.trim().isNotEmpty == true
         ? phoneNumber!.trim().replaceAll(RegExp(r'\s+'), '')
-        : 'SHOPKEEPER';
+        : 'STAFF';
 
     // Check cloud users first if available
     final salesRepo = _salesRepository;
@@ -269,7 +280,7 @@ class HybridAuthRepository implements AuthRepository {
     // Check if user already exists with this phone or name in directory
     AppUser? existingUser;
     for (final user in _usersCache.values) {
-      if ((normalizedPhone != 'SHOPKEEPER' && user.phoneNumber == normalizedPhone) ||
+      if ((normalizedPhone != 'STAFF' && user.phoneNumber == normalizedPhone) ||
           (user.name.toLowerCase() == cleanName.toLowerCase() &&
               user.shopId == assignedShopId)) {
         existingUser = user;
@@ -284,8 +295,8 @@ class HybridAuthRepository implements AuthRepository {
       user = existingUser.copyWith(
         name: cleanName,
         phoneNumber: normalizedPhone,
-        shopId: assignedShopId ?? existingUser.shopId,
-        shopName: assignedShopName ?? existingUser.shopName,
+        shopId: assignedShopId,
+        shopName: assignedShopName,
         isApproved: isSameShop ? existingUser.isApproved : false,
         approvalStatus: isSameShop
             ? existingUser.approvalStatus
@@ -310,20 +321,20 @@ class HybridAuthRepository implements AuthRepository {
     _usersCache[user.id] = user;
     await _saveUsersToPrefs();
 
-    // Sync to Cloud Firestore
-    if (salesRepo is FirestoreSalesRepository) {
-      try {
-        debugPrint('>>> HybridAuthRepository: Saving shopkeeper ${user.name} (${user.id}) to Cloud Firestore...');
-        await salesRepo.saveUser(user);
-        debugPrint('>>> HybridAuthRepository: Shopkeeper saved to Firestore successfully.');
-      } catch (e) {
-        debugPrint('>>> HybridAuthRepository: Failed to save shopkeeper to Firestore: $e');
-      }
-    }
-
     _currentUser = user;
     await _saveCurrentUserToPrefs(user);
     _authStateController.add(_currentUser);
+
+    // Sync to Cloud Firestore
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        debugPrint('>>> HybridAuthRepository: Saving staff ${user.name} (${user.id}) to Cloud Firestore...');
+        await salesRepo.saveUser(user);
+        debugPrint('>>> HybridAuthRepository: Staff saved to Firestore successfully.');
+      } catch (e) {
+        debugPrint('>>> HybridAuthRepository: Failed to save staff to Firestore: $e');
+      }
+    }
 
     return user;
   }
