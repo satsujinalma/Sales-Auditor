@@ -171,12 +171,12 @@ void main() {
 
       // Step 1: Verify on Login Screen
       expect(find.text('SALES AUDIT'), findsOneWidget);
-      expect(find.text('Shopkeeper Sign In'), findsOneWidget);
-      expect(find.text('ENTER SALES TERMINAL'), findsOneWidget);
+      expect(find.text('Staff Sign In'), findsOneWidget);
+      expect(find.text('ENTER SALES'), findsOneWidget);
 
-      // Enter Shopkeeper Name & Shop Name
+      // Enter Staff Name & Shop Name
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Shopkeeper Name'),
+        find.widgetWithText(TextFormField, 'Staff Name'),
         'Sandeep Nayarambalam',
       );
       await tester.enterText(
@@ -185,8 +185,8 @@ void main() {
       );
       await tester.pump();
 
-      // Tap ENTER SALES TERMINAL
-      final enterBtn = find.text('ENTER SALES TERMINAL');
+      // Tap ENTER SALES
+      final enterBtn = find.text('ENTER SALES');
       await tester.ensureVisible(enterBtn);
       await tester.tap(enterBtn);
       await tester.pump();
@@ -295,12 +295,12 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // 1. Verify on Login Screen
-      expect(find.text('Shopkeeper Login'), findsOneWidget);
-      expect(find.text('Admin Login'), findsOneWidget);
+      // 1. Verify on Login Screen (Default is Staff Login)
+      expect(find.text('Staff Sign In'), findsOneWidget);
+      expect(find.byKey(const Key('admin_shield_button')), findsOneWidget);
 
-      // 2. Switch to Admin Login tab
-      await tester.tap(find.text('Admin Login'));
+      // 2. Tap Admin Shield button on top right
+      await tester.tap(find.byKey(const Key('admin_shield_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 

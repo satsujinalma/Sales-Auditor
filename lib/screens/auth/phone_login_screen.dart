@@ -14,9 +14,9 @@ class PhoneLoginScreen extends StatefulWidget {
 }
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
-  int _selectedTab = 0; // 0: Shopkeeper, 1: Admin
+  bool _isAdminView = false;
 
-  // Shopkeeper Login controllers
+  // Staff Login controllers
   final _nameController = TextEditingController();
   final _shopNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -46,201 +46,163 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       backgroundColor: LiquidGlassColors.background,
       body: LiquidGlowBackground(
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // App Emblem & Header
-                  Center(
-                    child: Container(
-                      width: 76,
-                      height: 76,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: _selectedTab == 0
-                              ? [
-                                  LiquidGlassColors.accentEmerald,
-                                  LiquidGlassColors.accentTeal,
-                                ]
-                              : [
-                                  LiquidGlassColors.accentViolet,
-                                  LiquidGlassColors.accentIndigo,
-                                ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: LiquidGlassTheme.neonGlow(
-                          color: _selectedTab == 0
-                              ? LiquidGlassColors.accentEmerald
-                              : LiquidGlassColors.accentViolet,
-                        ),
-                      ),
-                      child: Icon(
-                        _selectedTab == 0
-                            ? Icons.confirmation_number_rounded
-                            : Icons.admin_panel_settings_rounded,
-                        color: Colors.white,
-                        size: 38,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  const Text(
-                    'SALES AUDIT',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: LiquidGlassColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Kerala Lottery Real-Time Sales & Audit Tracking',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      color: LiquidGlassColors.textSecondary,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Mode Segmented Switcher
-                  LiquidGlassContainer(
-                    borderRadius: 14,
-                    padding: const EdgeInsets.all(4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (_selectedTab != 0) {
-                                setState(() => _selectedTab = 0);
-                              }
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: _selectedTab == 0
-                                    ? LiquidGlassColors.accentEmerald
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: _selectedTab == 0
-                                    ? LiquidGlassTheme.neonGlow(
-                                        color: LiquidGlassColors.accentEmerald,
-                                        intensity: 0.25,
-                                      )
-                                    : null,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.storefront,
-                                    size: 16,
-                                    color: _selectedTab == 0
-                                        ? Colors.white
-                                        : LiquidGlassColors.textSecondary,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Shopkeeper Login',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: _selectedTab == 0
-                                        ? FontWeight.w800
-                                        : FontWeight.w600,
-                                      color: _selectedTab == 0
-                                          ? Colors.white
-                                          : LiquidGlassColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
+          child: Stack(
+            children: [
+              // Main Scrollable Content
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // App Emblem & Header
+                      Center(
+                        child: Container(
+                          width: 76,
+                          height: 76,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: !_isAdminView
+                                  ? [
+                                      LiquidGlassColors.accentEmerald,
+                                      LiquidGlassColors.accentTeal,
+                                    ]
+                                  : [
+                                      LiquidGlassColors.accentViolet,
+                                      LiquidGlassColors.accentIndigo,
+                                    ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: LiquidGlassTheme.neonGlow(
+                              color: !_isAdminView
+                                  ? LiquidGlassColors.accentEmerald
+                                  : LiquidGlassColors.accentViolet,
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (_selectedTab != 1) {
-                                setState(() => _selectedTab = 1);
-                              }
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: _selectedTab == 1
-                                    ? LiquidGlassColors.accentViolet
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: _selectedTab == 1
-                                    ? LiquidGlassTheme.neonGlow(
-                                        color: LiquidGlassColors.accentViolet,
-                                        intensity: 0.25,
-                                      )
-                                    : null,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.shield_outlined,
-                                    size: 16,
-                                    color: _selectedTab == 1
-                                        ? Colors.white
-                                        : LiquidGlassColors.textSecondary,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Admin Login',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: _selectedTab == 1
-                                        ? FontWeight.w800
-                                        : FontWeight.w600,
-                                      color: _selectedTab == 1
-                                          ? Colors.white
-                                          : LiquidGlassColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          child: Icon(
+                            !_isAdminView
+                                ? Icons.confirmation_number_rounded
+                                : Icons.admin_panel_settings_rounded,
+                            color: Colors.white,
+                            size: 38,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Text(
+                        !_isAdminView ? 'SALES AUDIT' : 'HEAD AUDITOR',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          color: LiquidGlassColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        !_isAdminView
+                            ? 'Kerala Lottery Real-Time Sales & Audit Tracking'
+                            : 'Central Administration & Multi-Counter Monitor',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: LiquidGlassColors.textSecondary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Form Card depending on selected view
+                      if (!_isAdminView)
+                        _buildStaffLoginForm(context, authProvider)
+                      else
+                        _buildAdminCredentialsForm(context, authProvider),
+                    ],
                   ),
-
-                  const SizedBox(height: 18),
-
-                  // Form Card depending on selected tab
-                  if (_selectedTab == 0)
-                    _buildShopkeeperLoginForm(context, authProvider)
-                  else
-                    _buildAdminCredentialsForm(context, authProvider),
-                ],
+                ),
               ),
-            ),
+
+              // Small Admin Shield Symbol on the Top-Right Side
+              Positioned(
+                top: 8,
+                right: 14,
+                child: Tooltip(
+                  message: _isAdminView ? 'Back to Staff Login' : 'Admin Login',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: const Key('admin_shield_button'),
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        setState(() {
+                          _isAdminView = !_isAdminView;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _isAdminView
+                              ? LiquidGlassColors.accentViolet.withValues(alpha: 0.18)
+                              : LiquidGlassColors.glassFillMedium,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _isAdminView
+                                ? LiquidGlassColors.accentViolet.withValues(alpha: 0.45)
+                                : LiquidGlassColors.glassBorderLight,
+                            width: 1.2,
+                          ),
+                          boxShadow: _isAdminView
+                              ? LiquidGlassTheme.neonGlow(
+                                  color: LiquidGlassColors.accentViolet,
+                                  intensity: 0.20,
+                                )
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _isAdminView
+                                  ? Icons.arrow_back_rounded
+                                  : Icons.shield_outlined,
+                              size: 18,
+                              color: _isAdminView
+                                  ? LiquidGlassColors.accentViolet
+                                  : LiquidGlassColors.textSecondary,
+                            ),
+                            if (_isAdminView) ...[
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Staff',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: LiquidGlassColors.accentViolet,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildShopkeeperLoginForm(
+  Widget _buildStaffLoginForm(
     BuildContext context,
     AuthProvider authProvider,
   ) {
@@ -253,7 +215,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Shopkeeper Sign In',
+              'Staff Sign In',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -262,7 +224,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Enter your name to open and operate your sales terminal.',
+              'Enter your name to open and operate counter sales.',
               style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
             ),
             const SizedBox(height: 18),
@@ -278,14 +240,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 color: LiquidGlassColors.textPrimary,
               ),
               decoration: _buildInputDecoration(
-                labelText: 'Shopkeeper Name',
+                labelText: 'Staff Name',
                 hintText: 'Enter your name',
                 icon: Icons.person_outline_rounded,
                 accentColor: LiquidGlassColors.accentEmerald,
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter your name';
+                  return 'Please enter staff name';
                 }
                 return null;
               },
@@ -367,9 +329,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
             const SizedBox(height: 20),
 
-            // Enter Terminal Button
+            // Enter Sales Button
             LiquidGlassButton(
-              label: 'ENTER SALES TERMINAL',
+              label: 'ENTER SALES',
               icon: Icons.arrow_forward,
               glowColor: LiquidGlassColors.accentEmerald,
               isLoading: authProvider.isLoggingIn,
@@ -549,6 +511,29 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               onPressed: authProvider.isLoggingInAsAdmin
                   ? null
                   : () => _handleAdminLogin(authProvider),
+            ),
+
+            const SizedBox(height: 12),
+
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() => _isAdminView = false);
+                },
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  size: 15,
+                  color: LiquidGlassColors.textSecondary,
+                ),
+                label: const Text(
+                  'Back to Staff Login',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: LiquidGlassColors.textSecondary,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
