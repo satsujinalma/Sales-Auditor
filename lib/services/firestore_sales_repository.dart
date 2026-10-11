@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -41,27 +42,38 @@ class FirestoreSalesRepository implements SalesRepository {
       '${shopId}_${_dateKey(date)}';
 
   Future<void> init() async {
-    // Enable offline persistence settings
-    _firestore.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
+    try {
+      // Enable offline persistence settings
+      _firestore.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+    } catch (_) {}
 
-    // Seed admin PIN if not set
-    final settingsDoc = await _settingsRef.get();
-    if (!settingsDoc.exists) {
-      await _settingsRef.set({'adminPin': '1234'});
-    }
+    // Seed defaults in background without blocking repository initialization
+    _seedDefaults();
+  }
 
-    // Seed default admin credentials in cloud database if not set
-    final credsDoc = await _adminCredentialsRef.get();
-    if (!credsDoc.exists) {
-      await _adminCredentialsRef.set({
-        'username': 'admin',
-        'password': 'vazhapazhamadmin@321',
-        'updatedAt': DateTime.now().toIso8601String(),
-      });
-    }
+  void _seedDefaults() async {
+    try {
+      final settingsDoc =
+          await _settingsRef.get().timeout(const Duration(seconds: 4));
+      if (!settingsDoc.exists) {
+        await _settingsRef.set({'adminPin': '1234'});
+      }
+    } catch (_) {}
+
+    try {
+      final credsDoc =
+          await _adminCredentialsRef.get().timeout(const Duration(seconds: 4));
+      if (!credsDoc.exists) {
+        await _adminCredentialsRef.set({
+          'username': 'admin',
+          'password': 'vazhapazhamadmin@321',
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -280,27 +292,45 @@ class FirestoreSalesRepository implements SalesRepository {
 
   Stream<List<AppUser>> watchUsers() {
     return _usersRef.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => AppUser.fromJson(doc.data()))
-          .toList();
+      final List<AppUser> users = [];
+      for (final doc in snapshot.docs) {
+        try {
+          users.add(AppUser.fromJson(doc.data(), doc.id));
+        } catch (e) {
+          debugPrint('>>> FirestoreSalesRepository: Error parsing user doc ${doc.id}: $e');
+        }
+      }
+      return users;
     });
   }
 
   Future<List<AppUser>> getUsers() async {
     try {
       final snapshot = await _usersRef.get();
-      return snapshot.docs
-          .map((doc) => AppUser.fromJson(doc.data()))
-          .toList();
-    } catch (_) {
+      final List<AppUser> users = [];
+      for (final doc in snapshot.docs) {
+        try {
+          users.add(AppUser.fromJson(doc.data(), doc.id));
+        } catch (e) {
+          debugPrint('>>> FirestoreSalesRepository: Error parsing user doc ${doc.id}: $e');
+        }
+      }
+      return users;
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository.getUsers failed: $e');
       return [];
     }
   }
 
   Future<void> saveUser(AppUser user) async {
     try {
+      debugPrint('>>> FirestoreSalesRepository: Saving user ${user.id} (${user.name}) to Cloud Firestore');
       await _usersRef.doc(user.id).set(user.toJson(), SetOptions(merge: true));
-    } catch (_) {}
+      debugPrint('>>> FirestoreSalesRepository: Saved user ${user.id} successfully');
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository: Error saving user ${user.id}: $e');
+      rethrow;
+    }
   }
 
   Future<void> updateUserApproval(
@@ -310,6 +340,7 @@ class FirestoreSalesRepository implements SalesRepository {
     String? shopId,
   }) async {
     try {
+      debugPrint('>>> FirestoreSalesRepository: Updating approval for $userId -> status=$status, approved=$isApproved');
       final Map<String, dynamic> data = {
         'approvalStatus': status.name,
         'isApproved': isApproved,
@@ -321,6 +352,10 @@ class FirestoreSalesRepository implements SalesRepository {
         data['shopId'] = shopId;
       }
       await _usersRef.doc(userId).set(data, SetOptions(merge: true));
-    } catch (_) {}
+      debugPrint('>>> FirestoreSalesRepository: User $userId approval updated in Cloud Firestore');
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository: Error updating user approval: $e');
+      rethrow;
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +29,25 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  int _selectedTab = 0; // 0: Mirrored View, 1: All Shops Overview
+  int _selectedTab = 0; // 0: Mirrored View, 1: All Shops Overview, 2: Staff
+  Timer? _staffPollingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Periodically sync staff access requests in background every 4 seconds
+    _staffPollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (mounted) {
+        context.read<AuthProvider>().refreshUsers();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _staffPollingTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

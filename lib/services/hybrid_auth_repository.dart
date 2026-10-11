@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -78,27 +79,37 @@ class HybridAuthRepository implements AuthRepository {
           await _saveUsersToPrefs(notify: false);
 
           _firestoreUsersSub?.cancel();
-          _firestoreUsersSub = salesRepo.watchUsers().listen((cloudUsers) {
-            for (final u in cloudUsers) {
-              _usersCache[u.id] = u;
-            }
-            if (_currentUser != null && _currentUser!.role != UserRole.admin) {
-              final latest = _usersCache[_currentUser!.id];
-              if (latest != null &&
-                  (latest.isApproved != _currentUser!.isApproved ||
-                      latest.approvalStatus != _currentUser!.approvalStatus ||
-                      latest.shopId != _currentUser!.shopId)) {
-                _currentUser = latest;
-                _saveCurrentUserToPrefs(_currentUser!);
-                _authStateController.add(_currentUser);
+          _firestoreUsersSub = salesRepo.watchUsers().listen(
+            (cloudUsers) {
+              debugPrint('>>> HybridAuthRepository: Received ${cloudUsers.length} users from Firestore watchUsers stream');
+              for (final u in cloudUsers) {
+                _usersCache[u.id] = u;
               }
-            }
-            _saveUsersToPrefs(notify: false);
-            _notifyUsersChanged();
-          });
-        } catch (_) {}
+              if (_currentUser != null && _currentUser!.role != UserRole.admin) {
+                final latest = _usersCache[_currentUser!.id];
+                if (latest != null &&
+                    (latest.isApproved != _currentUser!.isApproved ||
+                        latest.approvalStatus != _currentUser!.approvalStatus ||
+                        latest.shopId != _currentUser!.shopId)) {
+                  _currentUser = latest;
+                  _saveCurrentUserToPrefs(_currentUser!);
+                  _authStateController.add(_currentUser);
+                }
+              }
+              _saveUsersToPrefs(notify: false);
+              _notifyUsersChanged();
+            },
+            onError: (err) {
+              debugPrint('>>> HybridAuthRepository: Firestore watchUsers error: $err');
+            },
+          );
+        } catch (e) {
+          debugPrint('>>> HybridAuthRepository.init Firestore setup error: $e');
+        }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('>>> HybridAuthRepository.init failed: $e');
+    }
 
     _initialized = true;
     _authStateController.add(_currentUser);
@@ -106,7 +117,7 @@ class HybridAuthRepository implements AuthRepository {
   }
 
   void _notifyUsersChanged() {
-    _usersStreamController.add(List.unmodifiable(_usersCache.values.toList()));
+    _usersStreamController.add(List<AppUser>.unmodifiable(_usersCache.values.toList()));
   }
 
   Future<void> _saveUsersToPrefs({bool notify = true}) async {
@@ -302,8 +313,12 @@ class HybridAuthRepository implements AuthRepository {
     // Sync to Cloud Firestore
     if (salesRepo is FirestoreSalesRepository) {
       try {
+        debugPrint('>>> HybridAuthRepository: Saving shopkeeper ${user.name} (${user.id}) to Cloud Firestore...');
         await salesRepo.saveUser(user);
-      } catch (_) {}
+        debugPrint('>>> HybridAuthRepository: Shopkeeper saved to Firestore successfully.');
+      } catch (e) {
+        debugPrint('>>> HybridAuthRepository: Failed to save shopkeeper to Firestore: $e');
+      }
     }
 
     _currentUser = user;
@@ -449,10 +464,14 @@ class HybridAuthRepository implements AuthRepository {
           _usersCache[u.id] = u;
         }
         await _saveUsersToPrefs(notify: false);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('>>> HybridAuthRepository.getAllUsers error: $e');
+      }
     }
 
-    return List.unmodifiable(_usersCache.values.toList());
+    final usersList = List<AppUser>.unmodifiable(_usersCache.values.toList());
+    _notifyUsersChanged();
+    return usersList;
   }
 
   @override
@@ -463,6 +482,22 @@ class HybridAuthRepository implements AuthRepository {
   @override
   Future<void> approveUser(String userId, {String? shopId}) async {
     if (!_initialized) await init();
+
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        debugPrint('>>> HybridAuthRepository: Approving user $userId in Cloud Firestore...');
+        await salesRepo.updateUserApproval(
+          userId,
+          ApprovalStatus.approved,
+          true,
+          shopId: shopId,
+        );
+        debugPrint('>>> HybridAuthRepository: Cloud Firestore approval confirmed for $userId.');
+      } catch (e) {
+        debugPrint('>>> HybridAuthRepository: Error updating approval in Firestore: $e');
+      }
+    }
 
     final user = _usersCache[userId];
     if (user != null) {
@@ -475,29 +510,32 @@ class HybridAuthRepository implements AuthRepository {
       _usersCache[userId] = updatedUser;
       await _saveUsersToPrefs();
 
-      final salesRepo = _salesRepository;
-      if (salesRepo is FirestoreSalesRepository) {
-        try {
-          await salesRepo.updateUserApproval(
-            userId,
-            ApprovalStatus.approved,
-            true,
-            shopId: shopId ?? user.shopId,
-          );
-        } catch (_) {}
-      }
-
       if (_currentUser?.id == userId) {
         _currentUser = updatedUser;
         await _saveCurrentUserToPrefs(updatedUser);
         _authStateController.add(_currentUser);
       }
     }
+    _notifyUsersChanged();
   }
 
   @override
   Future<void> rejectUser(String userId) async {
     if (!_initialized) await init();
+
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        debugPrint('>>> HybridAuthRepository: Rejecting user $userId in Cloud Firestore...');
+        await salesRepo.updateUserApproval(
+          userId,
+          ApprovalStatus.rejected,
+          false,
+        );
+      } catch (e) {
+        debugPrint('>>> HybridAuthRepository: Error rejecting user in Firestore: $e');
+      }
+    }
 
     final user = _usersCache[userId];
     if (user != null) {
@@ -508,28 +546,32 @@ class HybridAuthRepository implements AuthRepository {
       _usersCache[userId] = updatedUser;
       await _saveUsersToPrefs();
 
-      final salesRepo = _salesRepository;
-      if (salesRepo is FirestoreSalesRepository) {
-        try {
-          await salesRepo.updateUserApproval(
-            userId,
-            ApprovalStatus.rejected,
-            false,
-          );
-        } catch (_) {}
-      }
-
       if (_currentUser?.id == userId) {
         _currentUser = updatedUser;
         await _saveCurrentUserToPrefs(updatedUser);
         _authStateController.add(_currentUser);
       }
     }
+    _notifyUsersChanged();
   }
 
   @override
   Future<void> revokeUser(String userId) async {
     if (!_initialized) await init();
+
+    final salesRepo = _salesRepository;
+    if (salesRepo is FirestoreSalesRepository) {
+      try {
+        debugPrint('>>> HybridAuthRepository: Revoking approval for $userId in Cloud Firestore...');
+        await salesRepo.updateUserApproval(
+          userId,
+          ApprovalStatus.pending,
+          false,
+        );
+      } catch (e) {
+        debugPrint('>>> HybridAuthRepository: Error revoking approval in Firestore: $e');
+      }
+    }
 
     final user = _usersCache[userId];
     if (user != null) {
@@ -540,23 +582,13 @@ class HybridAuthRepository implements AuthRepository {
       _usersCache[userId] = updatedUser;
       await _saveUsersToPrefs();
 
-      final salesRepo = _salesRepository;
-      if (salesRepo is FirestoreSalesRepository) {
-        try {
-          await salesRepo.updateUserApproval(
-            userId,
-            ApprovalStatus.pending,
-            false,
-          );
-        } catch (_) {}
-      }
-
       if (_currentUser?.id == userId) {
         _currentUser = updatedUser;
         await _saveCurrentUserToPrefs(updatedUser);
         _authStateController.add(_currentUser);
       }
     }
+    _notifyUsersChanged();
   }
 
   @override

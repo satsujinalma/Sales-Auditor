@@ -33,7 +33,11 @@ class AuthProvider extends ChangeNotifier {
 
   List<AppUser> get allUsers => _allUsers;
   List<AppUser> get pendingUsers => _allUsers
-      .where((u) => u.role == UserRole.shopkeeper && !u.isApproved && u.approvalStatus == ApprovalStatus.pending)
+      .where((u) =>
+          u.role == UserRole.shopkeeper &&
+          !u.isApproved &&
+          u.approvalStatus != ApprovalStatus.approved &&
+          u.approvalStatus != ApprovalStatus.rejected)
       .toList();
   List<AppUser> get approvedStaff => _allUsers
       .where((u) => u.role == UserRole.shopkeeper && u.isApproved)
