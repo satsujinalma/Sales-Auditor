@@ -4,28 +4,39 @@ import 'providers/admin_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/sales_provider.dart';
 import 'screens/auth/auth_wrapper.dart';
+import 'services/firestore_sales_repository.dart';
 import 'services/hybrid_auth_repository.dart';
 import 'services/repository_factory.dart';
+import 'services/sales_repository.dart';
 import 'theme/liquid_glass_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final repository = await RepositoryFactory.createRepository();
-  final authRepository = HybridAuthRepository(repository);
-  await authRepository.init();
+  SalesRepository? repository;
+  HybridAuthRepository? authRepository;
+
+  try {
+    repository = await RepositoryFactory.createRepository();
+    authRepository = HybridAuthRepository(repository);
+    await authRepository.init();
+  } catch (e, stack) {
+    debugPrint('>>> main: Initialization error: $e\n$stack');
+    repository ??= FirestoreSalesRepository();
+    authRepository ??= HybridAuthRepository(repository);
+  }
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => AuthProvider(authRepository),
+          create: (_) => AuthProvider(authRepository!),
         ),
         ChangeNotifierProvider(
-          create: (_) => SalesProvider(repository),
+          create: (_) => SalesProvider(repository!),
         ),
         ChangeNotifierProvider(
-          create: (_) => AdminProvider(repository),
+          create: (_) => AdminProvider(repository!),
         ),
       ],
       child: const KeralaLotteryAuditorApp(),

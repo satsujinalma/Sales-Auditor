@@ -60,9 +60,13 @@ class HybridAuthRepository implements AuthRepository {
 
       final userJson = prefs.getString(_keyCurrentUser);
       if (userJson != null) {
-        final savedUser = AppUser.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
-        // Sync with directory cache if exists
-        _currentUser = _usersCache[savedUser.id] ?? savedUser;
+        try {
+          final savedUser = AppUser.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+          // Sync with directory cache if exists
+          _currentUser = _usersCache[savedUser.id] ?? savedUser;
+        } catch (e) {
+          debugPrint('>>> HybridAuthRepository: Warning parsing cached user: $e');
+        }
       }
 
       // 2. Connect to Cloud Firestore if active
