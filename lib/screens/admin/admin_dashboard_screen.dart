@@ -1404,7 +1404,53 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Quick Metric Bar
+                      // 1. Live Audit Benchmark Health Pill
+                      if (tickets > 0)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isBelowTarget
+                                ? Colors.amber.withValues(alpha: 0.15)
+                                : LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isBelowTarget
+                                  ? Colors.amber.withValues(alpha: 0.45)
+                                  : LiquidGlassColors.accentEmerald.withValues(alpha: 0.45),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                isBelowTarget
+                                    ? Icons.warning_amber_rounded
+                                    : Icons.verified_rounded,
+                                size: 15,
+                                color: isBelowTarget
+                                    ? Colors.amberAccent
+                                    : LiquidGlassColors.accentEmerald,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  isBelowTarget
+                                      ? 'Audit Alert: Live Avg ₹${avg.toStringAsFixed(2)} is ₹${((pricing.targetBenchmarkMin - avg)).abs().toStringAsFixed(2)} below target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})'
+                                      : 'Audit Healthy: Live Avg ₹${avg.toStringAsFixed(2)} achieves profit target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isBelowTarget
+                                        ? Colors.amberAccent
+                                        : LiquidGlassColors.accentEmerald,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // 2. Quick Metric Bar
                       LiquidGlassContainer(
                         borderRadius: 14,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1431,6 +1477,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                       color: LiquidGlassColors.accentEmerald,
                                     ),
                                   ),
+                                  Text(
+                                    '${summary.activeTransactions.length} orders',
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w500,
+                                      color: LiquidGlassColors.textSecondary,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -1453,6 +1507,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                       fontSize: 18,
                                       fontWeight: FontWeight.w900,
                                       color: LiquidGlassColors.accentEmerald,
+                                    ),
+                                  ),
+                                  Text(
+                                    summary.activeTransactions.isNotEmpty
+                                        ? '₹${(rev / summary.activeTransactions.length).round()}/ord'
+                                        : '₹0/ord',
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w500,
+                                      color: LiquidGlassColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -1481,6 +1545,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                           : (tickets > 0
                                               ? LiquidGlassColors.accentEmerald
                                               : LiquidGlassColors.textMuted),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Target ₹${pricing.targetBenchmarkMin.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w500,
+                                      color: LiquidGlassColors.textSecondary,
                                     ),
                                   ),
                                 ],
