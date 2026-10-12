@@ -51,7 +51,9 @@ class HybridAuthRepository implements AuthRepository {
           decoded.forEach((key, value) {
             if (value is Map<String, dynamic>) {
               final user = AppUser.fromJson(value);
-              _usersCache[user.id] = user;
+              if (user.id != 'mock_staff_admin_account') {
+                _usersCache[user.id] = user;
+              }
             }
           });
         } catch (_) {}
@@ -61,8 +63,13 @@ class HybridAuthRepository implements AuthRepository {
       if (userJson != null) {
         try {
           final savedUser = AppUser.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
-          // Sync with directory cache if exists
-          _currentUser = _usersCache[savedUser.id] ?? savedUser;
+          if (savedUser.id == 'mock_staff_admin_account') {
+            await prefs.remove(_keyCurrentUser);
+            _currentUser = null;
+          } else {
+            // Sync with directory cache if exists
+            _currentUser = _usersCache[savedUser.id] ?? savedUser;
+          }
         } catch (e) {
           debugPrint('>>> HybridAuthRepository: Warning parsing cached user: $e');
         }
@@ -74,7 +81,16 @@ class HybridAuthRepository implements AuthRepository {
         try {
           final cloudUsers = await salesRepo.getUsers();
           for (final u in cloudUsers) {
-            _usersCache[u.id] = u;
+            if (u.id == 'mock_staff_admin_account') {
+              salesRepo.deleteUser(u.id);
+            } else {
+              _usersCache[u.id] = u;
+            }
+          }
+          _usersCache.remove('mock_staff_admin_account');
+          if (_currentUser?.id == 'mock_staff_admin_account') {
+            _currentUser = null;
+            await prefs.remove(_keyCurrentUser);
           }
           if (_currentUser != null && _currentUser!.role != UserRole.admin) {
             _currentUser = _usersCache[_currentUser!.id] ?? _currentUser;
@@ -86,8 +102,13 @@ class HybridAuthRepository implements AuthRepository {
             (cloudUsers) {
               debugPrint('>>> HybridAuthRepository: Received ${cloudUsers.length} users from Firestore watchUsers stream');
               for (final u in cloudUsers) {
-                _usersCache[u.id] = u;
+                if (u.id == 'mock_staff_admin_account') {
+                  salesRepo.deleteUser(u.id);
+                } else {
+                  _usersCache[u.id] = u;
+                }
               }
+              _usersCache.remove('mock_staff_admin_account');
               if (_currentUser != null && _currentUser!.role != UserRole.admin) {
                 final latest = _usersCache[_currentUser!.id];
                 if (latest != null &&
@@ -216,54 +237,11 @@ class HybridAuthRepository implements AuthRepository {
         ? phoneNumber!.trim().replaceAll(RegExp(r'\s+'), '')
         : 'STAFF';
 
-    final isMockAdminUser = cleanName.toLowerCase() == 'admin' &&
-        (normalizedPhone == 'admin123' ||
-            (rawCodeOrName.toLowerCase() == 'admin123') ||
-            normalizedPhone == 'STAFF' ||
-            normalizedPhone.isEmpty ||
-            rawCodeOrName.isEmpty);
-
-    final existingShops = await _salesRepository.getShops();
-
-    String assignedShopId;
-    String assignedShopName;
-
-    if (isMockAdminUser) {
-      if (existingShops.isNotEmpty) {
-        assignedShopId = existingShops.first.id;
-        assignedShopName = existingShops.first.name;
-      } else {
-        assignedShopId = 'kdlr';
-        assignedShopName = 'KDLR Counter';
-      }
-      await _salesRepository.setSelectedShopId(assignedShopId);
-
-      final user = AppUser(
-        id: 'mock_staff_admin_account',
-        name: 'admin',
-        phoneNumber: '9999999999',
-        role: UserRole.shopkeeper,
-        shopId: assignedShopId,
-        shopName: assignedShopName,
-        isApproved: true,
-        approvalStatus: ApprovalStatus.approved,
-        isProfileComplete: true,
-        createdAt: DateTime.now(),
-      );
-
-      _usersCache[user.id] = user;
-      await _saveUsersToPrefs();
-
-      _currentUser = user;
-      await _saveCurrentUserToPrefs(user);
-      _authStateController.add(_currentUser);
-      _notifyUsersChanged();
-      return user;
-    }
-
     if (rawCodeOrName.isEmpty) {
       throw Exception('Please enter shop code');
     }
+
+    final existingShops = await _salesRepository.getShops();
 
     final match = existingShops.where(
       (s) =>
@@ -278,8 +256,8 @@ class HybridAuthRepository implements AuthRepository {
       );
     }
 
-    assignedShopId = match.first.id;
-    assignedShopName = match.first.name;
+    final assignedShopId = match.first.id;
+    final assignedShopName = match.first.name;
     await _salesRepository.setSelectedShopId(assignedShopId);
 
     // Check cloud users first if available
@@ -288,7 +266,9 @@ class HybridAuthRepository implements AuthRepository {
       try {
         final cloudUsers = await salesRepo.getUsers();
         for (final u in cloudUsers) {
-          _usersCache[u.id] = u;
+          if (u.id != 'mock_staff_admin_account') {
+            _usersCache[u.id] = u;
+          }
         }
       } catch (_) {}
     }
@@ -359,7 +339,6 @@ class HybridAuthRepository implements AuthRepository {
   Future<AppUser> loginWithAdminCredentials({
     required String username,
     required String password,
-    bool asStaffUser = false,
   }) async {
     if (!_initialized) await init();
 
@@ -370,25 +349,16 @@ class HybridAuthRepository implements AuthRepository {
     final u = username.trim().toLowerCase();
     final p = password.trim();
 
-    // Mock user login for counter staff directly:
-    final isMockUser = (u == 'admin' && (p == 'admin123' || p == 'vazhapazhamadmin@321'));
-
     // Admin login validation:
     final isDefaultPass = (validPass == 'admin123' || validPass == 'vazhapazhamadmin@321');
     final isConfiguredAdmin = (u == validUser.toLowerCase() &&
         (p == validPass || (isDefaultPass && (p == 'admin123' || p == 'vazhapazhamadmin@321'))));
 
-    if (asStaffUser) {
-      if (!isMockUser && !isConfiguredAdmin) {
-        throw Exception('Invalid mock user credentials');
-      }
-    } else {
-      if (!isConfiguredAdmin) {
-        throw Exception('Invalid admin username or password');
-      }
+    if (!isConfiguredAdmin) {
+      throw Exception('Invalid admin username or password');
     }
 
-    // Default shop assignment for mock staff or admin
+    // Default shop assignment for admin
     String defaultShopId = 'kdlr';
     String defaultShopName = 'KDLR Retail Counter';
     try {
@@ -399,31 +369,18 @@ class HybridAuthRepository implements AuthRepository {
       }
     } catch (_) {}
 
-    final user = asStaffUser
-        ? AppUser(
-            id: 'mock_staff_admin_account',
-            phoneNumber: '9999999999',
-            name: 'admin',
-            role: UserRole.shopkeeper,
-            shopId: defaultShopId,
-            shopName: defaultShopName,
-            isApproved: true,
-            approvalStatus: ApprovalStatus.approved,
-            isProfileComplete: true,
-            createdAt: DateTime.now(),
-          )
-        : AppUser(
-            id: 'admin_master_account',
-            phoneNumber: 'ADMIN_DESK',
-            name: 'Central Admin & Auditor',
-            role: UserRole.admin,
-            shopId: defaultShopId,
-            shopName: defaultShopName,
-            isApproved: true,
-            approvalStatus: ApprovalStatus.approved,
-            isProfileComplete: true,
-            createdAt: DateTime.now(),
-          );
+    final user = AppUser(
+      id: 'admin_master_account',
+      phoneNumber: 'ADMIN_DESK',
+      name: 'Central Admin & Auditor',
+      role: UserRole.admin,
+      shopId: defaultShopId,
+      shopName: defaultShopName,
+      isApproved: true,
+      approvalStatus: ApprovalStatus.approved,
+      isProfileComplete: true,
+      createdAt: DateTime.now(),
+    );
 
     // If connected to Firestore, refresh all users so admin sees live state
     final salesRepo = _salesRepository;
@@ -431,7 +388,9 @@ class HybridAuthRepository implements AuthRepository {
       try {
         final cloudUsers = await salesRepo.getUsers();
         for (final u in cloudUsers) {
-          _usersCache[u.id] = u;
+          if (u.id != 'mock_staff_admin_account') {
+            _usersCache[u.id] = u;
+          }
         }
         await _saveUsersToPrefs();
       } catch (_) {}

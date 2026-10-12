@@ -272,28 +272,6 @@ void main() {
       expect(updatedAdmin.role, UserRole.admin);
     });
 
-    test(
-        'Unit Test: Mock User login with admin / admin123 directly accesses User Sales Terminal without approval',
-        () async {
-      final salesRepo = MockLiveSalesRepository();
-      await salesRepo.init();
-      final authRepo = HybridAuthRepository(salesRepo);
-      await authRepo.init();
-
-      // Login as mock user to user section
-      final mockUser = await authRepo.loginWithAdminCredentials(
-        username: 'admin',
-        password: 'admin123',
-        asStaffUser: true,
-      );
-
-      expect(mockUser.role, UserRole.shopkeeper);
-      expect(mockUser.name, 'admin');
-      expect(mockUser.isApproved, true);
-      expect(mockUser.approvalStatus, ApprovalStatus.approved);
-      expect(mockUser.isProfileComplete, true);
-    });
-
     testWidgets(
         'Widget Test: Admin direct login with username & password to Admin Dashboard with STAFF tab',
         (
@@ -435,63 +413,6 @@ void main() {
 
       // Successfully unlocked Head App
       expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);
-    });
-
-    testWidgets(
-        'Widget Test: Mock User login with admin & admin123 directly opens User Sales Terminal without approval',
-        (
-      WidgetTester tester,
-    ) async {
-      final salesRepo = MockLiveSalesRepository();
-      await salesRepo.init();
-      await salesRepo.saveShop(testShop);
-      final authRepo = HybridAuthRepository(salesRepo);
-      await authRepo.init();
-
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => AuthProvider(authRepo)),
-            ChangeNotifierProvider(create: (_) => SalesProvider(salesRepo)),
-            ChangeNotifierProvider(create: (_) => AdminProvider(salesRepo)),
-          ],
-          child: const KeralaLotteryAuditorApp(),
-        ),
-      );
-
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      // 1. On Login Screen, tap Admin Shield to open credentials form
-      expect(find.byKey(const Key('admin_shield_button')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('admin_shield_button')));
-      await tester.pumpAndSettle();
-
-      // 2. Verify LOGIN TO USER SECTION button is present
-      expect(find.text('LOGIN TO USER SECTION'), findsOneWidget);
-
-      // 3. Enter mock user credentials: admin / admin123
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Admin Username'),
-        'admin',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Admin Password'),
-        'admin123',
-      );
-      await tester.pump();
-
-      // 4. Tap LOGIN TO USER SECTION
-      final loginUserBtn = find.text('LOGIN TO USER SECTION');
-      await tester.ensureVisible(loginUserBtn);
-      await tester.tap(loginUserBtn);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      // 5. Must open User Sales Terminal directly with NO approval needed!
-      expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
-      expect(find.text('Pending Approval'), findsNothing);
     });
 
     test('Unit Test: Staff entering non-existent shop code throws error and does NOT create shop in repository', () async {

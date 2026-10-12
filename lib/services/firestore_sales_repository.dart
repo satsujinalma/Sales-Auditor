@@ -448,4 +448,12 @@ class FirestoreSalesRepository implements SalesRepository {
       debugPrint('>>> FirestoreSalesRepository: Error updating user approval: $e');
     }
   }
+
+  Future<void> deleteUser(String userId) async {
+    try {
+      await _usersRef.doc(userId).delete().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository: Error deleting user $userId: $e');
+    }
+  }
 }

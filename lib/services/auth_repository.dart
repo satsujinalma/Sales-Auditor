@@ -16,7 +16,6 @@ abstract class AuthRepository {
   Future<AppUser> loginWithAdminCredentials({
     required String username,
     required String password,
-    bool asStaffUser = false,
   });
 
   Future<void> updateAdminCredentials({
