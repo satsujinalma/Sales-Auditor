@@ -536,7 +536,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               fontWeight: FontWeight.w900,
                               color: networkAvg >= 48.30
                                   ? LiquidGlassColors.accentEmerald
-                                  : Colors.amberAccent,
+                                  : LiquidGlassColors.accentAmber,
                             ),
                           ),
                         ],
@@ -823,7 +823,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                     color: avg >= pricing.targetBenchmarkMin
                                         ? LiquidGlassColors.accentEmerald
                                         : (avg > 0
-                                            ? Colors.amberAccent
+                                            ? LiquidGlassColors.accentAmber
                                             : LiquidGlassColors.textMuted),
                                   ),
                                 ),
@@ -1408,16 +1408,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       if (tickets > 0)
                         Container(
                           margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                           decoration: BoxDecoration(
                             color: isBelowTarget
-                                ? Colors.amber.withValues(alpha: 0.15)
-                                : LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+                                ? const Color(0xFFFFE4E6)
+                                : const Color(0xFFECFDF5),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isBelowTarget
-                                  ? Colors.amber.withValues(alpha: 0.45)
-                                  : LiquidGlassColors.accentEmerald.withValues(alpha: 0.45),
+                                  ? const Color(0xFFFDA4AF)
+                                  : const Color(0xFFA7F3D0),
+                              width: 1.0,
                             ),
                           ),
                           child: Row(
@@ -1426,23 +1427,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 isBelowTarget
                                     ? Icons.warning_amber_rounded
                                     : Icons.verified_rounded,
-                                size: 15,
+                                size: 16,
                                 color: isBelowTarget
-                                    ? Colors.amberAccent
-                                    : LiquidGlassColors.accentEmerald,
+                                    ? const Color(0xFFE11D48)
+                                    : const Color(0xFF059669),
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   isBelowTarget
                                       ? 'Audit Alert: Live Avg ₹${avg.toStringAsFixed(2)} is ₹${((pricing.targetBenchmarkMin - avg)).abs().toStringAsFixed(2)} below target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})'
                                       : 'Audit Healthy: Live Avg ₹${avg.toStringAsFixed(2)} achieves profit target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})',
                                   style: TextStyle(
-                                    fontSize: 10.5,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: isBelowTarget
-                                        ? Colors.amberAccent
-                                        : LiquidGlassColors.accentEmerald,
+                                        ? const Color(0xFF9F1239)
+                                        : const Color(0xFF065F46),
                                   ),
                                 ),
                               ),
@@ -1541,7 +1542,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                       fontSize: 18,
                                       fontWeight: FontWeight.w900,
                                       color: isBelowTarget
-                                          ? Colors.amberAccent
+                                          ? const Color(0xFFE11D48)
                                           : (tickets > 0
                                               ? LiquidGlassColors.accentEmerald
                                               : LiquidGlassColors.textMuted),
