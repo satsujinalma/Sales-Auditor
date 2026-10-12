@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:sales_auditor/main.dart';
 import 'package:sales_auditor/models/daily_sales_summary.dart';
 import 'package:sales_auditor/models/sale_transaction.dart';
+import 'package:sales_auditor/providers/admin_provider.dart';
+import 'package:sales_auditor/providers/auth_provider.dart';
+import 'package:sales_auditor/providers/sales_provider.dart';
+import 'package:sales_auditor/services/hybrid_auth_repository.dart';
+import 'package:sales_auditor/services/mock_live_sales_repository.dart';
 import 'package:sales_auditor/widgets/sales_volume_breakdown_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('Sales Volume Analysis & Box Pattern Tests', () {
     test('Unit Test: DailySalesSummary volumeDistribution records correct quantities for various ticket purchases', () {
       final now = DateTime.now();
@@ -174,6 +186,56 @@ void main() {
       expect(box1, findsOneWidget);
       await tester.tap(box1);
       expect(tappedCount, 1);
+    });
+
+    testWidgets('Widget Test: In Admin Dashboard ALL SHOPS tab, tapping a specific shop opens the Sales Volume Breakdown modal without switching to Mirror tab', (tester) async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+      final authRepo = HybridAuthRepository(salesRepo);
+      await authRepo.init();
+
+      // Login as Admin
+      await authRepo.loginWithAdminCredentials(username: 'admin', password: 'vazhapazhamadmin@321');
+
+      final adminProvider = AdminProvider(salesRepo);
+      final authProvider = AuthProvider(authRepo);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: authProvider),
+            ChangeNotifierProvider(create: (_) => SalesProvider(salesRepo)),
+            ChangeNotifierProvider.value(value: adminProvider),
+          ],
+          child: const KeralaLotteryAuditorApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Go to ALL SHOPS tab
+      await tester.tap(find.text('ALL SHOPS'));
+      await tester.pumpAndSettle();
+
+      // Tap on the first shop card (KDLR Counter)
+      expect(find.text('REGISTERED SHOPS (1)'), findsOneWidget);
+      await tester.tap(find.text('KDLR Counter'));
+      await tester.pumpAndSettle();
+
+      // Verify that the Sales Volume Breakdown modal opened!
+      expect(find.text('SALES VOLUME BREAKDOWN'), findsOneWidget);
+      expect(find.text('SINGLES (LEFT)'), findsOneWidget);
+      expect(find.text('SETS (RIGHT)'), findsOneWidget);
+      expect(find.text('MIRROR THIS COUNTER LIVE'), findsOneWidget);
+
+      // Tap 'MIRROR THIS COUNTER LIVE' button to verify it can mirror if desired
+      await tester.ensureVisible(find.text('MIRROR THIS COUNTER LIVE'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('MIRROR THIS COUNTER LIVE'));
+      await tester.pumpAndSettle();
+
+      // Now we should be on Mirror mode
+      expect(find.text('Live Audit Mode'), findsOneWidget);
     });
   });
 }

@@ -14,6 +14,7 @@ import '../../widgets/glass/liquid_glass_button.dart';
 import '../../widgets/glass/liquid_glass_container.dart';
 import '../../widgets/glass/liquid_glow_background.dart';
 import '../../widgets/recent_transactions_list.dart';
+import '../../widgets/sales_volume_breakdown_widget.dart';
 import '../../widgets/three_output_boxes_widget.dart';
 import 'admin_settings_screen.dart';
 
@@ -549,30 +550,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
           const SizedBox(height: 16),
 
+          // Prominent Register Shop Button (never overflows)
+          LiquidGlassButton(
+            key: const Key('register_new_shop_button'),
+            label: '+ REGISTER NEW SHOP',
+            icon: Icons.add_business_rounded,
+            glowColor: LiquidGlassColors.accentViolet,
+            isFullWidth: true,
+            height: 42,
+            onPressed: () => _showRegisterShopDialog(context, adminProvider),
+          ),
+
+          const SizedBox(height: 14),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'REGISTERED SHOPS & AUDIT SPREAD',
-                style: TextStyle(
+              Text(
+                'REGISTERED SHOPS (${shops.length})',
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,
                   color: LiquidGlassColors.textSecondary,
                 ),
               ),
-              LiquidGlassButton(
-                key: const Key('register_new_shop_button'),
-                label: '+ REGISTER SHOP',
-                icon: Icons.add_business_rounded,
-                glowColor: LiquidGlassColors.accentViolet,
-                isFullWidth: false,
-                height: 34,
-                onPressed: () => _showRegisterShopDialog(context, adminProvider),
+              const Text(
+                'Tap shop to view Breakdown',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: LiquidGlassColors.textMuted,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
           ListView.separated(
             shrinkWrap: true,
@@ -593,8 +606,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
               return InkWell(
                 onTap: () {
-                  adminProvider.selectShop(shop.id);
-                  setState(() => _selectedTab = 0);
+                  _showShopVolumeBreakdownModal(context, shop, summary, adminProvider);
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: LiquidGlassContainer(
@@ -818,10 +830,31 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               ],
                             ),
                           ),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 13,
-                            color: LiquidGlassColors.textMuted,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: LiquidGlassColors.accentViolet.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: LiquidGlassColors.accentViolet.withValues(alpha: 0.35),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.bar_chart_rounded, size: 12, color: LiquidGlassColors.accentViolet),
+                                SizedBox(width: 3),
+                                Text(
+                                  'Volume',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: LiquidGlassColors.accentViolet,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -1014,7 +1047,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       prefixIcon: Icon(icon, color: LiquidGlassColors.accentViolet, size: 20),
       filled: true,
       fillColor: LiquidGlassColors.glassFillMedium,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
@@ -1038,7 +1071,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
     final codeController = TextEditingController();
-    final locationController = TextEditingController(text: 'Kerala Counter');
     bool autoGenerateCode = true;
 
     showDialog(
@@ -1048,8 +1080,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           builder: (ctx, setDialogState) {
             return AlertDialog(
               backgroundColor: LiquidGlassColors.surfaceElevated,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(18),
                 side: BorderSide(
                   color: LiquidGlassColors.accentViolet.withValues(alpha: 0.35),
                   width: 1.2,
@@ -1058,23 +1094,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               title: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: LiquidGlassColors.accentViolet.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.add_business_rounded,
                       color: LiquidGlassColors.accentViolet,
-                      size: 22,
+                      size: 20,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
                       'Register New Shop',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: LiquidGlassColors.textPrimary,
                       ),
@@ -1082,113 +1118,91 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ),
                 ],
               ),
-              content: SizedBox(
-                width: 420,
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Register an official counter. Staff can join using the unique uppercase Shop Code you configure.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: LiquidGlassColors.textSecondary,
-                            height: 1.3,
-                          ),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Set shop name and staff join code.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: LiquidGlassColors.textSecondary,
                         ),
-                        const SizedBox(height: 18),
+                      ),
+                      const SizedBox(height: 12),
 
-                        // 1. Shop Name
-                        TextFormField(
-                          controller: nameController,
-                          textCapitalization: TextCapitalization.words,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: LiquidGlassColors.textPrimary,
-                          ),
-                          decoration: _buildDialogInputDecoration(
-                            labelText: 'Shop Name',
-                            hintText: 'e.g. Thiruvonam Counter',
-                            icon: Icons.storefront_rounded,
-                          ),
-                          onChanged: (val) {
-                            if (autoGenerateCode) {
-                              final generated = _deriveShopCode(val);
-                              setDialogState(() {
-                                codeController.text = generated;
-                              });
-                            }
-                          },
-                          validator: (val) {
-                            if (val == null || val.trim().isEmpty) {
-                              return 'Please enter shop name';
-                            }
-                            return null;
-                          },
+                      // 1. Shop Name
+                      TextFormField(
+                        controller: nameController,
+                        textCapitalization: TextCapitalization.words,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: LiquidGlassColors.textPrimary,
                         ),
-
-                        const SizedBox(height: 14),
-
-                        // 2. Shop Code
-                        TextFormField(
-                          controller: codeController,
-                          textCapitalization: TextCapitalization.characters,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.2,
-                            color: LiquidGlassColors.accentTeal,
-                          ),
-                          decoration: _buildDialogInputDecoration(
-                            labelText: 'Shop Code (Staff Join Code)',
-                            hintText: 'e.g. THIRU',
-                            icon: Icons.vpn_key_rounded,
-                            helperText: 'Staff will enter this code on their login screen.',
-                          ),
-                          onChanged: (val) {
-                            autoGenerateCode = false;
-                          },
-                          validator: (val) {
-                            if (val == null || val.trim().isEmpty) {
-                              return 'Please enter shop code';
-                            }
-                            final clean = val.trim().toUpperCase();
-                            if (clean.length < 2) {
-                              return 'Code must be at least 2 characters';
-                            }
-                            final exists = adminProvider.shops.any(
-                              (s) => s.code.toUpperCase() == clean,
-                            );
-                            if (exists) {
-                              return 'Shop code "$clean" is already registered';
-                            }
-                            return null;
-                          },
+                        decoration: _buildDialogInputDecoration(
+                          labelText: 'Shop Name',
+                          hintText: 'e.g. Thiruvonam Counter',
+                          icon: Icons.storefront_rounded,
                         ),
+                        onChanged: (val) {
+                          if (autoGenerateCode) {
+                            final generated = _deriveShopCode(val);
+                            setDialogState(() {
+                              codeController.text = generated;
+                            });
+                          }
+                        },
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please enter shop name';
+                          }
+                          return null;
+                        },
+                      ),
 
-                        const SizedBox(height: 14),
+                      const SizedBox(height: 10),
 
-                        // 3. Location (Optional)
-                        TextFormField(
-                          controller: locationController,
-                          textCapitalization: TextCapitalization.words,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: LiquidGlassColors.textPrimary,
-                          ),
-                          decoration: _buildDialogInputDecoration(
-                            labelText: 'Counter Location (Optional)',
-                            hintText: 'e.g. Kozhikode, Kerala',
-                            icon: Icons.location_on_outlined,
-                          ),
+                      // 2. Shop Code
+                      TextFormField(
+                        controller: codeController,
+                        textCapitalization: TextCapitalization.characters,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: LiquidGlassColors.accentTeal,
                         ),
-                      ],
-                    ),
+                        decoration: _buildDialogInputDecoration(
+                          labelText: 'Shop Code (Staff Join Code)',
+                          hintText: 'e.g. THIRU',
+                          icon: Icons.vpn_key_rounded,
+                          helperText: 'Staff will enter this code on login.',
+                        ),
+                        onChanged: (val) {
+                          autoGenerateCode = false;
+                        },
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please enter shop code';
+                          }
+                          final clean = val.trim().toUpperCase();
+                          if (clean.length < 2) {
+                            return 'Code must be at least 2 characters';
+                          }
+                          final exists = adminProvider.shops.any(
+                            (s) => s.code.toUpperCase() == clean,
+                          );
+                          if (exists) {
+                            return 'Shop code "$clean" is already registered';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1211,9 +1225,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
                     final cleanName = nameController.text.trim();
                     final cleanCode = codeController.text.trim().toUpperCase();
-                    final cleanLocation = locationController.text.trim().isNotEmpty
-                        ? locationController.text.trim()
-                        : 'Kerala Counter';
+                    const cleanLocation = 'Kerala Counter';
 
                     final idBase = cleanCode.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
                     final newShopId = adminProvider.shops.any((s) => s.id == idBase)
@@ -1257,6 +1269,257 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  void _showShopVolumeBreakdownModal(
+    BuildContext context,
+    Shop shop,
+    DailySalesSummary summary,
+    AdminProvider adminProvider,
+  ) {
+    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final avgFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
+    final tickets = summary.totalTicketsSold;
+    final rev = summary.totalRevenue;
+    final avg = summary.averagePricePerTicket;
+    final pricing = shop.pricingConfig;
+    final isBelowTarget = tickets > 0 && avg < pricing.targetBenchmarkMin;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: LiquidGlassColors.surfaceElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: LiquidGlassColors.glassBorderLight,
+              width: 1.2,
+            ),
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 10, bottom: 6),
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: LiquidGlassColors.textMuted.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              // Header bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: LiquidGlassColors.accentViolet.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.storefront_rounded,
+                        color: LiquidGlassColors.accentViolet,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            shop.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: LiquidGlassColors.textPrimary,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: LiquidGlassColors.accentTeal.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: LiquidGlassColors.accentTeal.withValues(alpha: 0.4),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  'CODE: ${shop.code.toUpperCase()}',
+                                  style: const TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                    color: LiquidGlassColors.accentTeal,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Target: ₹${pricing.targetBenchmarkMin.toStringAsFixed(2)}/tix',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: LiquidGlassColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, color: LiquidGlassColors.textSecondary),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Divider(color: LiquidGlassColors.glassBorderSubtle, height: 1),
+
+              // Scrollable content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Quick Metric Bar
+                      LiquidGlassContainer(
+                        borderRadius: 14,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Tickets Sold',
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: LiquidGlassColors.textMuted,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$tickets',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: LiquidGlassColors.accentEmerald,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Revenue',
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: LiquidGlassColors.textMuted,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    currencyFormat.format(rev),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: LiquidGlassColors.accentEmerald,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Avg Price',
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: LiquidGlassColors.textMuted,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    tickets > 0 ? avgFormat.format(avg) : '₹0.00',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: isBelowTarget
+                                          ? Colors.amberAccent
+                                          : (tickets > 0
+                                              ? LiquidGlassColors.accentEmerald
+                                              : LiquidGlassColors.textMuted),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // THE SALES VOLUME BREAKDOWN (BOX PATTERN)
+                      SalesVolumeBreakdownWidget(
+                        summary: summary,
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Optional Action: Mirror terminal for this shop
+                      LiquidGlassButton(
+                        label: 'MIRROR THIS COUNTER LIVE',
+                        icon: Icons.desktop_windows_outlined,
+                        glowColor: LiquidGlassColors.accentTeal,
+                        isFullWidth: true,
+                        height: 40,
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          adminProvider.selectShop(shop.id);
+                          setState(() {
+                            _selectedTab = 0;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
