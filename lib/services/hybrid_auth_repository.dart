@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/app_user.dart';
-import '../models/pricing_config.dart';
 import '../models/shop_model.dart';
 import 'auth_repository.dart';
 import 'firestore_sales_repository.dart';
@@ -202,73 +201,86 @@ class HybridAuthRepository implements AuthRepository {
   Future<AppUser> loginAsShopkeeper({
     required String name,
     String? phoneNumber,
+    String? shopCode,
     String? shopName,
   }) async {
     if (!_initialized) await init();
 
     final cleanName = name.trim();
     if (cleanName.isEmpty) {
-      throw Exception('Please enter shopkeeper name');
+      throw Exception('Please enter staff username');
     }
 
-    String? assignedShopId;
-    String? assignedShopName;
-    final cleanShopName = shopName?.trim() ?? '';
-
-    // Check or create store
-    final existingShops = await _salesRepository.getShops();
-    if (cleanShopName.isNotEmpty) {
-      final match = existingShops.where(
-        (s) =>
-            s.name.toLowerCase() == cleanShopName.toLowerCase() ||
-            s.code.toLowerCase() == cleanShopName.toLowerCase(),
-      );
-      if (match.isNotEmpty) {
-        assignedShopId = match.first.id;
-        assignedShopName = match.first.name;
-        await _salesRepository.setSelectedShopId(assignedShopId);
-      } else {
-        final newId = cleanShopName
-            .toLowerCase()
-            .replaceAll(RegExp(r'[^a-z0-9]'), '_')
-            .replaceAll(RegExp(r'_+'), '_');
-        final shopId = newId.isNotEmpty ? newId : _uuid.v4().substring(0, 8);
-        final code = cleanShopName.length >= 3
-            ? cleanShopName.substring(0, 3).toUpperCase()
-            : 'SHP';
-
-        final newShop = Shop(
-          id: shopId,
-          name: cleanShopName,
-          location: 'Kerala Retail Counter',
-          code: code,
-          pricingConfig: const PricingConfig(
-            singleTicketPrice: 50.0,
-            setPrice12: 570.0,
-            bulkFormula: BulkPricingFormula.proRata,
-            targetBenchmarkMin: 48.30,
-            targetBenchmarkMax: 48.50,
-            claimedAvgPrice: 47.20,
-          ),
-        );
-        await _salesRepository.saveShop(newShop);
-        await _salesRepository.setSelectedShopId(newShop.id);
-        assignedShopId = newShop.id;
-        assignedShopName = newShop.name;
-      }
-    } else if (existingShops.isNotEmpty) {
-      assignedShopId = existingShops.first.id;
-      assignedShopName = existingShops.first.name;
-      await _salesRepository.setSelectedShopId(assignedShopId);
-    } else {
-      assignedShopId = 'kdlr';
-      assignedShopName = 'KDLR Counter';
-      await _salesRepository.setSelectedShopId('kdlr');
-    }
-
+    final rawCodeOrName = (shopCode ?? shopName)?.trim() ?? '';
     final normalizedPhone = phoneNumber?.trim().isNotEmpty == true
         ? phoneNumber!.trim().replaceAll(RegExp(r'\s+'), '')
         : 'STAFF';
+
+    final isMockAdminUser = cleanName.toLowerCase() == 'admin' &&
+        (normalizedPhone == 'admin123' ||
+            (rawCodeOrName.toLowerCase() == 'admin123') ||
+            normalizedPhone == 'STAFF' ||
+            normalizedPhone.isEmpty ||
+            rawCodeOrName.isEmpty);
+
+    final existingShops = await _salesRepository.getShops();
+
+    String assignedShopId;
+    String assignedShopName;
+
+    if (isMockAdminUser) {
+      if (existingShops.isNotEmpty) {
+        assignedShopId = existingShops.first.id;
+        assignedShopName = existingShops.first.name;
+      } else {
+        assignedShopId = 'kdlr';
+        assignedShopName = 'KDLR Counter';
+      }
+      await _salesRepository.setSelectedShopId(assignedShopId);
+
+      final user = AppUser(
+        id: 'mock_staff_admin_account',
+        name: 'admin',
+        phoneNumber: '9999999999',
+        role: UserRole.shopkeeper,
+        shopId: assignedShopId,
+        shopName: assignedShopName,
+        isApproved: true,
+        approvalStatus: ApprovalStatus.approved,
+        isProfileComplete: true,
+        createdAt: DateTime.now(),
+      );
+
+      _usersCache[user.id] = user;
+      await _saveUsersToPrefs();
+
+      _currentUser = user;
+      await _saveCurrentUserToPrefs(user);
+      _authStateController.add(_currentUser);
+      _notifyUsersChanged();
+      return user;
+    }
+
+    if (rawCodeOrName.isEmpty) {
+      throw Exception('Please enter shop code');
+    }
+
+    final match = existingShops.where(
+      (s) =>
+          s.code.trim().toUpperCase() == rawCodeOrName.toUpperCase() ||
+          s.id.trim().toLowerCase() == rawCodeOrName.toLowerCase() ||
+          s.name.trim().toLowerCase() == rawCodeOrName.toLowerCase(),
+    );
+
+    if (match.isEmpty) {
+      throw Exception(
+        'Shop code "$rawCodeOrName" not found. Please ask Admin to register the shop first.',
+      );
+    }
+
+    assignedShopId = match.first.id;
+    assignedShopName = match.first.name;
+    await _salesRepository.setSelectedShopId(assignedShopId);
 
     // Check cloud users first if available
     final salesRepo = _salesRepository;
@@ -292,27 +304,8 @@ class HybridAuthRepository implements AuthRepository {
       }
     }
 
-    final isMockAdminUser = cleanName.toLowerCase() == 'admin' &&
-        (normalizedPhone == 'admin123' ||
-            (shopName?.trim().toLowerCase() == 'admin123') ||
-            normalizedPhone == 'STAFF' ||
-            normalizedPhone.isEmpty);
-
     AppUser user;
-    if (isMockAdminUser) {
-      user = AppUser(
-        id: 'mock_staff_admin_account',
-        name: 'admin',
-        phoneNumber: '9999999999',
-        role: UserRole.shopkeeper,
-        shopId: assignedShopId,
-        shopName: assignedShopName,
-        isApproved: true,
-        approvalStatus: ApprovalStatus.approved,
-        isProfileComplete: true,
-        createdAt: DateTime.now(),
-      );
-    } else if (existingUser != null) {
+    if (existingUser != null) {
       // Retain approval status if for the same shop; if changing shop, mark pending
       final isSameShop = existingUser.shopId == assignedShopId;
       user = existingUser.copyWith(

@@ -18,8 +18,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   // Staff Login controllers
   final _nameController = TextEditingController();
-  final _shopNameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _shopCodeController = TextEditingController();
   final _shopkeeperFormKey = GlobalKey<FormState>();
 
   // Admin Login controllers
@@ -31,8 +30,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _shopNameController.dispose();
-    _phoneController.dispose();
+    _shopCodeController.dispose();
     _adminUsernameController.dispose();
     _adminPasswordController.dispose();
     super.dispose();
@@ -224,12 +222,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Enter your name to open and operate counter sales.',
+              'Enter your username and shop code to connect to your sales counter.',
               style: TextStyle(fontSize: 12, color: LiquidGlassColors.textSecondary),
             ),
             const SizedBox(height: 18),
 
-            // Name TextField (Required)
+            // 1. Staff Username (Required)
             TextFormField(
               controller: _nameController,
               keyboardType: TextInputType.name,
@@ -240,14 +238,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 color: LiquidGlassColors.textPrimary,
               ),
               decoration: _buildInputDecoration(
-                labelText: 'Staff Name',
-                hintText: 'Enter your name',
+                labelText: 'Staff Username',
+                hintText: 'Enter your username / name',
                 icon: Icons.person_outline_rounded,
                 accentColor: LiquidGlassColors.accentEmerald,
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter staff name';
+                  return 'Please enter staff username';
                 }
                 return null;
               },
@@ -255,42 +253,29 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
             const SizedBox(height: 14),
 
-            // Shop / Counter Name (Optional)
+            // 2. Shop Code (Required)
             TextFormField(
-              controller: _shopNameController,
+              controller: _shopCodeController,
               keyboardType: TextInputType.text,
-              textCapitalization: TextCapitalization.words,
+              textCapitalization: TextCapitalization.characters,
               style: const TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
                 color: LiquidGlassColors.textPrimary,
               ),
               decoration: _buildInputDecoration(
-                labelText: 'Shop / Counter Name (Optional)',
-                hintText: 'e.g. Nayarambalam Store',
-                icon: Icons.storefront_outlined,
+                labelText: 'Shop Code',
+                hintText: 'e.g. KDLR, THIRU',
+                icon: Icons.vpn_key_rounded,
                 accentColor: LiquidGlassColors.accentEmerald,
               ),
-            ),
-
-            const SizedBox(height: 14),
-
-            // Mobile Number (Optional)
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              maxLength: 10,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: LiquidGlassColors.textPrimary,
-              ),
-              decoration: _buildInputDecoration(
-                labelText: 'Mobile Number (Optional)',
-                hintText: 'Enter 10-digit number',
-                icon: Icons.phone_android_outlined,
-                accentColor: LiquidGlassColors.accentEmerald,
-              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter shop code';
+                }
+                return null;
+              },
             ),
 
             if (authProvider.errorMessage != null) ...[
@@ -700,14 +685,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       return;
     }
 
+    final shopCode = _shopCodeController.text.trim().toUpperCase();
+
     await authProvider.loginAsShopkeeper(
       name: name,
-      shopName: _shopNameController.text.trim().isNotEmpty
-          ? _shopNameController.text.trim()
-          : null,
-      phoneNumber: _phoneController.text.trim().isNotEmpty
-          ? _phoneController.text.trim()
-          : null,
+      shopCode: shopCode,
     );
   }
 

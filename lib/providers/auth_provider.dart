@@ -96,6 +96,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> loginAsShopkeeper({
     required String name,
     String? phoneNumber,
+    String? shopCode,
     String? shopName,
   }) async {
     _isLoggingIn = true;
@@ -106,6 +107,7 @@ class AuthProvider extends ChangeNotifier {
       final user = await _authRepository.loginAsShopkeeper(
         name: name.trim(),
         phoneNumber: phoneNumber?.trim(),
+        shopCode: shopCode?.trim(),
         shopName: shopName?.trim(),
       );
       _currentUser = user;

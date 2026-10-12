@@ -9,6 +9,7 @@ abstract class AuthRepository {
   Future<AppUser> loginAsShopkeeper({
     required String name,
     String? phoneNumber,
+    String? shopCode,
     String? shopName,
   });
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/daily_sales_summary.dart';
@@ -548,16 +549,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
           const SizedBox(height: 16),
 
-          const Text(
-            'INDIVIDUAL SHOP STATUS & AUDIT SPREAD',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-              color: LiquidGlassColors.textSecondary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'REGISTERED SHOPS & AUDIT SPREAD',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: LiquidGlassColors.textSecondary,
+                ),
+              ),
+              LiquidGlassButton(
+                key: const Key('register_new_shop_button'),
+                label: '+ REGISTER SHOP',
+                icon: Icons.add_business_rounded,
+                glowColor: LiquidGlassColors.accentViolet,
+                isFullWidth: false,
+                height: 34,
+                onPressed: () => _showRegisterShopDialog(context, adminProvider),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
           ListView.separated(
             shrinkWrap: true,
@@ -626,14 +641,74 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                           color: LiquidGlassColors.textPrimary,
                                         ),
                                       ),
-                                      Text(
-                                        shop.code,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w600,
-                                          color: LiquidGlassColors.textSecondary,
-                                        ),
+                                      const SizedBox(height: 3),
+                                      // Prominent Shop Code Badge for Counter Staff
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: LiquidGlassColors.accentTeal.withValues(alpha: 0.16),
+                                              borderRadius: BorderRadius.circular(5),
+                                              border: Border.all(
+                                                color: LiquidGlassColors.accentTeal.withValues(alpha: 0.45),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.vpn_key_rounded,
+                                                  size: 10,
+                                                  color: LiquidGlassColors.accentTeal,
+                                                ),
+                                                const SizedBox(width: 3),
+                                                Text(
+                                                  'CODE: ${shop.code.toUpperCase()}',
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w800,
+                                                    letterSpacing: 0.6,
+                                                    color: LiquidGlassColors.accentTeal,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          InkWell(
+                                            onTap: () {
+                                              Clipboard.setData(ClipboardData(text: shop.code.toUpperCase()));
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  duration: const Duration(seconds: 2),
+                                                  backgroundColor: LiquidGlassColors.surfaceElevated,
+                                                  content: Text(
+                                                    'Shop code "${shop.code.toUpperCase()}" copied to clipboard!',
+                                                    style: const TextStyle(
+                                                      color: LiquidGlassColors.accentTeal,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            borderRadius: BorderRadius.circular(4),
+                                            child: const Padding(
+                                              padding: EdgeInsets.all(2),
+                                              child: Icon(
+                                                Icons.copy_rounded,
+                                                size: 13,
+                                                color: LiquidGlassColors.textMuted,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -874,6 +949,282 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AdminSettingsScreen()),
+    );
+  }
+
+  String _deriveShopCode(String name) {
+    final clean = name.trim();
+    if (clean.isEmpty) return '';
+    final words = clean.split(RegExp(r'\s+'));
+    final firstWord = words.first.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    if (firstWord.length <= 5) {
+      return firstWord.toUpperCase();
+    } else {
+      return firstWord.substring(0, 5).toUpperCase();
+    }
+  }
+
+  InputDecoration _buildDialogInputDecoration({
+    required String labelText,
+    required String hintText,
+    required IconData icon,
+    String? helperText,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      labelStyle: const TextStyle(color: LiquidGlassColors.textSecondary, fontSize: 13),
+      hintText: hintText,
+      hintStyle: const TextStyle(color: LiquidGlassColors.textMuted, fontSize: 13),
+      helperText: helperText,
+      helperStyle: const TextStyle(color: LiquidGlassColors.textMuted, fontSize: 11),
+      prefixIcon: Icon(icon, color: LiquidGlassColors.accentViolet, size: 20),
+      filled: true,
+      fillColor: LiquidGlassColors.glassFillMedium,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: LiquidGlassColors.glassBorderLight),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: LiquidGlassColors.accentViolet, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: LiquidGlassColors.accentRose),
+      ),
+    );
+  }
+
+  void _showRegisterShopDialog(BuildContext context, AdminProvider adminProvider) {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    final codeController = TextEditingController();
+    final locationController = TextEditingController(text: 'Kerala Counter');
+    bool autoGenerateCode = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              backgroundColor: LiquidGlassColors.surfaceElevated,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: LiquidGlassColors.accentViolet.withValues(alpha: 0.35),
+                  width: 1.2,
+                ),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: LiquidGlassColors.accentViolet.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.add_business_rounded,
+                      color: LiquidGlassColors.accentViolet,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Register New Shop',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: LiquidGlassColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 420,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Register an official counter. Staff can join using the unique uppercase Shop Code you configure.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: LiquidGlassColors.textSecondary,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // 1. Shop Name
+                        TextFormField(
+                          controller: nameController,
+                          textCapitalization: TextCapitalization.words,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: LiquidGlassColors.textPrimary,
+                          ),
+                          decoration: _buildDialogInputDecoration(
+                            labelText: 'Shop Name',
+                            hintText: 'e.g. Thiruvonam Counter',
+                            icon: Icons.storefront_rounded,
+                          ),
+                          onChanged: (val) {
+                            if (autoGenerateCode) {
+                              final generated = _deriveShopCode(val);
+                              setDialogState(() {
+                                codeController.text = generated;
+                              });
+                            }
+                          },
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty) {
+                              return 'Please enter shop name';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // 2. Shop Code
+                        TextFormField(
+                          controller: codeController,
+                          textCapitalization: TextCapitalization.characters,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
+                            color: LiquidGlassColors.accentTeal,
+                          ),
+                          decoration: _buildDialogInputDecoration(
+                            labelText: 'Shop Code (Staff Join Code)',
+                            hintText: 'e.g. THIRU',
+                            icon: Icons.vpn_key_rounded,
+                            helperText: 'Staff will enter this code on their login screen.',
+                          ),
+                          onChanged: (val) {
+                            autoGenerateCode = false;
+                          },
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty) {
+                              return 'Please enter shop code';
+                            }
+                            final clean = val.trim().toUpperCase();
+                            if (clean.length < 2) {
+                              return 'Code must be at least 2 characters';
+                            }
+                            final exists = adminProvider.shops.any(
+                              (s) => s.code.toUpperCase() == clean,
+                            );
+                            if (exists) {
+                              return 'Shop code "$clean" is already registered';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // 3. Location (Optional)
+                        TextFormField(
+                          controller: locationController,
+                          textCapitalization: TextCapitalization.words,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: LiquidGlassColors.textPrimary,
+                          ),
+                          decoration: _buildDialogInputDecoration(
+                            labelText: 'Counter Location (Optional)',
+                            hintText: 'e.g. Kozhikode, Kerala',
+                            icon: Icons.location_on_outlined,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: LiquidGlassColors.textSecondary),
+                  ),
+                ),
+                LiquidGlassButton(
+                  label: 'REGISTER SHOP',
+                  icon: Icons.check_circle_outline_rounded,
+                  glowColor: LiquidGlassColors.accentViolet,
+                  isFullWidth: false,
+                  height: 38,
+                  onPressed: () async {
+                    if (!formKey.currentState!.validate()) return;
+
+                    final cleanName = nameController.text.trim();
+                    final cleanCode = codeController.text.trim().toUpperCase();
+                    final cleanLocation = locationController.text.trim().isNotEmpty
+                        ? locationController.text.trim()
+                        : 'Kerala Counter';
+
+                    final idBase = cleanCode.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
+                    final newShopId = adminProvider.shops.any((s) => s.id == idBase)
+                        ? '${idBase}_${DateTime.now().millisecondsSinceEpoch % 10000}'
+                        : idBase;
+
+                    final newShop = Shop(
+                      id: newShopId,
+                      name: cleanName,
+                      location: cleanLocation,
+                      code: cleanCode,
+                      pricingConfig: const PricingConfig(
+                        singleTicketPrice: 50.0,
+                        setPrice12: 570.0,
+                        bulkFormula: BulkPricingFormula.proRata,
+                        targetBenchmarkMin: 48.30,
+                        targetBenchmarkMax: 48.50,
+                        claimedAvgPrice: 47.20,
+                      ),
+                      isActive: true,
+                    );
+
+                    await adminProvider.saveShop(newShop);
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: LiquidGlassColors.surfaceElevated,
+                          content: Text(
+                            'Shop "$cleanName" registered! Staff Join Code: $cleanCode',
+                            style: const TextStyle(
+                              color: LiquidGlassColors.accentEmerald,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

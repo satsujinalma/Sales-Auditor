@@ -37,13 +37,14 @@ void main() {
     test('Unit Test: Direct Shopkeeper Name & Shop login (defaults to pending approval)', () async {
       final salesRepo = MockLiveSalesRepository();
       await salesRepo.init();
+      await salesRepo.saveShop(testShop);
       final authRepo = HybridAuthRepository(salesRepo);
       await authRepo.init();
 
-      // Direct Login as Shopkeeper
+      // Direct Login as Shopkeeper using shopCode
       final user = await authRepo.loginAsShopkeeper(
         name: 'Rajesh Nayarambalam',
-        shopName: 'Nayarambalam Store',
+        shopCode: 'NYR-01',
       );
 
       expect(user.name, 'Rajesh Nayarambalam');
@@ -152,6 +153,7 @@ void main() {
     ) async {
       final salesRepo = MockLiveSalesRepository();
       await salesRepo.init();
+      await salesRepo.saveShop(testShop);
       final authRepo = HybridAuthRepository(salesRepo);
       await authRepo.init();
 
@@ -174,14 +176,14 @@ void main() {
       expect(find.text('Staff Sign In'), findsOneWidget);
       expect(find.text('ENTER SALES'), findsOneWidget);
 
-      // Enter Staff Name & Shop Name
+      // Enter Staff Username & Shop Code
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Staff Name'),
+        find.widgetWithText(TextFormField, 'Staff Username'),
         'Sandeep Nayarambalam',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Shop / Counter Name (Optional)'),
-        'Nayarambalam Store',
+        find.widgetWithText(TextFormField, 'Shop Code'),
+        'NYR-01',
       );
       await tester.pump();
 
@@ -490,6 +492,89 @@ void main() {
       // 5. Must open User Sales Terminal directly with NO approval needed!
       expect(find.text('ONE-TAP SALES ENTRY'), findsOneWidget);
       expect(find.text('Pending Approval'), findsNothing);
+    });
+
+    test('Unit Test: Staff entering non-existent shop code throws error and does NOT create shop in repository', () async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+      final authRepo = HybridAuthRepository(salesRepo);
+      await authRepo.init();
+
+      expect(
+        () => authRepo.loginAsShopkeeper(
+          name: 'Shivane',
+          shopCode: 'Vahemahe',
+        ),
+        throwsA(isA<Exception>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Shop code "Vahemahe" not found'),
+        )),
+      );
+
+      final shops = await salesRepo.getShops();
+      expect(shops.any((s) => s.code.toUpperCase() == 'VAHEMAHE' || s.name == 'Vahemahe'), false);
+    });
+
+    testWidgets('Widget Test: Admin registers new shop in ALL SHOPS tab, code is visible, and staff joins', (tester) async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+      final authRepo = HybridAuthRepository(salesRepo);
+      await authRepo.init();
+
+      // Login as Admin
+      await authRepo.loginWithAdminCredentials(username: 'admin', password: 'vazhapazhamadmin@321');
+
+      final adminProvider = AdminProvider(salesRepo);
+      final authProvider = AuthProvider(authRepo);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: authProvider),
+            ChangeNotifierProvider(create: (_) => SalesProvider(salesRepo)),
+            ChangeNotifierProvider.value(value: adminProvider),
+          ],
+          child: const KeralaLotteryAuditorApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Go to ALL SHOPS tab
+      await tester.tap(find.text('ALL SHOPS'));
+      await tester.pumpAndSettle();
+
+      // Tap + REGISTER SHOP
+      expect(find.byKey(const Key('register_new_shop_button')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('register_new_shop_button')));
+      await tester.pumpAndSettle();
+
+      // Verify register dialog
+      expect(find.text('Register New Shop'), findsOneWidget);
+
+      // Enter Shop Name "Thiruvonam"
+      await tester.enterText(find.widgetWithText(TextFormField, 'Shop Name'), 'Thiruvonam');
+      await tester.pump();
+
+      // Shop code should auto-derive "THIRU"
+      expect(find.text('THIRU'), findsOneWidget);
+
+      // Tap REGISTER SHOP
+      await tester.tap(find.text('REGISTER SHOP'));
+      await tester.pumpAndSettle();
+
+      // Dialog closed, shop code is visible on the shop card!
+      expect(find.text('CODE: THIRU'), findsOneWidget);
+
+      // Now verify staff can login with that code
+      await authRepo.signOut();
+      final staffUser = await authRepo.loginAsShopkeeper(
+        name: 'Shivane',
+        shopCode: 'THIRU',
+      );
+      expect(staffUser.shopName, 'Thiruvonam');
+      expect(staffUser.approvalStatus, ApprovalStatus.pending);
     });
   });
 }

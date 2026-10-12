@@ -108,7 +108,7 @@ class FirestoreSalesRepository implements SalesRepository {
         id: 'kdlr',
         name: 'KDLR Counter',
         location: 'Kerala Retail Counter',
-        code: 'KDL',
+        code: 'KDLR',
         pricingConfig: PricingConfig(),
       ),
     ];

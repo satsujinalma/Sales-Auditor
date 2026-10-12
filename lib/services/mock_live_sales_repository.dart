@@ -49,6 +49,18 @@ class MockLiveSalesRepository implements SalesRepository {
             .toList();
       } else {
         _shops = [];
+      }
+
+      if (_shops.isEmpty) {
+        _shops = [
+          const Shop(
+            id: 'kdlr',
+            name: 'KDLR Counter',
+            location: 'Kerala Retail Counter',
+            code: 'KDLR',
+            pricingConfig: PricingConfig(),
+          ),
+        ];
         await _saveShopsToPrefs(prefs);
       }
 
