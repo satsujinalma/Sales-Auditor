@@ -825,6 +825,40 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           ),
                         ],
                       ),
+                      if (tickets > 0) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: LiquidGlassColors.glassFillMedium,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: LiquidGlassColors.glassBorderSubtle,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Singles: ${summary.singleOrdersCount} orders (${summary.singleTicketsSold} tix)',
+                                style: const TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: LiquidGlassColors.accentEmerald,
+                                ),
+                              ),
+                              Text(
+                                'Sets: ${summary.setOrdersCount} orders (${summary.bulkTicketsSold} tix)',
+                                style: const TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: LiquidGlassColors.accentViolet,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

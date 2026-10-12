@@ -12,6 +12,7 @@ import '../../widgets/glass/liquid_glass_button.dart';
 import '../../widgets/glass/liquid_glass_container.dart';
 import '../../widgets/glass/liquid_glow_background.dart';
 import '../../widgets/recent_transactions_list.dart';
+import '../../widgets/sales_volume_breakdown_widget.dart';
 import '../../widgets/three_output_boxes_widget.dart';
 
 class ShopkeeperSalesScreen extends StatefulWidget {
@@ -342,7 +343,18 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                 // 4. ONE-TAP KEYPAD GRID (1 to 30/36/40)
                 _buildOneTapGrid(context, salesProvider, pricing),
 
-                // 5. AUDIT BENCHMARK MONITOR (Visible only to Admin)
+                const SizedBox(height: 14),
+
+                // 5. SALES VOLUME BREAKDOWN (Box Pattern on Left and Right sides)
+                SalesVolumeBreakdownWidget(
+                  summary: summary,
+                  onSelectTicketCount: (count) {
+                    HapticFeedback.lightImpact();
+                    setState(() => _stagedTickets = count);
+                  },
+                ),
+
+                // 6. AUDIT BENCHMARK MONITOR (Visible only to Admin)
                 if (isAdmin) ...[
                   const SizedBox(height: 14),
                   LiquidGlassContainer(

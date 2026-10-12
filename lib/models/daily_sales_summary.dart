@@ -57,6 +57,28 @@ class DailySalesSummary {
 
   int get totalTransactionsCount => activeTransactions.length;
 
+  /// Map of ticket count -> number of times that volume was purchased (quantities/orders count)
+  Map<int, int> get volumeDistribution {
+    final dist = <int, int>{};
+    for (final t in activeTransactions) {
+      dist[t.ticketCount] = (dist[t.ticketCount] ?? 0) + 1;
+    }
+    return dist;
+  }
+
+  /// Get quantities/times sold for a specific ticket bundle count
+  int volumeCount(int ticketCount) {
+    return activeTransactions.where((t) => t.ticketCount == ticketCount).length;
+  }
+
+  /// Total count of single ticket orders (< 12 tickets and != 6)
+  int get singleOrdersCount =>
+      activeTransactions.where((t) => t.ticketCount < 12 && t.ticketCount != 6).length;
+
+  /// Total count of set / bulk orders (>= 12 tickets or == 6)
+  int get setOrdersCount =>
+      activeTransactions.where((t) => t.ticketCount >= 12 || t.ticketCount == 6).length;
+
   DailySalesSummary copyWith({
     String? shopId,
     DateTime? date,
