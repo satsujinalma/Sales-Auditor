@@ -9,6 +9,8 @@ import 'package:sales_auditor/providers/auth_provider.dart';
 import 'package:sales_auditor/providers/sales_provider.dart';
 import 'package:sales_auditor/services/hybrid_auth_repository.dart';
 import 'package:sales_auditor/services/mock_live_sales_repository.dart';
+import 'package:sales_auditor/models/pricing_config.dart';
+import 'package:sales_auditor/models/shop_model.dart';
 import 'package:sales_auditor/widgets/sales_volume_breakdown_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -236,6 +238,131 @@ void main() {
 
       // Now we should be on Mirror mode
       expect(find.text('Live Audit Mode'), findsOneWidget);
+    });
+
+    test('Unit Test: AdminProvider.resetShopSales resets only the target shop and keeps other shops intact', () async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+
+      // Register a second shop
+      await salesRepo.saveShop(
+        const Shop(
+          id: 'thiru',
+          name: 'Thiruvonam',
+          location: 'Thiruvonam',
+          code: 'THIRU',
+          pricingConfig: PricingConfig(),
+        ),
+      );
+
+      final adminProvider = AdminProvider(salesRepo);
+      // Wait for adminProvider to initialize summaries
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final shops = adminProvider.shops;
+      expect(shops.length, greaterThanOrEqualTo(2));
+      final shop1 = shops[0]; // KDLR
+      final shop2 = shops[1]; // Thiruvonam
+
+      // Record sales for both shops
+      await salesRepo.recordSale(
+        shopId: shop1.id,
+        ticketCount: 12,
+        config: shop1.pricingConfig,
+      );
+      await salesRepo.recordSale(
+        shopId: shop2.id,
+        ticketCount: 5,
+        config: shop2.pricingConfig,
+      );
+
+      // Verify both shops have sales
+      final summary1Before = await salesRepo.getDailySales(shop1.id, DateTime.now());
+      final summary2Before = await salesRepo.getDailySales(shop2.id, DateTime.now());
+      expect(summary1Before.totalTicketsSold, 12);
+      expect(summary2Before.totalTicketsSold, 5);
+
+      // Reset only shop1
+      await adminProvider.resetShopSales(shop1.id);
+
+      // Verify shop1 is reset to 0
+      final summary1After = await salesRepo.getDailySales(shop1.id, DateTime.now());
+      expect(summary1After.totalTicketsSold, 0);
+      expect(summary1After.totalRevenue, 0.0);
+      expect(adminProvider.allShopSummaries[shop1.id]?.totalTicketsSold, 0);
+
+      // Verify shop2 is completely untouched
+      final summary2After = await salesRepo.getDailySales(shop2.id, DateTime.now());
+      expect(summary2After.totalTicketsSold, 5);
+      expect(summary2After.totalRevenue, 250.0);
+      expect(adminProvider.allShopSummaries[shop2.id]?.totalTicketsSold, 5);
+    });
+
+    testWidgets('Widget Test: In Admin Dashboard shop modal, tapping RESET SALES button opens confirmation dialog and confirming resets only that shop\'s figures', (tester) async {
+      final salesRepo = MockLiveSalesRepository();
+      await salesRepo.init();
+
+      // Record a sale in KDLR
+      final shops = await salesRepo.getShops();
+      final defaultShop = shops.first;
+      await salesRepo.recordSale(
+        shopId: defaultShop.id,
+        ticketCount: 12,
+        config: defaultShop.pricingConfig,
+      );
+
+      final authRepo = HybridAuthRepository(salesRepo);
+      await authRepo.init();
+
+      // Login as Admin
+      await authRepo.loginWithAdminCredentials(username: 'admin', password: 'vazhapazhamadmin@321');
+
+      final adminProvider = AdminProvider(salesRepo);
+      final authProvider = AuthProvider(authRepo);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: authProvider),
+            ChangeNotifierProvider(create: (_) => SalesProvider(salesRepo)),
+            ChangeNotifierProvider.value(value: adminProvider),
+          ],
+          child: const KeralaLotteryAuditorApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Go to ALL SHOPS tab
+      await tester.tap(find.text('ALL SHOPS'));
+      await tester.pumpAndSettle();
+
+      // Tap on KDLR Counter
+      await tester.tap(find.text('KDLR Counter'));
+      await tester.pumpAndSettle();
+
+      // Modal is open, verify 12 tickets recorded
+      expect(find.text('SALES VOLUME BREAKDOWN'), findsOneWidget);
+      expect(find.byKey(const Key('reset_shop_data_button')), findsOneWidget);
+
+      // Scroll to make sure reset button is visible and tap it
+      await tester.ensureVisible(find.byKey(const Key('reset_shop_data_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('reset_shop_data_button')));
+      await tester.pumpAndSettle();
+
+      // Verify Confirmation Dialog appears
+      expect(find.text('Reset Shop Sales?'), findsOneWidget);
+      expect(find.text('KDLR Counter (KDLR)'), findsOneWidget);
+      expect(find.text('12 Tickets'), findsWidgets);
+      expect(find.text('• Only this specific shop\'s sales will be cleared.\n• Other counters will NOT be affected.\n• Action is performed manually after admin review.'), findsOneWidget);
+
+      // Tap Confirm Reset
+      await tester.tap(find.byKey(const Key('confirm_reset_shop_data_button')));
+      await tester.pumpAndSettle();
+
+      // Verify SnackBar appears and modal shows 0 tickets sold
+      expect(find.text('Sales data for "KDLR Counter" has been reset to 0.'), findsOneWidget);
     });
   });
 }

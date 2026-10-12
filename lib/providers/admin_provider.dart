@@ -148,6 +148,21 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> resetShopSales(String shopId) async {
+    try {
+      await _repository.resetDaySales(shopId);
+      final resetSummary = DailySalesSummary(shopId: shopId, date: DateTime.now());
+      _allShopSummaries[shopId] = resetSummary;
+      if (_selectedShopId == shopId) {
+        _selectedShopSummary = resetSummary;
+      }
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to reset sales: $e';
+      notifyListeners();
+    }
+  }
+
   Future<void> updatePin(String newPin) async {
     try {
       await _repository.updateAdminPin(newPin);

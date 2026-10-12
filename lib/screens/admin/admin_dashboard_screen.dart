@@ -1280,319 +1280,554 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     DailySalesSummary summary,
     AdminProvider adminProvider,
   ) {
-    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
-    final avgFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
-    final tickets = summary.totalTicketsSold;
-    final rev = summary.totalRevenue;
-    final avg = summary.averagePricePerTicket;
-    final pricing = shop.pricingConfig;
-    final isBelowTarget = tickets > 0 && avg < pricing.targetBenchmarkMin;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Container(
-          decoration: BoxDecoration(
-            color: LiquidGlassColors.surfaceElevated,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(
-              color: LiquidGlassColors.glassBorderLight,
-              width: 1.2,
-            ),
-          ),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.88,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag handle
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 10, bottom: 6),
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: LiquidGlassColors.textMuted.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+        return Consumer<AdminProvider>(
+          builder: (modalCtx, provider, child) {
+            final currentSummary = provider.allShopSummaries[shop.id] ??
+                DailySalesSummary(shopId: shop.id, date: DateTime.now());
+            final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+            final avgFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
+            final tickets = currentSummary.totalTicketsSold;
+            final rev = currentSummary.totalRevenue;
+            final avg = currentSummary.averagePricePerTicket;
+            final pricing = shop.pricingConfig;
+            final isBelowTarget = tickets > 0 && avg < pricing.targetBenchmarkMin;
+            final activeOrdersCount = currentSummary.activeTransactions.length;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: LiquidGlassColors.surfaceElevated,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(
+                  color: LiquidGlassColors.glassBorderLight,
+                  width: 1.2,
                 ),
               ),
-
-              // Header bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(7),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.88,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 10, bottom: 6),
+                      width: 36,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: LiquidGlassColors.accentViolet.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.storefront_rounded,
-                        color: LiquidGlassColors.accentViolet,
-                        size: 20,
+                        color: LiquidGlassColors.textMuted.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            shop.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: LiquidGlassColors.textPrimary,
-                            ),
+                  ),
+
+                  // Header bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: LiquidGlassColors.accentViolet.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          Row(
+                          child: const Icon(
+                            Icons.storefront_rounded,
+                            color: LiquidGlassColors.accentViolet,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: LiquidGlassColors.accentTeal.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: LiquidGlassColors.accentTeal.withValues(alpha: 0.4),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Text(
-                                  'CODE: ${shop.code.toUpperCase()}',
-                                  style: const TextStyle(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
-                                    color: LiquidGlassColors.accentTeal,
-                                  ),
+                              Text(
+                                shop.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: LiquidGlassColors.textPrimary,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Target: ₹${pricing.targetBenchmarkMin.toStringAsFixed(2)}/tix',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: LiquidGlassColors.textSecondary,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: LiquidGlassColors.accentTeal.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: LiquidGlassColors.accentTeal.withValues(alpha: 0.4),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'CODE: ${shop.code.toUpperCase()}',
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                        color: LiquidGlassColors.accentTeal,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Target: ₹${pricing.targetBenchmarkMin.toStringAsFixed(2)}/tix',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: LiquidGlassColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
+                          ),
+                        ),
+                        // Quick Reset Shop Data Button in Header
+                        IconButton(
+                          key: const Key('reset_shop_data_icon_button'),
+                          tooltip: 'Reset ${shop.name} Sales Data',
+                          icon: const Icon(
+                            Icons.restart_alt_rounded,
+                            color: LiquidGlassColors.accentRose,
+                            size: 21,
+                          ),
+                          onPressed: () => _confirmResetShopData(
+                            ctx,
+                            shop,
+                            currentSummary,
+                            provider,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, color: LiquidGlassColors.textSecondary),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Divider(color: LiquidGlassColors.glassBorderSubtle, height: 1),
+
+                  // Scrollable content
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // 1. Live Audit Benchmark Health Pill
+                          if (tickets > 0)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: isBelowTarget
+                                    ? const Color(0xFFFFE4E6)
+                                    : const Color(0xFFECFDF5),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isBelowTarget
+                                      ? const Color(0xFFFDA4AF)
+                                      : const Color(0xFFA7F3D0),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isBelowTarget
+                                        ? Icons.warning_amber_rounded
+                                        : Icons.verified_rounded,
+                                    size: 16,
+                                    color: isBelowTarget
+                                        ? const Color(0xFFE11D48)
+                                        : const Color(0xFF059669),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      isBelowTarget
+                                          ? 'Audit Alert: Live Avg ₹${avg.toStringAsFixed(2)} is ₹${((pricing.targetBenchmarkMin - avg)).abs().toStringAsFixed(2)} below target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})'
+                                      : 'Audit Healthy: Live Avg ₹${avg.toStringAsFixed(2)} achieves profit target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: isBelowTarget
+                                            ? const Color(0xFF9F1239)
+                                            : const Color(0xFF065F46),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          // 2. Quick Metric Bar
+                          LiquidGlassContainer(
+                            borderRadius: 14,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Tickets Sold',
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: LiquidGlassColors.textMuted,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '$tickets',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w900,
+                                          color: LiquidGlassColors.accentEmerald,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$activeOrdersCount orders',
+                                        style: const TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w500,
+                                          color: LiquidGlassColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Revenue',
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: LiquidGlassColors.textMuted,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        currencyFormat.format(rev),
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w900,
+                                          color: LiquidGlassColors.accentEmerald,
+                                        ),
+                                      ),
+                                      Text(
+                                        activeOrdersCount > 0
+                                            ? '₹${(rev / activeOrdersCount).round()}/ord'
+                                            : '₹0/ord',
+                                        style: const TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w500,
+                                          color: LiquidGlassColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Avg Price',
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: LiquidGlassColors.textMuted,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        tickets > 0 ? avgFormat.format(avg) : '₹0.00',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w900,
+                                          color: isBelowTarget
+                                              ? const Color(0xFFE11D48)
+                                              : (tickets > 0
+                                                  ? LiquidGlassColors.accentEmerald
+                                                  : LiquidGlassColors.textMuted),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Target ₹${pricing.targetBenchmarkMin.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w500,
+                                          color: LiquidGlassColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // THE SALES VOLUME BREAKDOWN (BOX PATTERN)
+                          SalesVolumeBreakdownWidget(
+                            summary: currentSummary,
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // 1. Mirror terminal for this shop
+                          LiquidGlassButton(
+                            label: 'MIRROR THIS COUNTER LIVE',
+                            icon: Icons.desktop_windows_outlined,
+                            glowColor: LiquidGlassColors.accentTeal,
+                            isFullWidth: true,
+                            height: 40,
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              provider.selectShop(shop.id);
+                              setState(() {
+                                _selectedTab = 0;
+                              });
+                            },
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // 2. Reset Shop Data Button (Admin manual reset after checking)
+                          LiquidGlassButton(
+                            key: const Key('reset_shop_data_button'),
+                            label: 'RESET ${shop.name.toUpperCase()} SALES',
+                            icon: Icons.restart_alt_rounded,
+                            glowColor: LiquidGlassColors.accentRose,
+                            isFullWidth: true,
+                            height: 40,
+                            onPressed: () => _confirmResetShopData(
+                              ctx,
+                              shop,
+                              currentSummary,
+                              provider,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, color: LiquidGlassColors.textSecondary),
-                      onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Dialog allowing admin to manually reset sales data for a specific shop after checking
+  void _confirmResetShopData(
+    BuildContext modalContext,
+    Shop shop,
+    DailySalesSummary summary,
+    AdminProvider adminProvider,
+  ) {
+    final currencyFormat =
+        NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final tickets = summary.totalTicketsSold;
+    final rev = summary.totalRevenue;
+
+    showDialog(
+      context: modalContext,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          backgroundColor: LiquidGlassColors.surfaceElevated,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          titlePadding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+          contentPadding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
+          actionsPadding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: LiquidGlassColors.accentRose.withValues(alpha: 0.4),
+              width: 1.2,
+            ),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: LiquidGlassColors.accentRose.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: LiquidGlassColors.accentRose,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Reset Shop Sales?',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: LiquidGlassColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      '${shop.name} (${shop.code.toUpperCase()})',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: LiquidGlassColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ),
-
-              const Divider(color: LiquidGlassColors.glassBorderSubtle, height: 1),
-
-              // Scrollable content
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // 1. Live Audit Benchmark Health Pill
-                      if (tickets > 0)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: isBelowTarget
-                                ? const Color(0xFFFFE4E6)
-                                : const Color(0xFFECFDF5),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isBelowTarget
-                                  ? const Color(0xFFFDA4AF)
-                                  : const Color(0xFFA7F3D0),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                isBelowTarget
-                                    ? Icons.warning_amber_rounded
-                                    : Icons.verified_rounded,
-                                size: 16,
-                                color: isBelowTarget
-                                    ? const Color(0xFFE11D48)
-                                    : const Color(0xFF059669),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  isBelowTarget
-                                      ? 'Audit Alert: Live Avg ₹${avg.toStringAsFixed(2)} is ₹${((pricing.targetBenchmarkMin - avg)).abs().toStringAsFixed(2)} below target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})'
-                                      : 'Audit Healthy: Live Avg ₹${avg.toStringAsFixed(2)} achieves profit target (₹${pricing.targetBenchmarkMin.toStringAsFixed(2)})',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: isBelowTarget
-                                        ? const Color(0xFF9F1239)
-                                        : const Color(0xFF065F46),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      // 2. Quick Metric Bar
-                      LiquidGlassContainer(
-                        borderRadius: 14,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Tickets Sold',
-                                    style: TextStyle(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: LiquidGlassColors.textMuted,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$tickets',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w900,
-                                      color: LiquidGlassColors.accentEmerald,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${summary.activeTransactions.length} orders',
-                                    style: const TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w500,
-                                      color: LiquidGlassColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Revenue',
-                                    style: TextStyle(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: LiquidGlassColors.textMuted,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    currencyFormat.format(rev),
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w900,
-                                      color: LiquidGlassColors.accentEmerald,
-                                    ),
-                                  ),
-                                  Text(
-                                    summary.activeTransactions.isNotEmpty
-                                        ? '₹${(rev / summary.activeTransactions.length).round()}/ord'
-                                        : '₹0/ord',
-                                    style: const TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w500,
-                                      color: LiquidGlassColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Avg Price',
-                                    style: TextStyle(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: LiquidGlassColors.textMuted,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    tickets > 0 ? avgFormat.format(avg) : '₹0.00',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w900,
-                                      color: isBelowTarget
-                                          ? const Color(0xFFE11D48)
-                                          : (tickets > 0
-                                              ? LiquidGlassColors.accentEmerald
-                                              : LiquidGlassColors.textMuted),
-                                    ),
-                                  ),
-                                  Text(
-                                    'Target ₹${pricing.targetBenchmarkMin.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w500,
-                                      color: LiquidGlassColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // THE SALES VOLUME BREAKDOWN (BOX PATTERN)
-                      SalesVolumeBreakdownWidget(
-                        summary: summary,
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // Optional Action: Mirror terminal for this shop
-                      LiquidGlassButton(
-                        label: 'MIRROR THIS COUNTER LIVE',
-                        icon: Icons.desktop_windows_outlined,
-                        glowColor: LiquidGlassColors.accentTeal,
-                        isFullWidth: true,
-                        height: 40,
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          adminProvider.selectShop(shop.id);
-                          setState(() {
-                            _selectedTab = 0;
-                          });
-                        },
-                      ),
-                    ],
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to reset recorded sales for "${shop.name}"?',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: LiquidGlassColors.textPrimary,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFE4E6),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFFDA4AF),
                   ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Tickets to Reset',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF9F1239)),
+                        ),
+                        Text(
+                          '$tickets Tickets',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF9F1239),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Revenue to Reset',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF9F1239)),
+                        ),
+                        Text(
+                          currencyFormat.format(rev),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF9F1239),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '• Only this specific shop\'s sales will be cleared.\n• Other counters will NOT be affected.\n• Action is performed manually after admin review.',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: LiquidGlassColors.textSecondary,
+                  height: 1.4,
                 ),
               ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: LiquidGlassColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            LiquidGlassButton(
+              key: const Key('confirm_reset_shop_data_button'),
+              label: 'CONFIRM RESET',
+              icon: Icons.delete_forever_rounded,
+              glowColor: LiquidGlassColors.accentRose,
+              isFullWidth: false,
+              height: 38,
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                await adminProvider.resetShopSales(shop.id);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: LiquidGlassColors.surfaceElevated,
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle_outline,
+                            color: LiquidGlassColors.accentEmerald, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Sales data for "${shop.name}" has been reset to 0.',
+                            style: const TextStyle(
+                              color: LiquidGlassColors.accentEmerald,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         );
       },
     );
