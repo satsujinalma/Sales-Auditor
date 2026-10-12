@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/app_user.dart';
+import '../../models/daily_sales_summary.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sales_provider.dart';
 import '../../services/pricing_calculator.dart';
@@ -241,13 +242,17 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. TOP CUMULATIVE & METRICS STRIP (Visible only to Admin; completely hidden for counter staff/user)
+                // 1. TOP CUMULATIVE & METRICS STRIP
                 if (isAdmin) ...[
                   ThreeOutputBoxesWidget(
                     summary: summary,
                     isAdmin: true,
                   ),
                   const SizedBox(height: 12),
+                ] else ...[
+                  // User Section: Total tickets entered by user - ONLY THAT
+                  _buildUserTotalTicketsTally(summary),
+                  const SizedBox(height: 10),
                 ],
 
                 // 2. CURRENT CUSTOMER SALE STAGING BOX
@@ -482,6 +487,104 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUserTotalTicketsTally(DailySalesSummary summary) {
+    return LiquidGlassContainer(
+      borderRadius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.confirmation_number_outlined,
+                    size: 16,
+                    color: LiquidGlassColors.accentEmerald,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'TOTAL TICKETS ENTERED',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                          color: LiquidGlassColors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(height: 1),
+                      Text(
+                        'Today\'s sales count',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w600,
+                          color: LiquidGlassColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.35),
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '${summary.totalTicketsSold}',
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
+                    color: LiquidGlassColors.accentEmerald,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'tickets',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: LiquidGlassColors.accentEmerald,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -817,7 +920,7 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                     ),
                     SizedBox(width: 6),
                     Text(
-                      'TAP NUMBER BELOW TO STAGE SALE',
+                      'TAP NUMBER TO ENTER SALE',
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w800,

@@ -189,6 +189,10 @@ void main() {
     // 1. Verify Top-Right Undo button exists in the AppBar
     expect(find.byKey(const Key('top_right_undo_button')), findsOneWidget);
 
+    // Verify empty state placeholder button text and Total Tickets Entered tally
+    expect(find.text('TAP NUMBER TO ENTER SALE'), findsOneWidget);
+    expect(find.text('TOTAL TICKETS ENTERED'), findsOneWidget);
+
     // 2. Measure height of New Customer box when empty
     final boxBeforeSelection = find.byKey(const Key('staged_order_box'));
     final sizeBefore = tester.getSize(boxBeforeSelection);
@@ -210,9 +214,10 @@ void main() {
     await tester.tap(enterSaleBtn);
     await tester.pumpAndSettle();
 
-    // Verify sale registered in repository
+    // Verify sale registered in repository and tally updated
     final summaryAfterSale = await repository.getDailySales(testShop.id, DateTime.now());
     expect(summaryAfterSale.totalTicketsSold, 5);
+    expect(find.text('TOTAL TICKETS ENTERED'), findsOneWidget);
 
     // 6. Tap the Top-Right Undo button in the AppBar
     await tester.tap(find.byKey(const Key('top_right_undo_button')));
