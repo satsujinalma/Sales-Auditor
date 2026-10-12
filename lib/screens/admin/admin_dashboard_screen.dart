@@ -435,9 +435,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ? totalNetworkRevenue / totalNetworkTickets
         : 0.0;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
+    return RefreshIndicator(
+      color: LiquidGlassColors.accentViolet,
+      backgroundColor: LiquidGlassColors.surfaceElevated,
+      onRefresh: () => adminProvider.refreshAllShopSummaries(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(12),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Network Total Card
@@ -901,7 +906,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           const SizedBox(height: 20),
         ],
       ),
-    );
+    ),
+  );
   }
 
   void _openSettings(AdminProvider provider) async {
@@ -1390,22 +1396,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ],
                               ),
                             ],
-                          ),
-                        ),
-                        // Quick Reset Shop Data Button in Header
-                        IconButton(
-                          key: const Key('reset_shop_data_icon_button'),
-                          tooltip: 'Reset ${shop.name} Sales Data',
-                          icon: const Icon(
-                            Icons.restart_alt_rounded,
-                            color: LiquidGlassColors.accentRose,
-                            size: 21,
-                          ),
-                          onPressed: () => _confirmResetShopData(
-                            ctx,
-                            shop,
-                            currentSummary,
-                            provider,
                           ),
                         ),
                         IconButton(

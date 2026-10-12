@@ -82,20 +82,33 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
-  void _updateMultiShopSubscriptions() {
+  Future<void> _updateMultiShopSubscriptions() async {
     for (final sub in _multiShopSubscriptions.values) {
       sub.cancel();
     }
     _multiShopSubscriptions.clear();
 
     for (final shop in _shops) {
+      // Ensure we immediately have the current daily summary in memory
+      try {
+        final summary = await _repository.getDailySales(shop.id, DateTime.now());
+        _allShopSummaries[shop.id] = summary;
+        if (_selectedShopId == shop.id) {
+          _selectedShopSummary = summary;
+        }
+      } catch (_) {}
+
       _multiShopSubscriptions[shop.id] = _repository
           .watchDailySales(shop.id, DateTime.now())
           .listen((summary) {
         _allShopSummaries[shop.id] = summary;
+        if (_selectedShopId == shop.id) {
+          _selectedShopSummary = summary;
+        }
         notifyListeners();
       });
     }
+    notifyListeners();
   }
 
   void _subscribeToSelectedShop(String shopId) {
@@ -103,17 +116,45 @@ class AdminProvider extends ChangeNotifier {
     _selectedShopSalesSubscription = _repository
         .watchDailySales(shopId, DateTime.now())
         .listen((summary) {
-      _selectedShopSummary = summary;
+      if (_selectedShopId == shopId) {
+        _selectedShopSummary = summary;
+      }
+      _allShopSummaries[shopId] = summary;
       notifyListeners();
     });
   }
 
-  void selectShop(String shopId) {
+  Future<void> selectShop(String shopId) async {
     if (_selectedShopId != shopId) {
       _selectedShopId = shopId;
+      if (_allShopSummaries.containsKey(shopId) && _allShopSummaries[shopId] != null) {
+        _selectedShopSummary = _allShopSummaries[shopId]!;
+      } else {
+        try {
+          final summary = await _repository.getDailySales(shopId, DateTime.now());
+          _allShopSummaries[shopId] = summary;
+          _selectedShopSummary = summary;
+        } catch (_) {
+          _selectedShopSummary = DailySalesSummary(shopId: shopId, date: DateTime.now());
+        }
+      }
       _subscribeToSelectedShop(shopId);
       notifyListeners();
     }
+  }
+
+  Future<void> refreshAllShopSummaries() async {
+    try {
+      _shops = await _repository.getShops();
+      for (final shop in _shops) {
+        final summary = await _repository.getDailySales(shop.id, DateTime.now());
+        _allShopSummaries[shop.id] = summary;
+        if (_selectedShopId == shop.id) {
+          _selectedShopSummary = summary;
+        }
+      }
+      notifyListeners();
+    } catch (_) {}
   }
 
   Future<bool> verifyPin(String pin) async {
@@ -141,6 +182,11 @@ class AdminProvider extends ChangeNotifier {
   Future<void> saveShop(Shop shop) async {
     try {
       await _repository.saveShop(shop);
+      _allShopSummaries.putIfAbsent(
+        shop.id,
+        () => DailySalesSummary(shopId: shop.id, date: DateTime.now()),
+      );
+      await _updateMultiShopSubscriptions();
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to save shop: $e';
@@ -156,6 +202,17 @@ class AdminProvider extends ChangeNotifier {
       if (_selectedShopId == shopId) {
         _selectedShopSummary = resetSummary;
       }
+
+      // Proactively refresh all OTHER shops to guarantee their figures remain 100% visible and uncorrupted
+      for (final s in _shops) {
+        if (s.id != shopId) {
+          try {
+            final otherSummary = await _repository.getDailySales(s.id, DateTime.now());
+            _allShopSummaries[s.id] = otherSummary;
+          } catch (_) {}
+        }
+      }
+
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to reset sales: $e';

@@ -140,8 +140,10 @@ class MockLiveSalesRepository implements SalesRepository {
   }
 
   @override
-  Stream<List<Shop>> watchShops() {
-    return _shopsStreamController.stream;
+  Stream<List<Shop>> watchShops() async* {
+    if (!_initialized) await init();
+    yield List.unmodifiable(_shops);
+    yield* _shopsStreamController.stream;
   }
 
   @override
@@ -185,8 +187,11 @@ class MockLiveSalesRepository implements SalesRepository {
   }
 
   @override
-  Stream<DailySalesSummary> watchDailySales(String shopId, DateTime date) {
-    return _getSalesController(shopId, date).stream;
+  Stream<DailySalesSummary> watchDailySales(String shopId, DateTime date) async* {
+    if (!_initialized) await init();
+    final key = _cacheKey(shopId, date);
+    yield _salesCache[key] ?? DailySalesSummary(shopId: shopId, date: date);
+    yield* _getSalesController(shopId, date).stream;
   }
 
   @override

@@ -171,11 +171,28 @@ class FirestoreSalesRepository implements SalesRepository {
   @override
   Future<DailySalesSummary> getDailySales(String shopId, DateTime date) async {
     final docId = _docId(shopId, date);
-    final doc = await _dailySalesRef.doc(docId).get();
-    if (!doc.exists || doc.data() == null) {
-      return DailySalesSummary(shopId: shopId, date: date);
+    try {
+      final doc = await _dailySalesRef
+          .doc(docId)
+          .get()
+          .timeout(const Duration(seconds: 3));
+      if (doc.exists && doc.data() != null) {
+        return DailySalesSummary.fromJson(doc.data()!);
+      }
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository.getDailySales server fetch error: $e');
     }
-    return DailySalesSummary.fromJson(doc.data()!);
+
+    try {
+      final cached = await _dailySalesRef
+          .doc(docId)
+          .get(const GetOptions(source: Source.cache));
+      if (cached.exists && cached.data() != null) {
+        return DailySalesSummary.fromJson(cached.data()!);
+      }
+    } catch (_) {}
+
+    return DailySalesSummary(shopId: shopId, date: date);
   }
 
   @override
