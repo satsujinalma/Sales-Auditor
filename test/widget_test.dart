@@ -154,4 +154,73 @@ void main() {
     expect(find.text('BOX 1'), findsOneWidget);
     expect(find.text('SALES & PROFIT AUDIT'), findsOneWidget);
   });
+
+  testWidgets(
+      'New Customer box maintains fixed height (154px) and Top-Right Undo button cancels sale',
+      (WidgetTester tester) async {
+    final repository = MockLiveSalesRepository();
+    await repository.init();
+    await repository.saveShop(testShop);
+    await repository.setSelectedShopId(testShop.id);
+    await repository.resetDaySales('nayarambalam');
+
+    final authRepository = HybridAuthRepository(repository);
+    await authRepository.init();
+    final user = await authRepository.loginAsShopkeeper(
+      name: 'Test Staff',
+      shopName: 'Nayarambalam Store',
+    );
+    await authRepository.approveUser(user.id);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider(authRepository)),
+          ChangeNotifierProvider(create: (_) => SalesProvider(repository)),
+          ChangeNotifierProvider(create: (_) => AdminProvider(repository)),
+        ],
+        child: const KeralaLotteryAuditorApp(),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // 1. Verify Top-Right Undo button exists in the AppBar
+    expect(find.byKey(const Key('top_right_undo_button')), findsOneWidget);
+
+    // 2. Measure height of New Customer box when empty
+    final boxBeforeSelection = find.byKey(const Key('staged_order_box'));
+    final sizeBefore = tester.getSize(boxBeforeSelection);
+    expect(sizeBefore.height, 154.0);
+
+    // 3. Stage 5 tickets
+    final btn5 = find.widgetWithText(InkWell, '5').first;
+    await tester.tap(btn5);
+    await tester.pumpAndSettle();
+
+    // 4. Measure height of box when 5 tickets are staged (MUST BE IDENTICAL 154.0)
+    final boxAfterSelection = find.byKey(const Key('staged_order_box'));
+    final sizeAfter = tester.getSize(boxAfterSelection);
+    expect(sizeAfter.height, 154.0);
+
+    // 5. Enter the sale
+    final enterSaleBtn = find.text('ENTER SALE • ₹250');
+    expect(enterSaleBtn, findsOneWidget);
+    await tester.tap(enterSaleBtn);
+    await tester.pumpAndSettle();
+
+    // Verify sale registered in repository
+    final summaryAfterSale = await repository.getDailySales(testShop.id, DateTime.now());
+    expect(summaryAfterSale.totalTicketsSold, 5);
+
+    // 6. Tap the Top-Right Undo button in the AppBar
+    await tester.tap(find.byKey(const Key('top_right_undo_button')));
+    await tester.pumpAndSettle();
+
+    // 7. Verify sale cancelled via top-right undo
+    final summaryAfterUndo = await repository.getDailySales(testShop.id, DateTime.now());
+    expect(summaryAfterUndo.totalTicketsSold, 0);
+    expect(summaryAfterUndo.totalRevenue, 0.0);
+  });
 }

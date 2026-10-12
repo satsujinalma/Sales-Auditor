@@ -154,6 +154,65 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
           ],
         ),
         actions: [
+          // Small Undo Option on Top Right
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Tooltip(
+                message: 'Undo Last Sale',
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    key: const Key('top_right_undo_button'),
+                    onTap: () => _handleUndo(salesProvider),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: (summary.transactions.any((t) => !t.isCancelled) ||
+                                salesProvider.lastRecordedTx != null)
+                            ? LiquidGlassColors.accentRose.withValues(alpha: 0.12)
+                            : LiquidGlassColors.glassFillMedium,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: (summary.transactions.any((t) => !t.isCancelled) ||
+                                  salesProvider.lastRecordedTx != null)
+                              ? LiquidGlassColors.accentRose.withValues(alpha: 0.35)
+                              : LiquidGlassColors.glassBorderLight,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.undo_rounded,
+                            size: 15,
+                            color: (summary.transactions.any((t) => !t.isCancelled) ||
+                                    salesProvider.lastRecordedTx != null)
+                                ? LiquidGlassColors.accentRose
+                                : LiquidGlassColors.textMuted,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Undo',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: (summary.transactions.any((t) => !t.isCancelled) ||
+                                      salesProvider.lastRecordedTx != null)
+                                  ? LiquidGlassColors.accentRose
+                                  : LiquidGlassColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           if (isAdmin)
             IconButton(
               tooltip: 'Switch Shop Terminal',
@@ -434,183 +493,257 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
     PriceCalculationResult? calc,
   ) {
     final isStaged = _stagedTickets != null && _stagedTickets! > 0 && calc != null;
+    final summary = provider.todaySummary;
+    final canUndo = summary.transactions.any((t) => !t.isCancelled) ||
+        provider.lastRecordedTx != null;
 
-    return LiquidGlassContainer(
-      borderRadius: 18,
-      padding: const EdgeInsets.all(14),
-      fillColor: isStaged
-          ? const Color(0xFFF0FDF4)
-          : Colors.white.withValues(alpha: 0.85),
-      border: Border.all(
-        color: isStaged
-            ? const Color(0xFF10B981)
-            : Colors.white.withValues(alpha: 0.95),
-        width: isStaged ? 1.5 : 1.2,
-      ),
-      shadows: isStaged
-          ? [
-              BoxShadow(
-                color: const Color(0xFF10B981).withValues(alpha: 0.18),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.95),
-                blurRadius: 0,
-                offset: const Offset(0, -1),
-              ),
-            ]
-          : null,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isStaged
-                            ? LiquidGlassColors.accentEmerald
-                            : LiquidGlassColors.glassFillLight,
-                        borderRadius: BorderRadius.circular(6),
-                        border: isStaged
-                            ? null
-                            : Border.all(color: LiquidGlassColors.glassBorderLight),
-                      ),
-                      child: Text(
-                        isStaged ? 'CURRENT CUSTOMER' : 'NEW CUSTOMER',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          color: isStaged ? Colors.white : LiquidGlassColors.textSecondary,
-                          letterSpacing: 0.5,
+    return SizedBox(
+      key: const Key('staged_order_box'),
+      height: 154, // Fixed exact height: prevents any layout shifting or compression
+      child: LiquidGlassContainer(
+        borderRadius: 18,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        fillColor: isStaged
+            ? const Color(0xFFF0FDF4)
+            : Colors.white.withValues(alpha: 0.85),
+        border: Border.all(
+          color: isStaged
+              ? const Color(0xFF10B981)
+              : Colors.white.withValues(alpha: 0.95),
+          width: isStaged ? 1.5 : 1.2,
+        ),
+        shadows: isStaged
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  blurRadius: 0,
+                  offset: const Offset(0, -1),
+                ),
+              ]
+            : null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // 1. Header Row (Fixed height)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2.5,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        isStaged
-                            ? 'Order Preview'
-                            : 'Select ticket quantity below',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                        decoration: BoxDecoration(
                           color: isStaged
                               ? LiquidGlassColors.accentEmerald
-                              : LiquidGlassColors.textSecondary,
+                              : LiquidGlassColors.glassFillLight,
+                          borderRadius: BorderRadius.circular(6),
+                          border: isStaged
+                              ? null
+                              : Border.all(color: LiquidGlassColors.glassBorderLight),
+                        ),
+                        child: Text(
+                          isStaged ? 'CURRENT CUSTOMER' : 'NEW CUSTOMER',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: isStaged ? Colors.white : LiquidGlassColors.textSecondary,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          isStaged
+                              ? 'Order Preview'
+                              : 'Select ticket quantity below',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: isStaged
+                                ? LiquidGlassColors.accentEmerald
+                                : LiquidGlassColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (isStaged) ...[
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: () => setState(() => _stagedTickets = null),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                if (isStaged)
+                  InkWell(
+                    onTap: () => setState(() => _stagedTickets = null),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFE4E6),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.close, size: 12, color: Color(0xFFE11D48)),
+                          SizedBox(width: 3),
+                          Text(
+                            'Clear',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFFE11D48),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (canUndo)
+                  InkWell(
+                    onTap: () => _handleUndo(provider),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: LiquidGlassColors.accentRose.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: LiquidGlassColors.accentRose.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.undo_rounded, size: 12, color: LiquidGlassColors.accentRose),
+                          SizedBox(width: 3),
+                          Text(
+                            'Undo',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: LiquidGlassColors.accentRose,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    '1–$_maxButtons',
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: LiquidGlassColors.textMuted,
+                    ),
+                  ),
+              ],
+            ),
+
+            // 2. Middle Row: Ticket Count & Amount Details (Fixed height)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (isStaged)
+                  // Left: Staged Stepper
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        iconSize: 22,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                        color: LiquidGlassColors.accentEmerald,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          if (_stagedTickets! > 1) {
+                            setState(() => _stagedTickets = _stagedTickets! - 1);
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: LiquidGlassColors.glassFillStrong,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Text(
+                          '$_stagedTickets Tkts',
+                          style: const TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w900,
+                            color: LiquidGlassColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline),
+                        iconSize: 22,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                        color: LiquidGlassColors.accentEmerald,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          setState(() => _stagedTickets = _stagedTickets! + 1);
+                        },
+                      ),
+                    ],
+                  )
+                else
+                  // Left: Unselected placeholder
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFE4E6),
-                      borderRadius: BorderRadius.circular(6),
+                      color: LiquidGlassColors.glassFillLight,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: LiquidGlassColors.glassBorderLight),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.close, size: 12, color: Color(0xFFE11D48)),
-                        SizedBox(width: 3),
+                        Icon(
+                          Icons.confirmation_number_outlined,
+                          size: 15,
+                          color: LiquidGlassColors.textMuted,
+                        ),
+                        SizedBox(width: 6),
                         Text(
-                          'Clear',
+                          '-- Tkts',
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFE11D48),
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: LiquidGlassColors.textMuted,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          if (isStaged) ...[
-            // Main Amount & Details
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Left: Ticket count & Stepper
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline),
-                      iconSize: 22,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                      color: LiquidGlassColors.accentEmerald,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () {
-                        if (_stagedTickets! > 1) {
-                          setState(() => _stagedTickets = _stagedTickets! - 1);
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: LiquidGlassColors.glassFillStrong,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      child: Text(
-                        '$_stagedTickets Tkts',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: LiquidGlassColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      iconSize: 22,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                      color: LiquidGlassColors.accentEmerald,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () {
-                        setState(() => _stagedTickets = _stagedTickets! + 1);
-                      },
-                    ),
-                  ],
-                ),
 
                 const SizedBox(width: 8),
 
-                // Right: Total Bill Amount
+                // Right: Bill Amount
                 Flexible(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -619,11 +752,15 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          '₹${calc.totalAmount.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 24,
+                          isStaged
+                              ? '₹${calc.totalAmount.toStringAsFixed(0)}'
+                              : '₹--',
+                          style: TextStyle(
+                            fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: LiquidGlassColors.accentEmerald,
+                            color: isStaged
+                                ? LiquidGlassColors.accentEmerald
+                                : LiquidGlassColors.textMuted,
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -631,11 +768,15 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          '₹${calc.effectiveRatePerTicket.toStringAsFixed(2)} / tkt',
-                          style: const TextStyle(
-                            fontSize: 11,
+                          isStaged
+                              ? '₹${calc.effectiveRatePerTicket.toStringAsFixed(2)} / tkt'
+                              : 'Base: ₹${pricing.singleTicketPrice.toStringAsFixed(0)} / tkt',
+                          style: TextStyle(
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w600,
-                            color: LiquidGlassColors.textSecondary,
+                            color: isStaged
+                                ? LiquidGlassColors.textSecondary
+                                : LiquidGlassColors.textMuted,
                           ),
                         ),
                       ),
@@ -645,45 +786,50 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
               ],
             ),
 
-            const SizedBox(height: 12),
-
-            // CONFIRM & ENTER SALE BUTTON
-            LiquidGlassButton(
-              label: 'ENTER SALE • ₹${calc.totalAmount.toStringAsFixed(0)}',
-              icon: Icons.check_circle,
-              glowColor: LiquidGlassColors.accentEmerald,
-              onPressed: () => _confirmStagedSale(provider, calc),
-            ),
-          ] else ...[
-            // Empty State
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.touch_app_outlined,
-                    size: 16,
-                    color: LiquidGlassColors.textMuted.withValues(alpha: 0.7),
+            // 3. Bottom Button (Fixed 44 height)
+            if (isStaged)
+              LiquidGlassButton(
+                height: 44,
+                label: 'ENTER SALE • ₹${calc.totalAmount.toStringAsFixed(0)}',
+                icon: Icons.check_circle,
+                glowColor: LiquidGlassColors.accentEmerald,
+                onPressed: () => _confirmStagedSale(provider, calc),
+              )
+            else
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  color: LiquidGlassColors.glassFillMedium,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: LiquidGlassColors.glassBorderLight,
+                    width: 1.0,
                   ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'Tap any number (1–$_maxButtons) to stage customer sale',
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                ),
+                alignment: Alignment.center,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.touch_app_outlined,
+                      size: 16,
+                      color: LiquidGlassColors.textMuted,
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      'TAP NUMBER BELOW TO STAGE SALE',
+                      style: TextStyle(
                         fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
                         color: LiquidGlassColors.textMuted,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -787,15 +933,45 @@ class _ShopkeeperSalesScreenState extends State<ShopkeeperSalesScreen> {
 
   void _handleUndo(SalesProvider provider) async {
     HapticFeedback.mediumImpact();
+    final hasSales = provider.todaySummary.transactions.any((t) => !t.isCancelled) ||
+        provider.todaySummary.totalTicketsSold > 0 ||
+        provider.lastRecordedTx != null;
+
+    if (!hasSales) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No sales to undo.'),
+          duration: const Duration(milliseconds: 1500),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      return;
+    }
+
     final success = await provider.undoLastSale();
     if (!mounted) return;
 
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Last transaction cancelled and removed from totals.'),
+          content: const Row(
+            children: [
+              Icon(Icons.undo_rounded, color: LiquidGlassColors.accentRose, size: 18),
+              SizedBox(width: 8),
+              Text(
+                'Last transaction cancelled and removed from totals.',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+              ),
+            ],
+          ),
           backgroundColor: LiquidGlassColors.surfaceElevated,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(color: LiquidGlassColors.accentRose.withValues(alpha: 0.4)),
