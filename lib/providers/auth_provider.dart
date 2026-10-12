@@ -129,8 +129,9 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> loginWithAdminCredentials(
     String username,
-    String password,
-  ) async {
+    String password, {
+    bool asStaffUser = false,
+  }) async {
     _isLoggingInAsAdmin = true;
     _errorMessage = null;
     notifyListeners();
@@ -139,6 +140,7 @@ class AuthProvider extends ChangeNotifier {
       final user = await _authRepository.loginWithAdminCredentials(
         username: username.trim(),
         password: password.trim(),
+        asStaffUser: asStaffUser,
       );
       _currentUser = user;
       _allUsers = await _authRepository.getAllUsers();

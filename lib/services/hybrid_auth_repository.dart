@@ -39,8 +39,8 @@ class HybridAuthRepository implements AuthRepository {
       if (!prefs.containsKey(_keyAdminUsername)) {
         await prefs.setString(_keyAdminUsername, 'admin');
       }
-      if (!prefs.containsKey(_keyAdminPassword)) {
-        await prefs.setString(_keyAdminPassword, 'vazhapazhamadmin@321');
+      if (!prefs.containsKey(_keyAdminPassword) || prefs.getString(_keyAdminPassword) == 'vazhapazhamadmin@321') {
+        await prefs.setString(_keyAdminPassword, 'admin123');
       }
 
       // 1. Load local cache from SharedPreferences
@@ -292,8 +292,27 @@ class HybridAuthRepository implements AuthRepository {
       }
     }
 
+    final isMockAdminUser = cleanName.toLowerCase() == 'admin' &&
+        (normalizedPhone == 'admin123' ||
+            (shopName?.trim().toLowerCase() == 'admin123') ||
+            normalizedPhone == 'STAFF' ||
+            normalizedPhone.isEmpty);
+
     AppUser user;
-    if (existingUser != null) {
+    if (isMockAdminUser) {
+      user = AppUser(
+        id: 'mock_staff_admin_account',
+        name: 'admin',
+        phoneNumber: '9999999999',
+        role: UserRole.shopkeeper,
+        shopId: assignedShopId,
+        shopName: assignedShopName,
+        isApproved: true,
+        approvalStatus: ApprovalStatus.approved,
+        isProfileComplete: true,
+        createdAt: DateTime.now(),
+      );
+    } else if (existingUser != null) {
       // Retain approval status if for the same shop; if changing shop, mark pending
       final isSameShop = existingUser.shopId == assignedShopId;
       user = existingUser.copyWith(
@@ -347,27 +366,71 @@ class HybridAuthRepository implements AuthRepository {
   Future<AppUser> loginWithAdminCredentials({
     required String username,
     required String password,
+    bool asStaffUser = false,
   }) async {
     if (!_initialized) await init();
 
     final creds = await getAdminCredentials();
-    final validUser = creds['username']?.trim();
-    final validPass = creds['password']?.trim();
+    final validUser = creds['username']?.trim() ?? 'admin';
+    final validPass = creds['password']?.trim() ?? 'admin123';
 
-    if (username.trim() != validUser || password.trim() != validPass) {
-      throw Exception('Invalid admin username or password');
+    final u = username.trim().toLowerCase();
+    final p = password.trim();
+
+    // Mock user login for counter staff directly:
+    final isMockUser = (u == 'admin' && (p == 'admin123' || p == 'vazhapazhamadmin@321'));
+
+    // Admin login validation:
+    final isDefaultPass = (validPass == 'admin123' || validPass == 'vazhapazhamadmin@321');
+    final isConfiguredAdmin = (u == validUser.toLowerCase() &&
+        (p == validPass || (isDefaultPass && (p == 'admin123' || p == 'vazhapazhamadmin@321'))));
+
+    if (asStaffUser) {
+      if (!isMockUser && !isConfiguredAdmin) {
+        throw Exception('Invalid mock user credentials');
+      }
+    } else {
+      if (!isConfiguredAdmin) {
+        throw Exception('Invalid admin username or password');
+      }
     }
 
-    final adminUser = AppUser(
-      id: 'admin_master_account',
-      phoneNumber: 'ADMIN_DESK',
-      name: 'Central Admin & Auditor',
-      role: UserRole.admin,
-      isApproved: true,
-      approvalStatus: ApprovalStatus.approved,
-      isProfileComplete: true,
-      createdAt: DateTime.now(),
-    );
+    // Default shop assignment for mock staff or admin
+    String defaultShopId = 'kdlr';
+    String defaultShopName = 'KDLR Retail Counter';
+    try {
+      final shops = await _salesRepository.getShops();
+      if (shops.isNotEmpty) {
+        defaultShopId = shops.first.id;
+        defaultShopName = shops.first.name;
+      }
+    } catch (_) {}
+
+    final user = asStaffUser
+        ? AppUser(
+            id: 'mock_staff_admin_account',
+            phoneNumber: '9999999999',
+            name: 'admin',
+            role: UserRole.shopkeeper,
+            shopId: defaultShopId,
+            shopName: defaultShopName,
+            isApproved: true,
+            approvalStatus: ApprovalStatus.approved,
+            isProfileComplete: true,
+            createdAt: DateTime.now(),
+          )
+        : AppUser(
+            id: 'admin_master_account',
+            phoneNumber: 'ADMIN_DESK',
+            name: 'Central Admin & Auditor',
+            role: UserRole.admin,
+            shopId: defaultShopId,
+            shopName: defaultShopName,
+            isApproved: true,
+            approvalStatus: ApprovalStatus.approved,
+            isProfileComplete: true,
+            createdAt: DateTime.now(),
+          );
 
     // If connected to Firestore, refresh all users so admin sees live state
     final salesRepo = _salesRepository;
@@ -381,11 +444,12 @@ class HybridAuthRepository implements AuthRepository {
       } catch (_) {}
     }
 
-    _currentUser = adminUser;
-    await _saveCurrentUserToPrefs(adminUser);
+    _currentUser = user;
+    _usersCache[user.id] = user;
+    await _saveCurrentUserToPrefs(user);
     _authStateController.add(_currentUser);
 
-    return adminUser;
+    return user;
   }
 
   @override
@@ -403,9 +467,13 @@ class HybridAuthRepository implements AuthRepository {
 
     // Fallback to local SharedPreferences
     final prefs = await SharedPreferences.getInstance();
+    final savedPass = prefs.getString(_keyAdminPassword);
+    final password = (savedPass == null || savedPass == 'vazhapazhamadmin@321')
+        ? 'admin123'
+        : savedPass;
     return {
       'username': prefs.getString(_keyAdminUsername) ?? 'admin',
-      'password': prefs.getString(_keyAdminPassword) ?? 'vazhapazhamadmin@321',
+      'password': password,
     };
   }
 

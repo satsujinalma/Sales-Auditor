@@ -339,6 +339,50 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ? null
                   : () => _handleShopkeeperLogin(authProvider),
             ),
+
+            const SizedBox(height: 14),
+
+            // Quick Mock Staff Access
+            InkWell(
+              onTap: () {
+                _nameController.text = 'admin';
+                authProvider.loginWithAdminCredentials(
+                  'admin',
+                  'admin123',
+                  asStaffUser: true,
+                );
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                decoration: BoxDecoration(
+                  color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.30),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.bolt_rounded,
+                      size: 16,
+                      color: LiquidGlassColors.accentEmerald,
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      'Mock User: admin / admin123 (Direct Access)',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: LiquidGlassColors.accentEmerald,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -403,7 +447,59 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+
+            // Mock User Notice & Auto-fill
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: LiquidGlassColors.accentTeal.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: LiquidGlassColors.accentTeal.withValues(alpha: 0.30),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 16,
+                    color: LiquidGlassColors.accentTeal,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Mock User: username = admin, password = admin123\nDirectly enter Users section without admin approval.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: LiquidGlassColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _adminUsernameController.text = 'admin';
+                      _adminPasswordController.text = 'admin123';
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Auto-fill',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: LiquidGlassColors.accentTeal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // Username Field
             TextFormField(
@@ -502,7 +598,20 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
             const SizedBox(height: 20),
 
-            // Sign In Button
+            // Button 1: LOGIN TO USER SECTION (Direct access to sales terminal without approval)
+            LiquidGlassButton(
+              label: 'LOGIN TO USER SECTION',
+              icon: Icons.storefront_rounded,
+              glowColor: LiquidGlassColors.accentEmerald,
+              isLoading: authProvider.isLoggingInAsAdmin,
+              onPressed: authProvider.isLoggingInAsAdmin
+                  ? null
+                  : () => _handleAdminLogin(authProvider, asStaffUser: true),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Button 2: SIGN IN AS ADMIN (Admin Dashboard)
             LiquidGlassButton(
               label: 'SIGN IN AS ADMIN',
               icon: Icons.shield,
@@ -510,7 +619,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               isLoading: authProvider.isLoggingInAsAdmin,
               onPressed: authProvider.isLoggingInAsAdmin
                   ? null
-                  : () => _handleAdminLogin(authProvider),
+                  : () => _handleAdminLogin(authProvider, asStaffUser: false),
             ),
 
             const SizedBox(height: 12),
@@ -581,8 +690,18 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   void _handleShopkeeperLogin(AuthProvider authProvider) async {
     if (!_shopkeeperFormKey.currentState!.validate()) return;
 
+    final name = _nameController.text.trim();
+    if (name.toLowerCase() == 'admin') {
+      await authProvider.loginWithAdminCredentials(
+        'admin',
+        'admin123',
+        asStaffUser: true,
+      );
+      return;
+    }
+
     await authProvider.loginAsShopkeeper(
-      name: _nameController.text.trim(),
+      name: name,
       shopName: _shopNameController.text.trim().isNotEmpty
           ? _shopNameController.text.trim()
           : null,
@@ -592,12 +711,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 
-  void _handleAdminLogin(AuthProvider authProvider) async {
+  void _handleAdminLogin(AuthProvider authProvider, {bool asStaffUser = false}) async {
     if (!_adminFormKey.currentState!.validate()) return;
 
     await authProvider.loginWithAdminCredentials(
       _adminUsernameController.text.trim(),
       _adminPasswordController.text.trim(),
+      asStaffUser: asStaffUser,
     );
   }
 }
