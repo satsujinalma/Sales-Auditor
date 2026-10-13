@@ -106,11 +106,13 @@ class NemotronAiService {
         {
           'role': 'system',
           'content':
-              'You are the official NVIDIA Nemotron-3 Super Kerala Lottery Sales Auditor. '
+              'You are the official NVDIA AI Kerala Lottery Sales Auditor. '
               'Your job is to compare retail shop claims with real sales logs and assign one of three exact status tags: '
               '1) "Matches" (🟢 Math & bundle mix match claimed average within ₹0.35) '
               '2) "Close Enough" (🟡 Variance within acceptable margin due to single ticket purchases) '
               '3) "Mismatch" (🔴 Claimed low average but high bundle volume proves average is higher). '
+              'Always generate simple reports with depth for retailer settlements. '
+              'Always specify "🤖 *Audited by:* NVDIA AI" in the whatsappProofText. '
               'Always respond strictly with a valid JSON object matching the requested schema with no extra prose.',
         },
         {
@@ -154,20 +156,23 @@ class NemotronAiService {
         'Bundle ratio: ${bundleRatio.toStringAsFixed(1)}% ($bundleTickets tkt) vs Singles: ${singleRatio.toStringAsFixed(1)}% ($singleTickets tkt).';
     final habitTrackingAnalysis = parsed['habitTrackingAnalysis'] as String? ??
         'Evaluated across daily sales volume records.';
-    final whatsappProof = parsed['whatsappProofText'] as String? ??
-        _buildDefaultWhatsAppProof(
-          shop: shop,
-          claimedRate: claimedRate,
-          totalTickets: totalTickets,
-          totalRevenue: totalRevenue,
-          actualAverage: actualAverage,
-          bundleTickets: bundleTickets,
-          singleTickets: singleTickets,
-          bundleRatio: bundleRatio,
-          statusTag: statusTag,
-          auditSummary: auditSummary,
-          now: now,
-        );
+    final defaultProof = _buildDefaultWhatsAppProof(
+      shop: shop,
+      claimedRate: claimedRate,
+      totalTickets: totalTickets,
+      totalRevenue: totalRevenue,
+      actualAverage: actualAverage,
+      bundleTickets: bundleTickets,
+      singleTickets: singleTickets,
+      bundleRatio: bundleRatio,
+      statusTag: statusTag,
+      auditSummary: auditSummary,
+      now: now,
+    );
+    final whatsappProof = _normalizeWhatsAppProof(
+      parsed['whatsappProofText'] as String?,
+      defaultProof: defaultProof,
+    );
 
     return ShopAiBenchmark(
       shopId: shop.id,
@@ -308,7 +313,7 @@ Required Output JSON Format:
   "auditSummary": "1-2 concise professional sentences for the distributor table",
   "ticketMixAnalysis": "Explanation of bundle vs singles mix",
   "habitTrackingAnalysis": "Assessment of reporting habit",
-  "whatsappProofText": "Full formatted WhatsApp proof text including emojis, exact figures, and timestamp"
+  "whatsappProofText": "Full formatted WhatsApp proof text with '🤖 *Audited by:* NVDIA AI', exact figures, emojis, and deep settlement insight"
 }
 ''';
   }
@@ -326,33 +331,80 @@ Required Output JSON Format:
     required String auditSummary,
     required DateTime now,
   }) {
-    final dateStr = DateFormat('dd MMM yyyy, hh:mm a').format(now);
+    final dateStr = DateFormat('dd-MM-yyyy').format(now);
     final variance = actualAverage - claimedRate;
     final sign = variance >= 0 ? '+' : '';
+    final singleRatio = (100.0 - bundleRatio).clamp(0.0, 100.0);
+    final settlementDepth = _generateSettlementInsight(
+      statusTag: statusTag,
+      bundleRatio: bundleRatio,
+      singleRatio: singleRatio,
+      claimedRate: claimedRate,
+      actualAverage: actualAverage,
+    );
 
     return '''
-📋 *KERALA LOTTERY AUDITOR — AI SETTLEMENT PROOF*
+🚨 *KERALA LOTTERY SALES AUDIT REPORT* 🚨
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏪 *Shop:* ${shop.name} (${shop.code.isNotEmpty ? shop.code : shop.id})
 📅 *Audit Date:* $dateStr
-🤖 *Engine:* NVIDIA Nemotron-3 Super
+🤖 *Audited by:* NVDIA AI
 
-📊 *ACTUAL AUDITED SALES METRICS*
-• Total Tickets Sold: $totalTickets tkt
-• Total Gross Revenue: ₹${totalRevenue.toStringAsFixed(2)}
-• 12-Ticket Sets / Bulk: $bundleTickets tkt (${bundleRatio.toStringAsFixed(1)}%)
-• Single Retail Tickets: $singleTickets tkt (${(100 - bundleRatio).toStringAsFixed(1)}%)
+📊 *SALES METRICS:*
+• Total Volume: $totalTickets tickets
+• Gross Revenue: ₹${totalRevenue.toStringAsFixed(2)}
+• Claimed Avg Rate: ₹${claimedRate.toStringAsFixed(2)} / ticket
+• Actual Logged Rate: ₹${actualAverage.toStringAsFixed(2)} / ticket
+• Margin Variance: $sign₹${variance.toStringAsFixed(2)} / ticket
 
-⚖️ *CLAIM VS. ACTUAL MARGIN VERIFICATION*
-• Retailer Claimed Rate: ₹${claimedRate.toStringAsFixed(2)} / tkt
-• Actual Logged Average: ₹${actualAverage.toStringAsFixed(2)} / tkt
-• Audited Variance: $sign₹${variance.toStringAsFixed(2)} / tkt
+📦 *TICKET-MIX BREAKDOWN:*
+• 12-Ticket Sets: ${bundleRatio.toStringAsFixed(1)}% ($bundleTickets tickets)
+• Single Tickets: ${singleRatio.toStringAsFixed(1)}% ($singleTickets tickets)
 
-${statusTag.badgeText.toUpperCase()}
-📌 *Auditor Finding:*
+⚖️ *AI AUDIT VERDICT: ${statusTag.badgeText.toUpperCase()}*
 $auditSummary
 
-🔒 *Proof Authentication:* Unalterable Counter Sales Logged via Kerala Lottery Auditor Cloud.
+💡 *AUDIT DEPTH & SETTLEMENT INSIGHT:*
+$settlementDepth
+
+🔒 *Verified & Signed by Distributor Sales Audit Engine*
 ''';
+  }
+
+  String _generateSettlementInsight({
+    required AiStatusTag statusTag,
+    required double bundleRatio,
+    required double singleRatio,
+    required double claimedRate,
+    required double actualAverage,
+  }) {
+    switch (statusTag) {
+      case AiStatusTag.mismatch:
+        return 'High bundle proportion (${bundleRatio.toStringAsFixed(1)}%) mathematically contradicts the claimed ₹${claimedRate.toStringAsFixed(2)} margin. Bundle sales at set pricing establish a minimum realized average of ₹${actualAverage.toStringAsFixed(2)}. Distributor settlement should be evaluated against logged data.';
+      case AiStatusTag.matches:
+        return 'Healthy balance between 12-ticket sets and walk-in singles. Unalterable logs confirm reporting accuracy within tolerance (₹${actualAverage.toStringAsFixed(2)} vs ₹${claimedRate.toStringAsFixed(2)}). Clear for standard weekly retailer settlement.';
+      case AiStatusTag.closeEnough:
+        return 'Prominent single-ticket transactions (${singleRatio.toStringAsFixed(1)}%) account for the observed margin variance. Retailer stated claim is supported by consumer purchasing patterns.';
+    }
+  }
+
+  String _normalizeWhatsAppProof(String? rawProof, {required String defaultProof}) {
+    if (rawProof == null || rawProof.trim().isEmpty) return defaultProof;
+    var proof = rawProof;
+    if (proof.contains('Nemotron-3 Super AI') ||
+        proof.contains('NVIDIA Nemotron-3 Super') ||
+        proof.contains('Nemotron') ||
+        proof.contains('NVIDIA AI') ||
+        proof.contains('Engine:')) {
+      proof = proof.replaceAll(
+        RegExp(r'(Audited by:\*|Engine:\*)\s*.*'),
+        'Audited by:* NVDIA AI',
+      );
+    }
+    if (!proof.contains('NVDIA AI')) {
+      return defaultProof;
+    }
+    return proof;
   }
 
   Map<String, dynamic>? _extractJsonFromContent(String content) {

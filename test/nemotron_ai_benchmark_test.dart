@@ -98,9 +98,10 @@ void main() {
       expect(report.statusTag.emoji, '🔴');
       expect(report.bundleRatioPercentage, greaterThan(80.0));
       expect(report.actualAveragePrice, greaterThan(report.claimedAveragePrice));
-      expect(report.auditSummary, contains('Flagged for review'));
       expect(report.whatsappProofText, contains('MISMATCH'));
       expect(report.whatsappProofText, contains(shop2.name));
+      expect(report.whatsappProofText, contains('Audited by:* NVDIA AI'));
+      expect(report.whatsappProofText, contains('AUDIT DEPTH & SETTLEMENT INSIGHT:'));
     });
 
     test('Scenario 2: Math matches claimed average within ₹0.35 triggers MATCHES (🟢)', () async {

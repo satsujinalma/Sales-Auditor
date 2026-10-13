@@ -991,10 +991,11 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
           // Bottom Action: One-Click WhatsApp Proof Exporter
           Row(
             children: [
-              Text(
-                'Audited by ${report.modelUsed.split('/').last}',
-                style: const TextStyle(
+              const Text(
+                'Audited by NVDIA AI',
+                style: TextStyle(
                   fontSize: 10,
+                  fontWeight: FontWeight.w600,
                   color: LiquidGlassColors.textMuted,
                 ),
               ),
