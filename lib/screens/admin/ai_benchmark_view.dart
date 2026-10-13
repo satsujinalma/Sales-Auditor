@@ -88,34 +88,46 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   color: LiquidGlassColors.accentViolet.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Icon(
                   Icons.analytics_outlined,
-                  size: 16,
+                  size: 14,
                   color: LiquidGlassColors.accentViolet,
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'SHOP-BY-SHOP AI AUDIT CARDS',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                  color: LiquidGlassColors.textPrimary,
+              const Expanded(
+                child: Text(
+                  'SHOP-BY-SHOP AI AUDIT CARDS',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    color: LiquidGlassColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
-              Text(
-                '${reports.length} of ${shops.length} Analyzed',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: LiquidGlassColors.textSecondary,
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: LiquidGlassColors.glassFillLight,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: LiquidGlassColors.glassBorderLight),
+                ),
+                child: Text(
+                  '${reports.length} of ${shops.length} Analyzed',
+                  style: const TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: LiquidGlassColors.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -131,7 +143,7 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
           else
             ...reports.map(
               (report) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.only(bottom: 10),
                 child: _buildShopAiCard(
                   context,
                   report,
@@ -156,137 +168,123 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     List<Shop> shops,
     Map<String, DailySalesSummary> summaries,
   ) {
-    final hasKey = aiProvider.config.hasApiKey;
-    final modelName = aiProvider.config.modelName;
-
     return LiquidGlassContainer(
-      borderRadius: 16,
-      padding: const EdgeInsets.all(14),
+      borderRadius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: Border.all(
         color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.25),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.smart_toy_rounded,
-                  size: 20,
-                  color: LiquidGlassColors.accentEmerald,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              size: 16,
+              color: LiquidGlassColors.accentEmerald,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'NVIDIA NEMOTRON AI',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                            color: LiquidGlassColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: hasKey
-                                ? LiquidGlassColors.accentEmerald.withValues(alpha: 0.15)
-                                : LiquidGlassColors.accentAmber.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            hasKey ? 'CLOUD API CONNECTED' : 'RULE-ENGINE READY',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              color: hasKey
-                                  ? LiquidGlassColors.accentEmerald
-                                  : LiquidGlassColors.accentAmber,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Model: $modelName',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: LiquidGlassColors.textSecondary,
+                    const Text(
+                      'NVIDIA NEMOTRON AI',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                        color: LiquidGlassColors.textPrimary,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(width: 5),
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: const BoxDecoration(
+                        color: LiquidGlassColors.accentEmerald,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                tooltip: 'Configure Cloud API Key',
-                icon: const Icon(
-                  Icons.key_rounded,
-                  size: 19,
-                  color: LiquidGlassColors.accentViolet,
-                ),
-                style: IconButton.styleFrom(
-                  backgroundColor: LiquidGlassColors.glassFillLight,
-                  padding: const EdgeInsets.all(8),
-                  minimumSize: Size.zero,
-                ),
-                onPressed: () => _showAiConfigDialog(context, aiProvider),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Automated 3-Step Audit: Math Variance • Ticket-Mix Ratio • Habit Analysis',
+                const SizedBox(height: 1),
+                Text(
+                  'Cloud Synced • 3-Step Math & Mix Audit',
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
                     color: LiquidGlassColors.textSecondary.withValues(alpha: 0.9),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          IconButton(
+            tooltip: 'Cloud Database AI Key',
+            icon: const Icon(
+              Icons.key_rounded,
+              size: 15,
+              color: LiquidGlassColors.textMuted,
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+            splashRadius: 14,
+            onPressed: () => _showAiConfigDialog(context, aiProvider),
+          ),
+          const SizedBox(width: 4),
+          SizedBox(
+            height: 30,
+            child: ElevatedButton.icon(
+              onPressed: aiProvider.isAuditing
+                  ? null
+                  : () {
+                      aiProvider.runFullNetworkAudit(
+                        shops: shops,
+                        summaries: summaries,
+                      );
+                    },
+              icon: aiProvider.isAuditing
+                  ? const SizedBox(
+                      width: 11,
+                      height: 11,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.8,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.auto_awesome, size: 12),
+              label: Text(
+                aiProvider.isAuditing ? 'AUDITING...' : 'RUN AUDIT',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
                 ),
               ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 34,
-                child: LiquidGlassButton(
-                  label: aiProvider.isAuditing ? 'AUDITING...' : 'RUN AI AUDIT',
-                  icon: Icons.auto_awesome,
-                  glowColor: LiquidGlassColors.accentEmerald,
-                  isFullWidth: false,
-                  isLoading: aiProvider.isAuditing,
-                  onPressed: aiProvider.isAuditing
-                      ? null
-                      : () {
-                          aiProvider.runFullNetworkAudit(
-                            shops: shops,
-                            summaries: summaries,
-                          );
-                        },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: LiquidGlassColors.accentEmerald,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                visualDensity: VisualDensity.compact,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -303,39 +301,43 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     final integrityScore = matrix.trustIntegrityPercentage.toStringAsFixed(0);
 
     return LiquidGlassContainer(
-      borderRadius: 16,
-      padding: const EdgeInsets.all(14),
+      borderRadius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               const Icon(
                 Icons.hub_outlined,
-                size: 16,
-                color: LiquidGlassColors.accentEmerald,
+                size: 14,
+                color: LiquidGlassColors.accentCyan,
               ),
               const SizedBox(width: 6),
-              const Text(
-                'NETWORK TRUST MATRIX',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.6,
-                  color: LiquidGlassColors.textPrimary,
+              const Expanded(
+                child: Text(
+                  'NETWORK TRUST MATRIX',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: LiquidGlassColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(
                   '$integrityScore% TRUST INTEGRITY',
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.w900,
                     color: LiquidGlassColors.accentEmerald,
                   ),
@@ -343,45 +345,41 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
-                child: _buildTrustMetricTile(
-                  label: 'TOTAL SHOPS',
-                  value: matrix.totalShops.toString(),
+                child: _buildCompactTrustChip(
+                  label: 'TOTAL',
+                  value: '${matrix.totalShops}',
                   color: LiquidGlassColors.textPrimary,
-                  icon: Icons.storefront_rounded,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 5),
               Expanded(
-                child: _buildTrustMetricTile(
-                  label: 'MATCHES',
+                child: _buildCompactTrustChip(
+                  label: 'MATCH',
                   value: '${matrix.verifiedMatchesCount}',
-                  prefix: '🟢 ',
+                  dotColor: const Color(0xFF10B981),
                   color: const Color(0xFF10B981),
-                  icon: Icons.check_circle_outline,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 5),
               Expanded(
-                child: _buildTrustMetricTile(
-                  label: 'CLOSE ENOUGH',
+                child: _buildCompactTrustChip(
+                  label: 'CLOSE',
                   value: '${matrix.closeEnoughCount}',
-                  prefix: '🟡 ',
+                  dotColor: const Color(0xFFF59E0B),
                   color: const Color(0xFFF59E0B),
-                  icon: Icons.help_outline_rounded,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 5),
               Expanded(
-                child: _buildTrustMetricTile(
+                child: _buildCompactTrustChip(
                   label: 'MISMATCH',
                   value: '${matrix.mismatchCount}',
-                  prefix: '🔴 ',
+                  dotColor: const Color(0xFFEF4444),
                   color: const Color(0xFFEF4444),
-                  icon: Icons.warning_amber_rounded,
                 ),
               ),
             ],
@@ -391,53 +389,64 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     );
   }
 
-  Widget _buildTrustMetricTile({
+  Widget _buildCompactTrustChip({
     required String label,
     required String value,
     required Color color,
-    required IconData icon,
-    String? prefix,
+    Color? dotColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       decoration: BoxDecoration(
         color: LiquidGlassColors.glassFillLight,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: LiquidGlassColors.glassBorderLight),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: dotColor != null
+              ? dotColor.withValues(alpha: 0.3)
+              : LiquidGlassColors.glassBorderLight,
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: LiquidGlassColors.textMuted,
-              letterSpacing: 0.4,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              if (prefix != null)
-                Text(
-                  prefix,
-                  style: const TextStyle(fontSize: 10),
-                ),
-              Expanded(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: color,
+              if (dotColor != null) ...[
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: dotColor,
+                    shape: BoxShape.circle,
                   ),
+                ),
+                const SizedBox(width: 3),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                    color: LiquidGlassColors.textMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -500,20 +509,31 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Horizontal scrolling data table for complete clarity
           if (reports.isEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               alignment: Alignment.center,
-              child: const Text(
-                'No audit data yet. Tap "RUN AI AUDIT" above to analyze sales.',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: LiquidGlassColors.textSecondary,
-                ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 14,
+                    color: LiquidGlassColors.textMuted,
+                  ),
+                  SizedBox(width: 6),
+                  Text(
+                    'No network audit run yet today • Tap "RUN AUDIT" above',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: LiquidGlassColors.textMuted,
+                    ),
+                  ),
+                ],
               ),
             )
           else
@@ -521,18 +541,18 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               primary: false,
               scrollDirection: Axis.horizontal,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 700),
+                constraints: const BoxConstraints(minWidth: 680),
                 child: DataTable(
-                  headingRowHeight: 38,
-                  dataRowMinHeight: 56,
-                  dataRowMaxHeight: 64,
-                  horizontalMargin: 10,
-                  columnSpacing: 14,
+                  headingRowHeight: 34,
+                  dataRowMinHeight: 48,
+                  dataRowMaxHeight: 56,
+                  horizontalMargin: 8,
+                  columnSpacing: 12,
                   headingTextStyle: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     color: LiquidGlassColors.textSecondary,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.4,
                   ),
                   headingRowColor: WidgetStateProperty.all(
                     LiquidGlassColors.glassFillLight,
@@ -722,47 +742,60 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     final singleRatio = report.singleRatioPercentage;
 
     return LiquidGlassContainer(
-      borderRadius: 16,
-      padding: const EdgeInsets.all(14),
+      borderRadius: 14,
+      padding: const EdgeInsets.all(12),
       border: Border.all(
-        color: report.statusTag.color.withValues(alpha: 0.30),
+        color: report.statusTag.color.withValues(alpha: 0.28),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Shop Name & Status Tag
+          // Header: Shop Name, Code & Status Tag
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(
-                      report.shopName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        color: LiquidGlassColors.textPrimary,
+                    Flexible(
+                      child: Text(
+                        report.shopName,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w900,
+                          color: LiquidGlassColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Counter Code: ${report.shopCode.isNotEmpty ? report.shopCode : report.shopId.toUpperCase()} • Total: ${_volumeFormat.format(report.totalTickets)} tkt',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: LiquidGlassColors.textSecondary,
+                    if (report.shopCode.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: LiquidGlassColors.accentViolet.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          report.shopCode,
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: LiquidGlassColors.accentViolet,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
+              const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
                   color: report.statusTag.backgroundColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: report.statusTag.color.withValues(alpha: 0.40),
                   ),
@@ -770,7 +803,7 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
                 child: Text(
                   report.statusTag.badgeText,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w900,
                     color: report.statusTag.color,
                   ),
@@ -779,187 +812,120 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // 2 Metrics Boxes: Claimed vs. Actual Math
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: LiquidGlassColors.glassFillLight,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: LiquidGlassColors.glassBorderLight),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'CLAIMED AVERAGE',
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w700,
-                              color: LiquidGlassColors.textMuted,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () => _showEditClaimDialog(
-                              context,
-                              report,
-                              aiProvider,
-                              adminProvider,
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 2),
-                              child: Icon(
-                                Icons.edit_outlined,
-                                size: 13,
-                                color: LiquidGlassColors.accentViolet,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _currencyFormat.format(report.claimedAveragePrice),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: LiquidGlassColors.textSecondary,
-                        ),
-                      ),
-                      const Text(
-                        'Retailer Stated Margin',
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: LiquidGlassColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: report.statusTag == AiStatusTag.mismatch
-                        ? LiquidGlassColors.accentRose.withValues(alpha: 0.08)
-                        : LiquidGlassColors.accentEmerald.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: report.statusTag == AiStatusTag.mismatch
-                          ? LiquidGlassColors.accentRose.withValues(alpha: 0.3)
-                          : LiquidGlassColors.accentEmerald.withValues(alpha: 0.3),
+          // Compact 4-Cell Glass Metric Bar
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+            decoration: BoxDecoration(
+              color: LiquidGlassColors.glassFillLight,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: LiquidGlassColors.glassBorderLight),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildMetricCell(
+                    label: 'CLAIMED',
+                    value: _currencyFormat.format(report.claimedAveragePrice),
+                    color: LiquidGlassColors.textSecondary,
+                    onTapEdit: () => _showEditClaimDialog(
+                      context,
+                      report,
+                      aiProvider,
+                      adminProvider,
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'ACTUAL LOGGED MATH',
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          color: LiquidGlassColors.textMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _currencyFormat.format(report.actualAveragePrice),
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: report.statusTag == AiStatusTag.mismatch
-                              ? LiquidGlassColors.accentRose
-                              : LiquidGlassColors.accentEmerald,
-                        ),
-                      ),
-                      Text(
-                        'Variance: ${report.variance >= 0 ? '+' : ''}${_currencyFormat.format(report.variance)}',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: report.statusTag == AiStatusTag.mismatch
-                              ? LiquidGlassColors.accentRose
-                              : LiquidGlassColors.accentEmerald,
-                        ),
-                      ),
-                    ],
+                ),
+                Container(width: 1, height: 22, color: LiquidGlassColors.glassBorderLight),
+                Expanded(
+                  child: _buildMetricCell(
+                    label: 'ACTUAL',
+                    value: _currencyFormat.format(report.actualAveragePrice),
+                    color: report.statusTag == AiStatusTag.mismatch
+                        ? LiquidGlassColors.accentRose
+                        : LiquidGlassColors.accentEmerald,
                   ),
+                ),
+                Container(width: 1, height: 22, color: LiquidGlassColors.glassBorderLight),
+                Expanded(
+                  child: _buildMetricCell(
+                    label: 'VARIANCE',
+                    value: '${report.variance >= 0 ? '+' : ''}${_currencyFormat.format(report.variance)}',
+                    color: report.statusTag == AiStatusTag.mismatch
+                        ? LiquidGlassColors.accentRose
+                        : LiquidGlassColors.accentEmerald,
+                  ),
+                ),
+                Container(width: 1, height: 22, color: LiquidGlassColors.glassBorderLight),
+                Expanded(
+                  child: _buildMetricCell(
+                    label: 'SETS MIX',
+                    value: '${bundleRatio.toStringAsFixed(0)}%',
+                    color: LiquidGlassColors.accentEmerald,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Ticket-Mix Ratio Bar (12-Ticket Sets vs Singles)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '12-Ticket Sets: ${bundleRatio.toStringAsFixed(1)}% (${report.bundleTicketsCount} tkt)',
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: LiquidGlassColors.accentEmerald,
+                ),
+              ),
+              Text(
+                'Singles: ${singleRatio.toStringAsFixed(1)}% (${report.singleTicketsCount} tkt)',
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: LiquidGlassColors.accentCyan,
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 12),
-
-          // Ticket-Mix Ratio Bar (12-Ticket Sets vs Singles)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: SizedBox(
+              height: 4,
+              width: double.infinity,
+              child: Row(
                 children: [
-                  Text(
-                    '12-Ticket Sets: ${bundleRatio.toStringAsFixed(1)}% (${report.bundleTicketsCount} tkt)',
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    flex: bundleRatio.round().clamp(1, 100),
+                    child: Container(
                       color: LiquidGlassColors.accentEmerald,
                     ),
                   ),
-                  Text(
-                    'Singles: ${singleRatio.toStringAsFixed(1)}% (${report.singleTicketsCount} tkt)',
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    flex: (100 - bundleRatio.round()).clamp(1, 100),
+                    child: Container(
                       color: LiquidGlassColors.accentCyan,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 5),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: SizedBox(
-                  height: 8,
-                  width: double.infinity,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: bundleRatio.round().clamp(1, 100),
-                        child: Container(
-                          color: LiquidGlassColors.accentEmerald,
-                        ),
-                      ),
-                      Expanded(
-                        flex: (100 - bundleRatio.round()).clamp(1, 100),
-                        child: Container(
-                          color: LiquidGlassColors.accentCyan,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
-          // Nemotron AI Summary Box
+          // AI Summary Box
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: LiquidGlassColors.surfaceCard,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: LiquidGlassColors.glassBorderLight),
             ),
             child: Row(
@@ -967,18 +933,18 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               children: [
                 const Icon(
                   Icons.auto_awesome,
-                  size: 15,
+                  size: 13,
                   color: LiquidGlassColors.accentViolet,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     report.auditSummary,
                     style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
                       color: LiquidGlassColors.textPrimary,
-                      height: 1.35,
+                      height: 1.3,
                     ),
                   ),
                 ),
@@ -986,53 +952,54 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
-          // Bottom Action: One-Click WhatsApp Proof Exporter
+          // Bottom Action: One-Click WhatsApp Proof Exporter & Breakdown
           Row(
             children: [
               const Text(
                 'Audited by NVDIA AI',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 9.5,
                   fontWeight: FontWeight.w600,
                   color: LiquidGlassColors.textMuted,
                 ),
               ),
               const Spacer(),
               SizedBox(
-                height: 32,
-                child: OutlinedButton.icon(
+                height: 28,
+                child: OutlinedButton(
                   onPressed: () => _showBreakdownModal(context, report),
-                  icon: const Icon(Icons.receipt_long, size: 14),
-                  label: const Text(
-                    'Breakdown',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: LiquidGlassColors.accentViolet,
                     side: BorderSide(
-                      color: LiquidGlassColors.accentViolet.withValues(alpha: 0.4),
+                      color: LiquidGlassColors.accentViolet.withValues(alpha: 0.35),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  child: const Text(
+                    'Breakdown',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               SizedBox(
-                height: 32,
+                height: 28,
                 child: ElevatedButton.icon(
                   onPressed: () => _showWhatsAppProofModal(context, report, aiProvider),
-                  icon: const Icon(Icons.send_rounded, size: 14),
+                  icon: const Icon(Icons.send_rounded, size: 12),
                   label: const Text(
                     'WhatsApp Proof',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366), // WhatsApp Green
+                    backgroundColor: const Color(0xFF25D366),
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 9),
+                    visualDensity: VisualDensity.compact,
                   ),
                 ),
               ),
@@ -1040,6 +1007,56 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMetricCell({
+    required String label,
+    required String value,
+    required Color color,
+    VoidCallback? onTapEdit,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w700,
+                color: LiquidGlassColors.textMuted,
+                letterSpacing: 0.3,
+              ),
+            ),
+            if (onTapEdit != null) ...[
+              const SizedBox(width: 2),
+              InkWell(
+                onTap: onTapEdit,
+                child: const Icon(
+                  Icons.edit_outlined,
+                  size: 10,
+                  color: LiquidGlassColors.accentViolet,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 1),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            color: color,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 
@@ -1500,48 +1517,39 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     List<Shop> shops,
     Map<String, DailySalesSummary> summaries,
   ) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+      decoration: BoxDecoration(
+        color: LiquidGlassColors.surfaceCard.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: LiquidGlassColors.glassBorderLight),
+      ),
+      child: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.auto_awesome_outlined,
-              size: 40,
-              color: LiquidGlassColors.textMuted,
+              size: 26,
+              color: LiquidGlassColors.accentViolet.withValues(alpha: 0.8),
             ),
-            const SizedBox(height: 10),
-            const Text(
-              'No AI Benchmark Reports Yet',
-              style: TextStyle(
-                fontSize: 14,
+            const SizedBox(height: 8),
+            Text(
+              '${shops.length} Retail Shops Awaiting AI Verification',
+              style: const TextStyle(
+                fontSize: 12.5,
                 fontWeight: FontWeight.w800,
                 color: LiquidGlassColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             const Text(
-              'Tap "Run AI Audit" above to analyze sales across your distribution network.',
+              'Nemotron-3 Super audits 12-ticket bundle ratios, claimed margins & past patterns in real time.',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 10.5,
                 color: LiquidGlassColors.textSecondary,
               ),
               textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 14),
-            ElevatedButton.icon(
-              onPressed: () {
-                aiProvider.runFullNetworkAudit(
-                  shops: shops,
-                  summaries: summaries,
-                );
-              },
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Run First Audit'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: LiquidGlassColors.accentEmerald,
-                foregroundColor: Colors.white,
-              ),
             ),
           ],
         ),

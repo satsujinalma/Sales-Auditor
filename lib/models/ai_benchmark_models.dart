@@ -269,16 +269,47 @@ class AiConfig {
   }
 
   factory AiConfig.fromJson(Map<String, dynamic> json) {
-    return AiConfig(
-      apiKey: json['apiKey'] as String? ?? '',
-      modelName: json['modelName'] as String? ?? 'nvidia/nemotron-3-super-120b-a12b',
-      endpointUrl: json['endpointUrl'] as String? ??
-          'https://integrate.api.nvidia.com/v1/chat/completions',
-      defaultClaimedRate:
-          (json['defaultClaimedRate'] as num?)?.toDouble() ?? 47.20,
-      updatedAt: json['updatedAt'] != null
+    final key = (json['apiKey'] ??
+            json['api_key'] ??
+            json['nvidia_api_key'] ??
+            json['nvidiaKey'] ??
+            json['key'] ??
+            json['token']) as String? ??
+        '';
+    final model = (json['modelName'] ??
+            json['model_name'] ??
+            json['model'] ??
+            json['model_id']) as String? ??
+        'nvidia/nemotron-3-super-120b-a12b';
+    final url = (json['endpointUrl'] ??
+            json['endpoint_url'] ??
+            json['endpoint'] ??
+            json['url']) as String? ??
+        'https://integrate.api.nvidia.com/v1/chat/completions';
+    final rate = (json['defaultClaimedRate'] ??
+            json['default_claimed_rate'] ??
+            json['claimedRate']) != null
+        ? ((json['defaultClaimedRate'] ??
+                json['default_claimed_rate'] ??
+                json['claimedRate']) as num)
+            .toDouble()
+        : 47.20;
+
+    DateTime updated;
+    try {
+      updated = json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
-          : DateTime.now(),
+          : DateTime.now();
+    } catch (_) {
+      updated = DateTime.now();
+    }
+
+    return AiConfig(
+      apiKey: key.trim(),
+      modelName: model.trim(),
+      endpointUrl: url.trim(),
+      defaultClaimedRate: rate,
+      updatedAt: updated,
     );
   }
 }

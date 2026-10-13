@@ -85,14 +85,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Icon(Icons.shield, color: Colors.amber, size: 16),
                 SizedBox(width: 6),
                 Flexible(
-                  child: Text(
-                    'HEAD APP • AUDIT MONITOR',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      color: LiquidGlassColors.textPrimary,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'HEAD APP • AUDIT MONITOR',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                        color: LiquidGlassColors.textPrimary,
+                      ),
                     ),
                   ),
                 ),
@@ -231,19 +234,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           children: [
             Icon(
               icon,
-              size: 14,
+              size: 13,
               color: isSelected ? Colors.white : LiquidGlassColors.textSecondary,
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 4),
             Flexible(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                  letterSpacing: 0.3,
-                  color: isSelected ? Colors.white : LiquidGlassColors.textSecondary,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                    letterSpacing: 0.2,
+                    color: isSelected ? Colors.white : LiquidGlassColors.textSecondary,
+                  ),
                 ),
               ),
             ),
