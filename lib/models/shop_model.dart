@@ -7,6 +7,7 @@ class Shop {
   final String code;
   final PricingConfig pricingConfig;
   final bool isActive;
+  final double claimedAverageRate;
 
   const Shop({
     required this.id,
@@ -15,6 +16,7 @@ class Shop {
     required this.code,
     required this.pricingConfig,
     this.isActive = true,
+    this.claimedAverageRate = 47.20,
   });
 
   Shop copyWith({
@@ -24,6 +26,7 @@ class Shop {
     String? code,
     PricingConfig? pricingConfig,
     bool? isActive,
+    double? claimedAverageRate,
   }) {
     return Shop(
       id: id ?? this.id,
@@ -32,6 +35,7 @@ class Shop {
       code: code ?? this.code,
       pricingConfig: pricingConfig ?? this.pricingConfig,
       isActive: isActive ?? this.isActive,
+      claimedAverageRate: claimedAverageRate ?? this.claimedAverageRate,
     );
   }
 
@@ -43,6 +47,7 @@ class Shop {
       'code': code,
       'pricingConfig': pricingConfig.toJson(),
       'isActive': isActive,
+      'claimedAverageRate': claimedAverageRate,
     };
   }
 
@@ -58,6 +63,8 @@ class Shop {
             )
           : const PricingConfig(),
       isActive: json['isActive'] as bool? ?? true,
+      claimedAverageRate:
+          (json['claimedAverageRate'] as num?)?.toDouble() ?? 47.20,
     );
   }
 

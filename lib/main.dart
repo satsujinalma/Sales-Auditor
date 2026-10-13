@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/admin_provider.dart';
+import 'providers/ai_benchmark_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/sales_provider.dart';
 import 'screens/auth/auth_wrapper.dart';
@@ -37,6 +38,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => AdminProvider(repository!),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AiBenchmarkProvider(repository: repository!),
         ),
       ],
       child: const KeralaLotteryAuditorApp(),

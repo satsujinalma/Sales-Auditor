@@ -7,6 +7,7 @@ import '../../models/daily_sales_summary.dart';
 import '../../models/pricing_config.dart';
 import '../../models/shop_model.dart';
 import '../../providers/admin_provider.dart';
+import '../../providers/ai_benchmark_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/liquid_glass_theme.dart';
 import '../../widgets/audit_comparison_card.dart';
@@ -17,6 +18,7 @@ import '../../widgets/recent_transactions_list.dart';
 import '../../widgets/sales_volume_breakdown_widget.dart';
 import '../../widgets/three_output_boxes_widget.dart';
 import 'admin_settings_screen.dart';
+import 'ai_benchmark_view.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final VoidCallback onSwitchToShopkeeper;
@@ -156,6 +158,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       badgeCount: context.watch<AuthProvider>().pendingUsers.length,
                     ),
                   ),
+                  Expanded(
+                    child: _buildTabButton(
+                      index: 3,
+                      label: 'AI BENCHMARK',
+                      icon: Icons.auto_awesome_rounded,
+                      badgeCount: _getMismatchCount(context),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -169,11 +179,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   context, adminProvider, selectedShop, summary)
               : _selectedTab == 1
                   ? _buildAllShopsSummaryView(context, adminProvider, shops)
-                  : _buildStaffApprovalsView(
-                      context, context.watch<AuthProvider>(), adminProvider),
+                  : _selectedTab == 2
+                      ? _buildStaffApprovalsView(
+                          context, context.watch<AuthProvider>(), adminProvider)
+                      : const AiBenchmarkView(),
         ),
       ),
     );
+  }
+
+  int _getMismatchCount(BuildContext context) {
+    try {
+      return Provider.of<AiBenchmarkProvider>(context, listen: true).trustMatrix.mismatchCount;
+    } catch (_) {
+      return 0;
+    }
   }
 
   Widget _buildTabButton({

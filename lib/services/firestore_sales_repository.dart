@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/ai_benchmark_models.dart';
 import '../models/app_user.dart';
 import '../models/daily_sales_summary.dart';
 import '../models/pricing_config.dart';
@@ -34,6 +35,9 @@ class FirestoreSalesRepository implements SalesRepository {
 
   DocumentReference<Map<String, dynamic>> get _adminCredentialsRef =>
       _firestore.collection('settings').doc('admin_credentials');
+
+  DocumentReference<Map<String, dynamic>> get _aiConfigRef =>
+      _firestore.collection('settings').doc('ai_config');
 
   String _dateKey(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -454,6 +458,42 @@ class FirestoreSalesRepository implements SalesRepository {
       await _usersRef.doc(userId).delete().timeout(const Duration(seconds: 3));
     } catch (e) {
       debugPrint('>>> FirestoreSalesRepository: Error deleting user $userId: $e');
+    }
+  }
+
+  @override
+  Future<AiConfig> getAiConfig() async {
+    try {
+      final doc = await _aiConfigRef.get().timeout(const Duration(seconds: 3));
+      if (doc.exists && doc.data() != null) {
+        return AiConfig.fromJson(doc.data()!);
+      }
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository.getAiConfig server fetch timed out/failed: $e');
+    }
+
+    try {
+      final cacheDoc =
+          await _aiConfigRef.get(const GetOptions(source: Source.cache));
+      if (cacheDoc.exists && cacheDoc.data() != null) {
+        return AiConfig.fromJson(cacheDoc.data()!);
+      }
+    } catch (_) {}
+
+    return AiConfig(updatedAt: DateTime.now());
+  }
+
+  @override
+  Future<void> saveAiConfig(AiConfig config) async {
+    try {
+      await _aiConfigRef
+          .set(config.toJson(), SetOptions(merge: true))
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+        debugPrint('>>> saveAiConfig network timeout reached; saved to local cache');
+      });
+      debugPrint('>>> FirestoreSalesRepository: AI Config saved to Cloud Firestore');
+    } catch (e) {
+      debugPrint('>>> FirestoreSalesRepository.saveAiConfig error: $e');
     }
   }
 }

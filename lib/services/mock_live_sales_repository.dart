@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/ai_benchmark_models.dart';
 import '../models/daily_sales_summary.dart';
 import '../models/pricing_config.dart';
 import '../models/sale_transaction.dart';
@@ -15,6 +16,7 @@ class MockLiveSalesRepository implements SalesRepository {
   static const String _keyAdminPin = 'sales_auditor_admin_pin_v1';
   static const String _keySelectedShop = 'sales_auditor_selected_shop_v1';
   static const String _keySalesPrefix = 'sales_auditor_daily_sales_v1_';
+  static const String _keyAiConfig = 'sales_auditor_ai_config_v1';
 
   final _uuid = const Uuid();
   final _shopsStreamController = StreamController<List<Shop>>.broadcast();
@@ -309,6 +311,28 @@ class MockLiveSalesRepository implements SalesRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keySelectedShop, shopId);
+    } catch (_) {}
+  }
+
+  @override
+  Future<AiConfig> getAiConfig() async {
+    if (!_initialized) await init();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = prefs.getString(_keyAiConfig);
+      if (jsonStr != null) {
+        return AiConfig.fromJson(jsonDecode(jsonStr) as Map<String, dynamic>);
+      }
+    } catch (_) {}
+    return AiConfig(updatedAt: DateTime.now());
+  }
+
+  @override
+  Future<void> saveAiConfig(AiConfig config) async {
+    if (!_initialized) await init();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyAiConfig, jsonEncode(config.toJson()));
     } catch (_) {}
   }
 }

@@ -1,3 +1,4 @@
+import '../models/ai_benchmark_models.dart';
 import '../models/daily_sales_summary.dart';
 import '../models/pricing_config.dart';
 import '../models/sale_transaction.dart';
@@ -25,4 +26,8 @@ abstract class SalesRepository {
 
   Future<String> getSelectedShopId();
   Future<void> setSelectedShopId(String shopId);
+
+  // Cloud AI Benchmark Configuration
+  Future<AiConfig> getAiConfig();
+  Future<void> saveAiConfig(AiConfig config);
 }
