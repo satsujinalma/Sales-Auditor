@@ -78,6 +78,20 @@ class FirestoreSalesRepository implements SalesRepository {
         });
       }
     } catch (_) {}
+
+    try {
+      final aiDoc =
+          await _aiConfigRef.get().timeout(const Duration(seconds: 4));
+      if (!aiDoc.exists) {
+        await _aiConfigRef.set({
+          'apiKey': '',
+          'modelName': 'nvidia/nemotron-3-super-120b-a12b',
+          'defaultClaimedRate': 47.20,
+          'endpointUrl': 'https://integrate.api.nvidia.com/v1/chat/completions',
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -463,14 +477,34 @@ class FirestoreSalesRepository implements SalesRepository {
 
   @override
   Future<AiConfig> getAiConfig() async {
+    // 1. Check dedicated settings/ai_config
     try {
       final doc = await _aiConfigRef.get().timeout(const Duration(seconds: 3));
       if (doc.exists && doc.data() != null) {
-        return AiConfig.fromJson(doc.data()!);
+        final cfg = AiConfig.fromJson(doc.data()!);
+        if (cfg.apiKey.isNotEmpty) {
+          return cfg;
+        }
       }
     } catch (e) {
       debugPrint('>>> FirestoreSalesRepository.getAiConfig server fetch timed out/failed: $e');
     }
+
+    // 2. Also check settings/admin_config (in case admin added apiKey directly to admin_config)
+    try {
+      final adminDoc =
+          await _settingsRef.get().timeout(const Duration(seconds: 3));
+      if (adminDoc.exists && adminDoc.data() != null) {
+        final data = adminDoc.data()!;
+        if (data.containsKey('apiKey') ||
+            data.containsKey('api_key') ||
+            data.containsKey('nvidia_api_key') ||
+            data.containsKey('nvidiaKey') ||
+            data.containsKey('key')) {
+          return AiConfig.fromJson(data);
+        }
+      }
+    } catch (_) {}
 
     try {
       final cacheDoc =
