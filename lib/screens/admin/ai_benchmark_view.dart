@@ -102,7 +102,7 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'SHOP-BY-SHOP AI AUDIT CARDS',
+                  'SHOP AI AUDIT CARDS',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -197,13 +197,17 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'NVIDIA NEMOTRON AI',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.3,
-                        color: LiquidGlassColors.textPrimary,
+                    const Flexible(
+                      child: Text(
+                        'Run Audit',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.3,
+                          color: LiquidGlassColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -219,7 +223,7 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  'Cloud Synced • 3-Step Math & Mix Audit',
+                  'Cloud Synced • Math & Mix Audit',
                   style: TextStyle(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w500,
@@ -265,9 +269,9 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
                         color: Colors.white,
                       ),
                     )
-                  : const Icon(Icons.auto_awesome, size: 12),
+                  : const Icon(Icons.play_arrow_rounded, size: 14),
               label: Text(
-                aiProvider.isAuditing ? 'AUDITING...' : 'RUN AUDIT',
+                aiProvider.isAuditing ? 'AUDITING...' : 'Run Audit',
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
@@ -514,23 +518,28 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
           // Horizontal scrolling data table for complete clarity
           if (reports.isEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               alignment: Alignment.center,
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.schedule_rounded,
-                    size: 14,
+                    size: 13,
                     color: LiquidGlassColors.textMuted,
                   ),
                   SizedBox(width: 6),
-                  Text(
-                    'No network audit run yet today • Tap "RUN AUDIT" above',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: LiquidGlassColors.textMuted,
+                  Flexible(
+                    child: Text(
+                      'No network audit run yet today • Tap "Run Audit" above',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: LiquidGlassColors.textMuted,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

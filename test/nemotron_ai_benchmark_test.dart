@@ -300,20 +300,20 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // 1. Verify Tab 4: AI BENCHMARK is present
-      expect(find.text('AI BENCHMARK'), findsOneWidget);
+      // 1. Verify Tab 3: AI AUDIT is present
+      expect(find.text('AI AUDIT'), findsOneWidget);
 
-      // 2. Tap AI BENCHMARK tab
-      await tester.tap(find.text('AI BENCHMARK'));
+      // 2. Tap AI AUDIT tab
+      await tester.tap(find.text('AI AUDIT'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
       // 3. Verify Intelligence Hub elements render
-      expect(find.text('NVIDIA NEMOTRON AI'), findsOneWidget);
+      expect(find.text('Run Audit'), findsWidgets);
       expect(find.text('NETWORK TRUST MATRIX'), findsOneWidget);
       expect(find.text('WEEKLY AI SHOP ANALYZER'), findsOneWidget);
-      expect(find.text('SHOP-BY-SHOP AI AUDIT CARDS'), findsOneWidget);
+      expect(find.text('SHOP AI AUDIT CARDS'), findsOneWidget);
 
       // 4. Verify Weekly Analyzer table columns
       expect(find.text('Shop Name'), findsOneWidget);

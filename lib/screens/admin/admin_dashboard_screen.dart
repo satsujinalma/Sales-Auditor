@@ -90,7 +90,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Text(
                       'HEAD APP • AUDIT MONITOR',
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
@@ -114,6 +114,43 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
         actions: [
+          // Counter Staff & Terminal Approvals with Live Badge
+          Builder(
+            builder: (ctx) {
+              final pendingCount = context.watch<AuthProvider>().pendingUsers.length;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    tooltip: 'Staff & Terminal Access',
+                    icon: const Icon(Icons.badge_outlined, color: LiquidGlassColors.accentCyan),
+                    onPressed: () => _openStaffManagementModal(ctx),
+                  ),
+                  if (pendingCount > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: LiquidGlassColors.accentAmber,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white, width: 1.2),
+                        ),
+                        child: Text(
+                          '$pendingCount',
+                          style: const TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           IconButton(
             tooltip: 'Shopkeeper Terminal Mode',
             icon: const Icon(Icons.storefront, color: LiquidGlassColors.accentEmerald),
@@ -156,15 +193,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   Expanded(
                     child: _buildTabButton(
                       index: 2,
-                      label: 'STAFF',
-                      icon: Icons.badge_outlined,
-                      badgeCount: context.watch<AuthProvider>().pendingUsers.length,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildTabButton(
-                      index: 3,
-                      label: 'AI BENCHMARK',
+                      label: 'AI AUDIT',
                       icon: Icons.auto_awesome_rounded,
                       badgeCount: _getMismatchCount(context),
                     ),
@@ -182,10 +211,45 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   context, adminProvider, selectedShop, summary)
               : _selectedTab == 1
                   ? _buildAllShopsSummaryView(context, adminProvider, shops)
-                  : _selectedTab == 2
-                      ? _buildStaffApprovalsView(
-                          context, context.watch<AuthProvider>(), adminProvider)
-                      : const AiBenchmarkView(),
+                  : const AiBenchmarkView(),
+        ),
+      ),
+    );
+  }
+
+  void _openStaffManagementModal(BuildContext context) {
+    context.read<AuthProvider>().refreshUsers();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Consumer2<AuthProvider, AdminProvider>(
+        builder: (context, authProvider, adminProvider, _) => Container(
+          height: MediaQuery.of(context).size.height * 0.88,
+          decoration: const BoxDecoration(
+            color: LiquidGlassColors.background,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: LiquidGlassColors.glassBorderGlow,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Expanded(
+                child: _buildStaffApprovalsView(
+                  context,
+                  authProvider,
+                  adminProvider,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -210,9 +274,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       borderRadius: BorderRadius.circular(9),
       onTap: () {
         setState(() => _selectedTab = index);
-        if (index == 2) {
-          context.read<AuthProvider>().refreshUsers();
-        }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

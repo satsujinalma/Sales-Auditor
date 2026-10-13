@@ -335,7 +335,7 @@ void main() {
       expect(find.text('HEAD APP • AUDIT MONITOR'), findsOneWidget);
       expect(find.text('MIRROR'), findsOneWidget);
       expect(find.text('ALL SHOPS'), findsOneWidget);
-      expect(find.text('STAFF'), findsOneWidget);
+      expect(find.byTooltip('Staff & Terminal Access'), findsOneWidget);
     });
 
     testWidgets(
