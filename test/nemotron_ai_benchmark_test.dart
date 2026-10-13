@@ -92,6 +92,7 @@ void main() {
         shop: shop2,
         summary: summary,
         config: config,
+        allowFallback: true,
       );
 
       expect(report.statusTag, AiStatusTag.mismatch);
@@ -130,6 +131,7 @@ void main() {
         shop: shop1,
         summary: summary,
         config: config,
+        allowFallback: true,
       );
 
       expect(report.statusTag, AiStatusTag.matches);
@@ -168,22 +170,60 @@ void main() {
         shop: shop1,
         summary: summary,
         config: config,
+        allowFallback: true,
       );
 
       expect(report.statusTag, AiStatusTag.closeEnough);
       expect(report.statusTag.emoji, '🟡');
       expect(report.auditSummary, contains('single-ticket volume'));
     });
+
+    test('Scenario 4: Strictly throws Exception when API key is missing and allowFallback is false', () async {
+      final service = NemotronAiService();
+      final config = AiConfig(updatedAt: DateTime.now());
+      final summary = DailySalesSummary(
+        shopId: shop1.id,
+        date: DateTime.now(),
+      );
+
+      expect(
+        () => service.auditShopSales(
+          shop: shop1,
+          summary: summary,
+          config: config,
+          allowFallback: false,
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
   });
 
   group('AI Benchmark Provider & Cloud Config Tests', () {
-    test('Provider runs full network audit and computes Trust Matrix', () async {
+    test('Provider stops and records error when API key is missing without fallback', () async {
+      final repo = MockLiveSalesRepository();
+      await repo.init();
+      await repo.saveShop(shop1);
+
+      final provider = AiBenchmarkProvider(repository: repo, allowFallback: false);
+
+      await provider.runFullNetworkAudit(
+        shops: [shop1],
+        summaries: {
+          shop1.id: DailySalesSummary(shopId: shop1.id, date: DateTime.now()),
+        },
+      );
+
+      expect(provider.reports, isEmpty);
+      expect(provider.errorMessage, contains('NVIDIA API Key not found in Cloud Database'));
+    });
+
+    test('Provider runs full network audit and computes Trust Matrix (with allowFallback: true)', () async {
       final repo = MockLiveSalesRepository();
       await repo.init();
       await repo.saveShop(shop1);
       await repo.saveShop(shop2);
 
-      final provider = AiBenchmarkProvider(repository: repo);
+      final provider = AiBenchmarkProvider(repository: repo, allowFallback: true);
 
       final summaries = {
         shop1.id: DailySalesSummary(
@@ -262,7 +302,7 @@ void main() {
       final authRepo = HybridAuthRepository(salesRepo);
       await authRepo.init();
 
-      final aiProvider = AiBenchmarkProvider(repository: salesRepo);
+      final aiProvider = AiBenchmarkProvider(repository: salesRepo, allowFallback: true);
       await aiProvider.runFullNetworkAudit(
         shops: [shop1],
         summaries: {

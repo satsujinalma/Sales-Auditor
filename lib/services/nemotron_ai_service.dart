@@ -20,6 +20,7 @@ class NemotronAiService {
     required AiConfig config,
     double? customClaimedRate,
     List<ShopAiBenchmark> pastReports = const [],
+    bool allowFallback = false,
   }) async {
     final claimedRate = customClaimedRate ?? shop.claimedAverageRate;
     final totalTickets = summary.totalTicketsSold;
@@ -31,49 +32,48 @@ class NemotronAiService {
     final singleRatio = summary.singleTicketsPercentage;
     final now = DateTime.now();
 
-    // 1. If API Key is present, attempt live NVIDIA Nemotron NIM invocation
+    // 1. If API Key is present, invoke live NVIDIA Nemotron NIM
     if (config.hasApiKey) {
-      try {
-        final liveReport = await _callNemotronApi(
-          shop: shop,
-          claimedRate: claimedRate,
-          totalTickets: totalTickets,
-          totalRevenue: totalRevenue,
-          actualAverage: actualAverage,
-          bundleTickets: bundleTickets,
-          singleTickets: singleTickets,
-          bundleRatio: bundleRatio,
-          singleRatio: singleRatio,
-          config: config,
-          pastReports: pastReports,
-          now: now,
-        );
-        if (liveReport != null) {
-          return liveReport;
-        }
-      } catch (e) {
-        debugPrint('>>> NemotronAiService live API error (using rule engine): $e');
-      }
+      return await _callNemotronApi(
+        shop: shop,
+        claimedRate: claimedRate,
+        totalTickets: totalTickets,
+        totalRevenue: totalRevenue,
+        actualAverage: actualAverage,
+        bundleTickets: bundleTickets,
+        singleTickets: singleTickets,
+        bundleRatio: bundleRatio,
+        singleRatio: singleRatio,
+        config: config,
+        pastReports: pastReports,
+        now: now,
+      );
     }
 
-    // 2. Deterministic Rule-Based Audit Engine (100% mathematical accuracy fallback)
-    return _generateRuleBasedAudit(
-      shop: shop,
-      claimedRate: claimedRate,
-      totalTickets: totalTickets,
-      totalRevenue: totalRevenue,
-      actualAverage: actualAverage,
-      bundleTickets: bundleTickets,
-      singleTickets: singleTickets,
-      bundleRatio: bundleRatio,
-      singleRatio: singleRatio,
-      modelUsed: config.hasApiKey ? '${config.modelName} (Rule-Assisted)' : 'Nemotron Rule Engine (Local)',
-      now: now,
+    // 2. Offline fallback only if explicitly permitted (e.g., test mocks)
+    if (allowFallback) {
+      return _generateRuleBasedAudit(
+        shop: shop,
+        claimedRate: claimedRate,
+        totalTickets: totalTickets,
+        totalRevenue: totalRevenue,
+        actualAverage: actualAverage,
+        bundleTickets: bundleTickets,
+        singleTickets: singleTickets,
+        bundleRatio: bundleRatio,
+        singleRatio: singleRatio,
+        modelUsed: 'Rule Engine Test',
+        now: now,
+      );
+    }
+
+    throw Exception(
+      'NVIDIA API Key not found in Cloud Database. Please add apiKey in Firestore (settings/ai_config or settings/admin_config) to run live AI audits.',
     );
   }
 
   /// Calls NVIDIA Nemotron API via standard OpenAI-compatible endpoint
-  Future<ShopAiBenchmark?> _callNemotronApi({
+  Future<ShopAiBenchmark> _callNemotronApi({
     required Shop shop,
     required double claimedRate,
     required int totalTickets,
@@ -133,20 +133,32 @@ class NemotronAiService {
           },
           body: jsonEncode(requestBody),
         )
-        .timeout(const Duration(seconds: 12));
+        .timeout(const Duration(seconds: 20));
 
     if (response.statusCode != 200) {
-      debugPrint('>>> Nemotron API returned code ${response.statusCode}: ${response.body}');
-      return null;
+      String detail = response.body;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['message'] != null) {
+          detail = decoded['message'].toString();
+        } else if (decoded is Map && decoded['error'] != null) {
+          detail = decoded['error'].toString();
+        }
+      } catch (_) {}
+      throw Exception('NVIDIA API Error (${response.statusCode}): $detail');
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final choices = data['choices'] as List<dynamic>?;
-    if (choices == null || choices.isEmpty) return null;
+    if (choices == null || choices.isEmpty) {
+      throw Exception('NVIDIA API returned empty response.');
+    }
 
     final content = choices.first['message']?['content'] as String? ?? '';
     final parsed = _extractJsonFromContent(content);
-    if (parsed == null) return null;
+    if (parsed == null) {
+      throw Exception('NVIDIA AI output could not be parsed as JSON: $content');
+    }
 
     final statusTagStr = parsed['statusTag'] as String? ?? 'Matches';
     final statusTag = AiStatusTag.fromString(statusTagStr);

@@ -72,7 +72,100 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
           // 1. Intelligence Hub Header & Model Info
           _buildNemotronBrandHeader(context, benchmarkProvider, shops, summaries),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
+
+          // Status Banner: Missing API Key or Real AI Error
+          if (!benchmarkProvider.config.hasApiKey) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: LiquidGlassColors.accentAmber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: LiquidGlassColors.accentAmber.withValues(alpha: 0.4),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.vpn_key_off_outlined,
+                    size: 18,
+                    color: LiquidGlassColors.accentAmber,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Awaiting NVIDIA API Key in Cloud Database',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: LiquidGlassColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Add "apiKey" in Firestore settings/ai_config (or settings/admin_config) to run live AI audits.',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: LiquidGlassColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ] else if (benchmarkProvider.errorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: LiquidGlassColors.accentRose.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: LiquidGlassColors.accentRose.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    size: 18,
+                    color: LiquidGlassColors.accentRose,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'NVIDIA AI Audit Error',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: LiquidGlassColors.accentRose,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          benchmarkProvider.errorMessage!,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: LiquidGlassColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // 2. Network Trust Matrix
           _buildNetworkTrustMatrix(context, matrix, benchmarkProvider.isAuditing),
@@ -168,24 +261,28 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     List<Shop> shops,
     Map<String, DailySalesSummary> summaries,
   ) {
+    final bool hasKey = aiProvider.config.hasApiKey;
+
     return LiquidGlassContainer(
       borderRadius: 14,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: Border.all(
-        color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.25),
+        color: (hasKey ? LiquidGlassColors.accentEmerald : LiquidGlassColors.accentAmber)
+            .withValues(alpha: 0.25),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: LiquidGlassColors.accentEmerald.withValues(alpha: 0.15),
+              color: (hasKey ? LiquidGlassColors.accentEmerald : LiquidGlassColors.accentAmber)
+                  .withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.auto_awesome,
+            child: Icon(
+              hasKey ? Icons.auto_awesome : Icons.vpn_key_outlined,
               size: 16,
-              color: LiquidGlassColors.accentEmerald,
+              color: hasKey ? LiquidGlassColors.accentEmerald : LiquidGlassColors.accentAmber,
             ),
           ),
           const SizedBox(width: 8),
@@ -212,10 +309,12 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
                     ),
                     const SizedBox(width: 5),
                     Container(
-                      width: 5,
-                      height: 5,
-                      decoration: const BoxDecoration(
-                        color: LiquidGlassColors.accentEmerald,
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: hasKey
+                            ? LiquidGlassColors.accentEmerald
+                            : LiquidGlassColors.accentAmber,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -223,11 +322,16 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  'Cloud Synced • Math & Mix Audit',
+                  hasKey
+                      ? 'Cloud Synced • Live NVIDIA AI'
+                      : 'API Key Missing in Database',
                   style: TextStyle(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w500,
-                    color: LiquidGlassColors.textSecondary.withValues(alpha: 0.9),
+                    color: (hasKey
+                            ? LiquidGlassColors.textSecondary
+                            : LiquidGlassColors.accentAmber)
+                        .withValues(alpha: 0.9),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -242,6 +346,17 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               onPressed: aiProvider.isAuditing
                   ? null
                   : () {
+                      if (!hasKey && !aiProvider.allowFallback) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'NVIDIA API Key not found in Cloud Database. Please add apiKey in Firestore settings/ai_config.',
+                            ),
+                            backgroundColor: LiquidGlassColors.accentRose,
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                      }
                       aiProvider.runFullNetworkAudit(
                         shops: shops,
                         summaries: summaries,
@@ -1425,25 +1540,36 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     List<Shop> shops,
     Map<String, DailySalesSummary> summaries,
   ) {
+    final bool hasKey = aiProvider.config.hasApiKey || aiProvider.allowFallback;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
       decoration: BoxDecoration(
         color: LiquidGlassColors.surfaceCard.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: LiquidGlassColors.glassBorderLight),
+        border: Border.all(
+          color: hasKey
+              ? LiquidGlassColors.glassBorderLight
+              : LiquidGlassColors.accentAmber.withValues(alpha: 0.3),
+        ),
       ),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.auto_awesome_outlined,
+              hasKey ? Icons.auto_awesome_outlined : Icons.vpn_key_off_outlined,
               size: 26,
-              color: LiquidGlassColors.accentViolet.withValues(alpha: 0.8),
+              color: (hasKey
+                      ? LiquidGlassColors.accentViolet
+                      : LiquidGlassColors.accentAmber)
+                  .withValues(alpha: 0.8),
             ),
             const SizedBox(height: 8),
             Text(
-              '${shops.length} Retail Shops Awaiting AI Verification',
+              hasKey
+                  ? '${shops.length} Retail Shops Awaiting AI Verification'
+                  : 'NVIDIA API Key Required',
               style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w800,
@@ -1451,11 +1577,15 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Nemotron-3 Super audits 12-ticket bundle ratios, claimed margins & past patterns in real time.',
+            Text(
+              hasKey
+                  ? 'Nemotron AI audits 12-ticket bundle ratios, claimed margins & past patterns in real time.'
+                  : 'Add "apiKey" in Firestore (settings/ai_config or settings/admin_config) to enable live Nemotron AI audits.',
               style: TextStyle(
                 fontSize: 10.5,
-                color: LiquidGlassColors.textSecondary,
+                color: hasKey
+                    ? LiquidGlassColors.textSecondary
+                    : LiquidGlassColors.accentAmber.withValues(alpha: 0.9),
               ),
               textAlign: TextAlign.center,
             ),

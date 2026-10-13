@@ -9,8 +9,9 @@ import '../services/nemotron_ai_service.dart';
 import '../services/sales_repository.dart';
 
 class AiBenchmarkProvider extends ChangeNotifier {
-  final SalesRepository _repository;
+  final SalesRepository repository;
   final NemotronAiService _aiService;
+  final bool allowFallback;
 
   AiConfig _config = AiConfig(updatedAt: DateTime.now());
   List<ShopAiBenchmark> _reports = [];
@@ -20,8 +21,9 @@ class AiBenchmarkProvider extends ChangeNotifier {
   ShopAiBenchmark? _selectedReport;
 
   AiBenchmarkProvider({
-    required this._repository,
+    required this.repository,
     NemotronAiService? aiService,
+    this.allowFallback = false,
   })  : _aiService = aiService ?? NemotronAiService() {
     _init();
   }
@@ -53,7 +55,11 @@ class AiBenchmarkProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _config = await _repository.getAiConfig();
+      _config = await repository.getAiConfig();
+      if (!_config.hasApiKey && !allowFallback) {
+        _errorMessage =
+            'Awaiting NVIDIA API Key in Cloud Database. Add apiKey in Firestore (settings/ai_config or settings/admin_config).';
+      }
     } catch (e) {
       debugPrint('>>> AiBenchmarkProvider init error: $e');
     } finally {
@@ -75,7 +81,14 @@ class AiBenchmarkProvider extends ChangeNotifier {
 
     try {
       // Refresh AI Config
-      _config = await _repository.getAiConfig();
+      _config = await repository.getAiConfig();
+
+      if (!_config.hasApiKey && !allowFallback) {
+        _errorMessage =
+            'NVIDIA API Key not found in Cloud Database. Please add apiKey in Firestore (settings/ai_config or settings/admin_config) to run live AI audits.';
+        _reports = [];
+        return;
+      }
 
       final List<ShopAiBenchmark> newReports = [];
 
@@ -91,6 +104,7 @@ class AiBenchmarkProvider extends ChangeNotifier {
           config: _config,
           customClaimedRate: shop.claimedAverageRate,
           pastReports: past,
+          allowFallback: allowFallback,
         );
         newReports.add(report);
       }
@@ -100,7 +114,7 @@ class AiBenchmarkProvider extends ChangeNotifier {
         _selectedReport = getReportForShop(_selectedReport!.shopId);
       }
     } catch (e) {
-      _errorMessage = 'Audit run encountered an error: $e';
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
       _isAuditing = false;
       notifyListeners();
@@ -117,9 +131,18 @@ class AiBenchmarkProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _config = await repository.getAiConfig();
+      if (!_config.hasApiKey && !allowFallback) {
+        _errorMessage =
+            'NVIDIA API Key not found in Cloud Database. Please add apiKey in Firestore (settings/ai_config or settings/admin_config).';
+        _isAuditing = false;
+        notifyListeners();
+        return null;
+      }
+
       // 1. Update shop with new claimed rate in repository
       final updatedShop = shop.copyWith(claimedAverageRate: claimedRate);
-      await _repository.saveShop(updatedShop);
+      await repository.saveShop(updatedShop);
 
       // 2. Run AI audit
       final report = await _aiService.auditShopSales(
@@ -127,6 +150,7 @@ class AiBenchmarkProvider extends ChangeNotifier {
         summary: summary,
         config: _config,
         customClaimedRate: claimedRate,
+        allowFallback: allowFallback,
       );
 
       // 3. Update report in memory
@@ -168,7 +192,7 @@ class AiBenchmarkProvider extends ChangeNotifier {
         updatedAt: DateTime.now(),
       );
 
-      await _repository.saveAiConfig(updated);
+      await repository.saveAiConfig(updated);
       _config = updated;
       notifyListeners();
       return true;
