@@ -235,20 +235,7 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
               ],
             ),
           ),
-          const SizedBox(width: 6),
-          IconButton(
-            tooltip: 'Cloud Database AI Key',
-            icon: const Icon(
-              Icons.key_rounded,
-              size: 15,
-              color: LiquidGlassColors.textMuted,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-            splashRadius: 14,
-            onPressed: () => _showAiConfigDialog(context, aiProvider),
-          ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
           SizedBox(
             height: 30,
             child: ElevatedButton.icon(
@@ -1407,95 +1394,7 @@ class _AiBenchmarkViewState extends State<AiBenchmarkView> {
     );
   }
 
-  /// NVIDIA AI Cloud API Key Configuration Dialog
-  void _showAiConfigDialog(BuildContext context, AiBenchmarkProvider aiProvider) {
-    final keyController = TextEditingController(text: aiProvider.config.apiKey);
-    final modelController = TextEditingController(text: aiProvider.config.modelName);
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: LiquidGlassColors.surfaceLight,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.shield_outlined, size: 20, color: LiquidGlassColors.accentEmerald),
-            SizedBox(width: 8),
-            Text(
-              'NVIDIA AI Cloud Database Config',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: 440,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'The API key is securely saved in the Cloud Database (Firestore settings/ai_config) and accessible only to authenticated Admins.',
-                style: TextStyle(fontSize: 11.5, color: LiquidGlassColors.textSecondary),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: keyController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'NVIDIA API Key',
-                  hintText: 'nvapi-...',
-                  prefixIcon: const Icon(Icons.key, size: 18),
-                  filled: true,
-                  fillColor: LiquidGlassColors.surfaceCard,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: modelController,
-                decoration: InputDecoration(
-                  labelText: 'Model Identifier',
-                  hintText: 'nvidia/nemotron-3-super-120b-a12b',
-                  prefixIcon: const Icon(Icons.smart_toy_outlined, size: 18),
-                  filled: true,
-                  fillColor: LiquidGlassColors.surfaceCard,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await aiProvider.saveAiConfig(
-                apiKey: keyController.text.trim(),
-                modelName: modelController.text.trim(),
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('AI Configuration saved to Cloud Database!'),
-                    backgroundColor: LiquidGlassColors.accentEmerald,
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: LiquidGlassColors.accentEmerald,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Save to Cloud'),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildLoadingIndicator() {
     return Center(
