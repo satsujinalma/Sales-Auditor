@@ -111,8 +111,7 @@ class NemotronAiService {
               '1) "Matches" (🟢 Math & bundle mix match claimed average within ₹0.35) '
               '2) "Close Enough" (🟡 Variance within acceptable margin due to single ticket purchases) '
               '3) "Mismatch" (🔴 Claimed low average but high bundle volume proves average is higher). '
-              'Always generate simple reports with depth for retailer settlements. '
-              'Always specify "🤖 *Audited by:* NVDIA AI" in the whatsappProofText. '
+              'Always provide depth in simple professional terms for weekly retailer settlements. '
               'Always respond strictly with a valid JSON object matching the requested schema with no extra prose.',
         },
         {
@@ -121,7 +120,7 @@ class NemotronAiService {
         }
       ],
       'temperature': 0.2,
-      'max_tokens': 600,
+      'max_tokens': 1024,
     };
 
     final response = await _client
@@ -168,7 +167,9 @@ class NemotronAiService {
         'Bundle ratio: ${bundleRatio.toStringAsFixed(1)}% ($bundleTickets tkt) vs Singles: ${singleRatio.toStringAsFixed(1)}% ($singleTickets tkt).';
     final habitTrackingAnalysis = parsed['habitTrackingAnalysis'] as String? ??
         'Evaluated across daily sales volume records.';
-    final defaultProof = _buildDefaultWhatsAppProof(
+    final settlementInsight = parsed['settlementInsight'] as String?;
+
+    final whatsappProof = _buildDefaultWhatsAppProof(
       shop: shop,
       claimedRate: claimedRate,
       totalTickets: totalTickets,
@@ -179,11 +180,8 @@ class NemotronAiService {
       bundleRatio: bundleRatio,
       statusTag: statusTag,
       auditSummary: auditSummary,
+      settlementDepth: settlementInsight,
       now: now,
-    );
-    final whatsappProof = _normalizeWhatsAppProof(
-      parsed['whatsappProofText'] as String?,
-      defaultProof: defaultProof,
     );
 
     return ShopAiBenchmark(
@@ -325,7 +323,7 @@ Required Output JSON Format:
   "auditSummary": "1-2 concise professional sentences for the distributor table",
   "ticketMixAnalysis": "Explanation of bundle vs singles mix",
   "habitTrackingAnalysis": "Assessment of reporting habit",
-  "whatsappProofText": "Full formatted WhatsApp proof text with '🤖 *Audited by:* NVDIA AI', exact figures, emojis, and deep settlement insight"
+  "settlementInsight": "Depth and settlement insight for the distributor"
 }
 ''';
   }
@@ -341,19 +339,22 @@ Required Output JSON Format:
     required double bundleRatio,
     required AiStatusTag statusTag,
     required String auditSummary,
+    String? settlementDepth,
     required DateTime now,
   }) {
     final dateStr = DateFormat('dd-MM-yyyy').format(now);
     final variance = actualAverage - claimedRate;
     final sign = variance >= 0 ? '+' : '';
     final singleRatio = (100.0 - bundleRatio).clamp(0.0, 100.0);
-    final settlementDepth = _generateSettlementInsight(
-      statusTag: statusTag,
-      bundleRatio: bundleRatio,
-      singleRatio: singleRatio,
-      claimedRate: claimedRate,
-      actualAverage: actualAverage,
-    );
+    final depth = (settlementDepth != null && settlementDepth.trim().isNotEmpty)
+        ? settlementDepth.trim()
+        : _generateSettlementInsight(
+            statusTag: statusTag,
+            bundleRatio: bundleRatio,
+            singleRatio: singleRatio,
+            claimedRate: claimedRate,
+            actualAverage: actualAverage,
+          );
 
     return '''
 🚨 *KERALA LOTTERY SALES AUDIT REPORT* 🚨
@@ -377,7 +378,7 @@ Required Output JSON Format:
 $auditSummary
 
 💡 *AUDIT DEPTH & SETTLEMENT INSIGHT:*
-$settlementDepth
+$depth
 
 🔒 *Verified & Signed by Distributor Sales Audit Engine*
 ''';
@@ -400,40 +401,59 @@ $settlementDepth
     }
   }
 
-  String _normalizeWhatsAppProof(String? rawProof, {required String defaultProof}) {
-    if (rawProof == null || rawProof.trim().isEmpty) return defaultProof;
-    var proof = rawProof;
-    if (proof.contains('Nemotron-3 Super AI') ||
-        proof.contains('NVIDIA Nemotron-3 Super') ||
-        proof.contains('Nemotron') ||
-        proof.contains('NVIDIA AI') ||
-        proof.contains('Engine:')) {
-      proof = proof.replaceAll(
-        RegExp(r'(Audited by:\*|Engine:\*)\s*.*'),
-        'Audited by:* NVDIA AI',
-      );
-    }
-    if (!proof.contains('NVDIA AI')) {
-      return defaultProof;
-    }
-    return proof;
-  }
-
   Map<String, dynamic>? _extractJsonFromContent(String content) {
     try {
-      final trimmed = content.trim();
-      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-        return jsonDecode(trimmed) as Map<String, dynamic>;
+      var cleaned = content.trim();
+      if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.substring(7);
+      } else if (cleaned.startsWith('```')) {
+        cleaned = cleaned.substring(3);
       }
-      final start = content.indexOf('{');
-      final end = content.lastIndexOf('}');
+      if (cleaned.endsWith('```')) {
+        cleaned = cleaned.substring(0, cleaned.length - 3);
+      }
+      cleaned = cleaned.trim();
+
+      final start = cleaned.indexOf('{');
+      final end = cleaned.lastIndexOf('}');
       if (start != -1 && end != -1 && end > start) {
-        final jsonSub = content.substring(start, end + 1);
-        return jsonDecode(jsonSub) as Map<String, dynamic>;
+        final jsonSub = cleaned.substring(start, end + 1);
+        try {
+          return jsonDecode(jsonSub) as Map<String, dynamic>;
+        } catch (_) {
+          final relaxed = jsonSub.replaceAll(RegExp(r',\s*([\}\]])'), r'$1');
+          return jsonDecode(relaxed) as Map<String, dynamic>;
+        }
       }
     } catch (e) {
-      debugPrint('>>> Failed to parse JSON from AI response: $e');
+      debugPrint('>>> Failed standard JSON parse from AI response: $e');
     }
+
+    // Secondary fallback: regex extraction so we NEVER fail on partial truncation
+    try {
+      final statusMatch = RegExp(r'"statusTag"\s*:\s*"([^"]+)"').firstMatch(content);
+      final summaryMatch = RegExp(r'"auditSummary"\s*:\s*"([^"]+)"').firstMatch(content);
+      final mixMatch = RegExp(r'"ticketMixAnalysis"\s*:\s*"([^"]+)"').firstMatch(content);
+      final habitMatch = RegExp(r'"habitTrackingAnalysis"\s*:\s*"([^"]+)"').firstMatch(content);
+      final insightMatch = RegExp(r'"settlementInsight"\s*:\s*"([^"]+)"').firstMatch(content);
+
+      if (statusMatch != null) {
+        return {
+          'statusTag': statusMatch.group(1),
+          if (summaryMatch != null) 'auditSummary': summaryMatch.group(1),
+          if (mixMatch != null) 'ticketMixAnalysis': mixMatch.group(1),
+          if (habitMatch != null) 'habitTrackingAnalysis': habitMatch.group(1),
+          if (insightMatch != null) 'settlementInsight': insightMatch.group(1),
+        };
+      }
+    } catch (e) {
+      debugPrint('>>> Regex extraction fallback error: $e');
+    }
+
     return null;
   }
+
+  @visibleForTesting
+  Map<String, dynamic>? extractJsonForTesting(String content) =>
+      _extractJsonFromContent(content);
 }

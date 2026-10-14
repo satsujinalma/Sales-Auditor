@@ -196,6 +196,24 @@ void main() {
         throwsA(isA<Exception>()),
       );
     });
+
+    test('Scenario 5: Successfully extracts fields from truncated or fenced responses', () {
+      final service = NemotronAiService();
+      const truncatedJson = '''
+{
+  "statusTag": "Matches",
+  "auditSummary": "Claimed average ₹47.20 matches actual weighted average ₹47.50 within ₹0.35 tolerance, indicating accurate reporting.",
+  "ticketMixAnalysis": "All 12 tickets sold were part of a 12-ticket bundle (100% bundle sales), with no single-ticket transactions.",
+  "habitTrackingAnalysis": "Retailer consistently reports averages close to actuals, suggesting reliable recording habits.",
+  "whatsappProofText": "🧾 *
+''';
+      final parsed = service.extractJsonForTesting(truncatedJson);
+      expect(parsed, isNotNull);
+      expect(parsed!['statusTag'], 'Matches');
+      expect(parsed['auditSummary'], contains('within ₹0.35 tolerance'));
+      expect(parsed['ticketMixAnalysis'], contains('100% bundle sales'));
+      expect(parsed['habitTrackingAnalysis'], contains('reliable recording habits'));
+    });
   });
 
   group('AI Benchmark Provider & Cloud Config Tests', () {
