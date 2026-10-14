@@ -123,16 +123,28 @@ class NemotronAiService {
       'max_tokens': 1024,
     };
 
-    final response = await _client
-        .post(
-          Uri.parse(config.endpointUrl),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${config.apiKey.trim()}',
-          },
-          body: jsonEncode(requestBody),
-        )
-        .timeout(const Duration(seconds: 20));
+    final http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse(config.endpointUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${config.apiKey.trim()}',
+            },
+            body: jsonEncode(requestBody),
+          )
+          .timeout(const Duration(seconds: 25));
+    } catch (e) {
+      if (kIsWeb && (e.toString().contains('Failed to fetch') || e.toString().contains('ClientException'))) {
+        throw Exception(
+          'Web Browser CORS Block: Direct API calls to NVIDIA are blocked by browser security (CORS) on Web. '
+          'Native Android & iOS mobile apps do not have CORS restrictions and connect directly. '
+          'For web testing, start Chrome with: flutter run -d chrome --web-browser-flag "--disable-web-security"',
+        );
+      }
+      rethrow;
+    }
 
     if (response.statusCode != 200) {
       String detail = response.body;
